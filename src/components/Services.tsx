@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import ContactFormDialog from '@/components/ContactFormDialog';
+import CountdownTimer from '@/components/CountdownTimer';
 
 const Services = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
@@ -356,6 +357,8 @@ const Services = () => {
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Des milliers d'entrepreneurs africains ont déjà pris leur envol grâce aux Meta Ads. C'est ton tour maintenant.
           </p>
+          
+          <CountdownTimer />
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <div className="text-center">
