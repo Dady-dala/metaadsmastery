@@ -40,35 +40,35 @@ const CountdownTimer = () => {
   }, []);
 
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
-    <div className="flex flex-col items-center bg-black/60 border border-yellow-400/30 rounded-lg p-4 min-w-[80px]">
-      <div className="text-4xl md:text-5xl font-bold text-yellow-400 tabular-nums">
+    <div className="flex flex-col items-center bg-black/60 border border-yellow-400/30 rounded-lg p-3 sm:p-4 min-w-[60px] sm:min-w-[80px]">
+      <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-yellow-400 tabular-nums">
         {value.toString().padStart(2, '0')}
       </div>
-      <div className="text-gray-400 text-sm mt-2 uppercase tracking-wider">{label}</div>
+      <div className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2 uppercase tracking-wider">{label}</div>
     </div>
   );
 
   return (
-    <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border-2 border-red-500/50 rounded-xl p-8 my-8">
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <Clock className="w-6 h-6 text-red-500 animate-pulse" />
-        <h3 className="text-2xl font-bold text-white">
+    <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border-2 border-red-500/50 rounded-xl p-4 sm:p-6 md:p-8 my-6 sm:my-8">
+      <div className="flex items-center justify-center gap-2 mb-4 sm:mb-6 flex-wrap text-center">
+        <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 animate-pulse" />
+        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
           ⏰ L'Offre de Lancement Expire Dans :
         </h3>
       </div>
       
-      <div className="flex justify-center gap-3 md:gap-6 mb-6">
+      <div className="flex justify-center gap-2 sm:gap-3 md:gap-6 mb-4 sm:mb-6">
         <TimeUnit value={timeLeft.days} label="Jours" />
         <TimeUnit value={timeLeft.hours} label="Heures" />
-        <TimeUnit value={timeLeft.minutes} label="Minutes" />
-        <TimeUnit value={timeLeft.seconds} label="Secondes" />
+        <TimeUnit value={timeLeft.minutes} label="Min" />
+        <TimeUnit value={timeLeft.seconds} label="Sec" />
       </div>
 
-      <div className="text-center">
-        <p className="text-red-400 font-bold text-lg">
+      <div className="text-center px-2">
+        <p className="text-red-400 font-bold text-base sm:text-lg">
           🔥 Après expiration, le prix passe à $229 !
         </p>
-        <p className="text-gray-300 text-sm mt-2">
+        <p className="text-gray-300 text-xs sm:text-sm mt-2">
           Ne laisse pas passer cette opportunité unique
         </p>
       </div>

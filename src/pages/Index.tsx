@@ -1,5 +1,4 @@
 import ModernHeader from '@/components/ModernHeader';
-import SmartBar from '@/components/SmartBar';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
@@ -30,7 +29,6 @@ const Index = () => {
       <StructuredData type="organization" />
       <StructuredData type="service" services={services} />
       
-      <SmartBar />
       <ModernHeader />
       <Hero />
       <div id="services">

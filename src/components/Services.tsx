@@ -172,36 +172,36 @@ const Services = () => {
   return (
     <>
       {/* Problèmes Résolus */}
-      <section className="relative py-20 cinematic-section overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 cinematic-section overflow-hidden">
         <div className="absolute top-10 left-10 w-64 h-64 bg-red-500/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-10 right-10 w-80 h-80 bg-red-500/20 rounded-full blur-3xl"></div>
         
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 cinematic-text-shadow">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 sm:mb-6 cinematic-text-shadow px-2">
               Ces Problèmes Te Parlent ?
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto px-4">
               Si tu coches au moins 2 de ces cases, cette formation va changer la donne pour toi.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             {problems.map((item, index) => (
               <Card key={index} className="bg-black/40 border-red-500/20 hover:border-red-500/40 transition-all">
-                <CardContent className="flex items-start gap-4 p-6">
-                  <item.icon className="w-6 h-6 text-red-500 flex-shrink-0 mt-1" />
-                  <p className="text-gray-200 text-lg">{item.problem}</p>
+                <CardContent className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6">
+                  <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-1" />
+                  <p className="text-gray-200 text-sm sm:text-base md:text-lg">{item.problem}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <p className="text-2xl font-bold text-yellow-400 mb-4">
+          <div className="text-center mt-8 sm:mt-10 md:mt-12 px-4">
+            <p className="text-xl sm:text-2xl font-bold text-yellow-400 mb-3 sm:mb-4">
               ✋ STOP ! Il est temps de passer à l'action.
             </p>
-            <p className="text-xl text-gray-300">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300">
               Meta Ads Mastery t'apprend EXACTEMENT comment résoudre tous ces problèmes.
             </p>
           </div>
@@ -209,22 +209,22 @@ const Services = () => {
       </section>
 
       {/* Ce Que Tu Vas Apprendre */}
-      <section className="relative py-20 bg-gradient-to-b from-background to-background/80">
+      <section className="relative py-12 sm:py-16 md:py-20 bg-gradient-to-b from-background to-background/80">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 cinematic-text-shadow">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 sm:mb-6 cinematic-text-shadow px-2">
               Voici Ce Que Tu Vas Maîtriser
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto px-4">
               Une formation complète, structurée, et orientée résultats.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
             {learnings.map((learning, index) => (
-              <div key={index} className="flex items-start gap-3 p-4 rounded-lg bg-black/20 border border-primary/10 hover:border-primary/30 transition-all">
-                <CheckCircle className="w-6 h-6 text-green-500 flex-shrink-0 mt-1" />
-                <p className="text-gray-200 text-lg">{learning}</p>
+              <div key={index} className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-black/20 border border-primary/10 hover:border-primary/30 transition-all">
+                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5 sm:mt-1" />
+                <p className="text-gray-200 text-sm sm:text-base md:text-lg">{learning}</p>
               </div>
             ))}
           </div>
@@ -347,46 +347,46 @@ const Services = () => {
       </section>
 
       {/* CTA Final */}
-      <section className="relative py-20 cinematic-section overflow-hidden">
+      <section className="relative py-12 sm:py-16 md:py-20 cinematic-section overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10"></div>
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 cinematic-text-shadow">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-4 sm:mb-6 cinematic-text-shadow px-2">
             Prêt à Transformer Ton Business Avec Facebook Ads ?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
             Des milliers d'entrepreneurs africains ont déjà pris leur envol grâce aux Meta Ads. C'est ton tour maintenant.
           </p>
           
           <CountdownTimer />
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
             <div className="text-center">
-              <p className="text-gray-400 line-through text-2xl">$229</p>
-              <p className="text-yellow-400 text-5xl font-bold">$49.99</p>
-              <p className="text-gray-300 text-sm mt-2">Offre de Lancement Limitée</p>
+              <p className="text-gray-400 line-through text-xl sm:text-2xl">$229</p>
+              <p className="text-yellow-400 text-4xl sm:text-5xl font-bold">$49.99</p>
+              <p className="text-gray-300 text-xs sm:text-sm mt-2">Offre de Lancement Limitée</p>
             </div>
           </div>
 
           <Button 
             size="lg" 
-            className="cinematic-cta text-xl px-12 py-8 font-bold shadow-2xl hover:shadow-glow transition-all duration-500 transform hover:scale-105"
+            className="cinematic-cta text-base sm:text-lg md:text-xl px-8 sm:px-10 md:px-12 py-6 sm:py-7 md:py-8 font-bold shadow-2xl hover:shadow-glow transition-all duration-500 transform hover:scale-105 w-full sm:w-auto"
             onClick={() => setIsContactDialogOpen(true)}
           >
             Je Rejoins Meta Ads Mastery Maintenant →
           </Button>
 
-          <div className="mt-8 flex items-center justify-center gap-6 text-gray-300 flex-wrap">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
+          <div className="mt-6 sm:mt-8 flex items-center justify-center gap-4 sm:gap-6 text-gray-300 flex-wrap px-4">
+            <div className="flex items-center gap-2 text-sm sm:text-base">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
               <span>Accès Immédiat</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
+            <div className="flex items-center gap-2 text-sm sm:text-base">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
               <span>Garantie 30 Jours</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
+            <div className="flex items-center gap-2 text-sm sm:text-base">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
               <span>Paiement Sécurisé</span>
             </div>
           </div>

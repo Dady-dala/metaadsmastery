@@ -115,51 +115,51 @@ const Testimonials = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {testimonials.map((testimonial, index) => (
             <Card key={index} className="bg-gradient-to-br from-black/60 to-black/40 border-primary/20 hover:border-primary/40 transition-all hover:scale-105 duration-300">
-              <CardHeader className="space-y-4">
-                <div className="flex items-center gap-4">
+              <CardHeader className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <img 
                     src={testimonial.image} 
                     alt={testimonial.name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-primary/50"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-2 border-primary/50"
                   />
                   <div>
-                    <h3 className="text-xl font-bold text-white">{testimonial.name}</h3>
-                    <p className="text-gray-400 text-sm">{testimonial.location}</p>
-                    <p className="text-primary text-sm font-semibold">{testimonial.business}</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-white">{testimonial.name}</h3>
+                    <p className="text-gray-400 text-xs sm:text-sm">{testimonial.location}</p>
+                    <p className="text-primary text-xs sm:text-sm font-semibold">{testimonial.business}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    <Star key={i} className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
                   ))}
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-green-400 font-bold text-lg">
-                    <TrendingUp className="w-5 h-5" />
+                  <div className="flex items-center gap-2 text-green-400 font-bold text-base sm:text-lg">
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                     {testimonial.result}
                   </div>
-                  <div className="text-gray-300 text-sm">
-                    <p><DollarSign className="w-4 h-4 inline mr-1" />{testimonial.investment}</p>
-                    <p><Users className="w-4 h-4 inline mr-1" />{testimonial.revenue}</p>
+                  <div className="text-gray-300 text-xs sm:text-sm">
+                    <p><DollarSign className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />{testimonial.investment}</p>
+                    <p><Users className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />{testimonial.revenue}</p>
                   </div>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <p className="text-gray-300 italic leading-relaxed">
+              <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
+                <p className="text-gray-300 italic leading-relaxed text-sm sm:text-base">
                   "{testimonial.testimonial}"
                 </p>
 
-                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-primary/20">
+                <div className="grid grid-cols-3 gap-2 pt-3 sm:pt-4 border-t border-primary/20">
                   {testimonial.metrics.map((metric, idx) => (
                     <div key={idx} className="text-center">
-                      <p className="text-primary font-bold text-lg">{metric.value}</p>
-                      <p className="text-gray-400 text-xs">{metric.label}</p>
+                      <p className="text-primary font-bold text-base sm:text-lg">{metric.value}</p>
+                      <p className="text-gray-400 text-[10px] sm:text-xs">{metric.label}</p>
                     </div>
                   ))}
                 </div>
