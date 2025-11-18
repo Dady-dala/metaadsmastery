@@ -24,6 +24,7 @@ import VideoProduction from "./pages/VideoProduction";
 import CreatorLed from "./pages/CreatorLed";
 import Schedule from "./pages/Schedule";
 import VideoGrowth from "./pages/VideoGrowth";
+import ThankYou from "./pages/ThankYou";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/video-growth" element={<VideoGrowth />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/merci" element={<ThankYou />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

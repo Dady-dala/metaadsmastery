@@ -15,6 +15,7 @@ const contactSchema = z.object({
   firstName: z.string().trim().min(1, { message: "Le prénom est requis" }).max(100),
   lastName: z.string().trim().min(1, { message: "Le nom est requis" }).max(100),
   email: z.string().trim().email({ message: "Email invalide" }).max(255),
+  phoneNumber: z.string().trim().min(1, { message: "Le numéro de téléphone est requis" }).max(20),
 });
 
 const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => {
@@ -44,6 +45,7 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
               firstName: formData.get('firstName') as string,
               lastName: formData.get('lastName') as string,
               email: formData.get('email') as string,
+              phoneNumber: formData.get('phoneNumber') as string,
             };
             
             try {
@@ -57,16 +59,13 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
                   first_name: validated.firstName,
                   last_name: validated.lastName,
                   email: validated.email,
+                  phone_number: validated.phoneNumber,
                 });
               
               if (error) throw error;
               
-              form.reset();
-              onOpenChange(false);
-              toast({
-                title: "Succès !",
-                description: "Merci ! Nous vous contacterons bientôt.",
-              });
+              // Redirect to thank you page
+              window.location.href = '/merci';
             } catch (error) {
               if (error instanceof z.ZodError) {
                 const fieldErrors: Record<string, string> = {};
@@ -121,6 +120,17 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
             />
             {errors.email && (
               <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+            )}
+          </div>
+          <div>
+            <Input
+              name="phoneNumber"
+              type="tel"
+              placeholder="Numéro de téléphone"
+              required
+            />
+            {errors.phoneNumber && (
+              <p className="text-sm text-red-500 mt-1">{errors.phoneNumber}</p>
             )}
           </div>
           <Button type="submit" size="lg" className="w-full cinematic-cta" disabled={isSubmitting}>
