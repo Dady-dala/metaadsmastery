@@ -51,7 +51,7 @@ const Hero = () => {
           textWrap: 'balance',
           lineHeight: '1.15'
         }}>
-            <span className="cinematic-gradient-text cinematic-text-shadow">We Guarantee 2X More Clients in 90 Days With Our Done-For-You Video Growth System Or You Don't Pay</span>
+            <span className="cinematic-gradient-text cinematic-text-shadow">La méthode exacte pour transformer 5$ de publicité en 50$ de ventes, dominer votre marché et automatiser votre croissance grâce à Facebook & Instagram.</span>
           </h1>
         </div>
 
