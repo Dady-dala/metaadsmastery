@@ -18,10 +18,10 @@ const ModernHeader = () => {
     <>
       <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-background/95 backdrop-blur-xl shadow-lg border-b border-border/50' : 'bg-background/90 backdrop-blur-md border-b border-border/30'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <div className="text-2xl font-bold gradient-text">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold gradient-text">
                 Meta Ads Mastery
               </div>
             </div>
@@ -29,10 +29,11 @@ const ModernHeader = () => {
             {/* CTA Button */}
             <Button 
               onClick={() => setIsDialogOpen(true)}
-              size="lg"
-              className="cinematic-cta font-semibold"
+              size="default"
+              className="cinematic-cta font-semibold text-xs sm:text-sm md:text-base px-4 sm:px-6 py-2 sm:py-2.5"
             >
-              Rejoindre la Formation
+              <span className="hidden sm:inline">Rejoindre la Formation</span>
+              <span className="sm:hidden">S'inscrire</span>
             </Button>
           </div>
         </div>
