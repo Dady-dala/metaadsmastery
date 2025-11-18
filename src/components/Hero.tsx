@@ -74,7 +74,7 @@ const Hero = () => {
         {/* CTA Button */}
         <div className="flex justify-center mb-16">
           <Button size="lg" className="cinematic-cta text-lg px-10 py-6 font-semibold shadow-2xl hover:shadow-glow transition-all duration-500 transform hover:scale-105" onClick={() => setIsDialogOpen(true)}>
-            Get Your Free Video Growth Plan →
+            Obtenez Votre Plan de Formation Gratuit →
           </Button>
         </div>
 
