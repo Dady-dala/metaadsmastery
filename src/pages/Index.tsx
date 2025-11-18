@@ -4,6 +4,7 @@ import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import VSL from '@/components/VSL';
 import HowItWorks from '@/components/HowItWorks';
+import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
@@ -103,6 +104,8 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      <FAQ />
       
       <Footer />
     </div>
