@@ -121,17 +121,17 @@ const Services = () => {
     {
       icon: Award,
       title: "Templates de Campagnes Prêts à l'Emploi",
-      value: "Valeur 15 000 FCFA"
+      value: "Valeur $25"
     },
     {
       icon: Award,
       title: "Checklist d'Optimisation Complète",
-      value: "Valeur 10 000 FCFA"
+      value: "Valeur $15"
     },
     {
       icon: Award,
       title: "Banque de Visuels & Exemples de Pubs",
-      value: "Valeur 20 000 FCFA"
+      value: "Valeur $35"
     },
     {
       icon: Award,
@@ -359,8 +359,8 @@ const Services = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <div className="text-center">
-              <p className="text-gray-400 line-through text-2xl">149 000 FCFA</p>
-              <p className="text-yellow-400 text-5xl font-bold">79 000 FCFA</p>
+              <p className="text-gray-400 line-through text-2xl">$229</p>
+              <p className="text-yellow-400 text-5xl font-bold">$49.99</p>
               <p className="text-gray-300 text-sm mt-2">Offre de Lancement Limitée</p>
             </div>
           </div>
