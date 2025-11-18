@@ -4,11 +4,15 @@ import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
 import ContactFormDialog from '@/components/ContactFormDialog';
+import { ContactMessageForm } from '@/components/ContactMessageForm';
 import { Button } from '@/components/ui/button';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
+import { useState } from 'react';
 
 const Index = () => {
+  const [isInscriptionDialogOpen, setIsInscriptionDialogOpen] = useState(false);
+  
   const services = [
     {
       name: "Meta Ads Mastery",
@@ -57,12 +61,13 @@ const Index = () => {
             ⚠️ Offre limitée - Le prix augmente bientôt !
           </p>
           <Button 
-            onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() => setIsInscriptionDialogOpen(true)}
             size="lg"
             className="cinematic-cta text-lg px-12 py-6"
           >
             Je Rejoins la Formation
           </Button>
+          <ContactFormDialog isOpen={isInscriptionDialogOpen} onOpenChange={setIsInscriptionDialogOpen} />
         </div>
       </section>
       
@@ -78,7 +83,7 @@ const Index = () => {
           </div>
           
           <div className="cinematic-card p-8">
-            <ContactFormDialog isOpen={false} onOpenChange={() => {}} inlineForm />
+            <ContactMessageForm />
           </div>
         </div>
       </section>
