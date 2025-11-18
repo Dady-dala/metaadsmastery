@@ -2,8 +2,8 @@ import ModernHeader from '@/components/ModernHeader';
 import SmartBar from '@/components/SmartBar';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
+import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
-import Footer from '@/components/Footer';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 
@@ -36,9 +36,8 @@ const Index = () => {
       <div id="services">
         <Services />
       </div>
+      <Testimonials />
       <FAQ />
-      
-      <Footer />
     </div>
   );
 };
