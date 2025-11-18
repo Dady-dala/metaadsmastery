@@ -1,10 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import React from 'react';
 import { z } from 'zod';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 interface ContactFormDialogProps {
   isOpen: boolean;
@@ -22,12 +24,15 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const [formStartTime] = React.useState(Date.now());
-  const [honeypot, setHoneypot] = React.useState('');
+  const [recaptchaToken, setRecaptchaToken] = React.useState<string | null>(null);
+  const [consent, setConsent] = React.useState(false);
+  const recaptchaRef = React.useRef<ReCAPTCHA>(null);
+
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Démarrez Votre Inscription Gratuite</DialogTitle>
         </DialogHeader>
@@ -37,18 +42,21 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
             e.preventDefault();
             if (isSubmitting) return;
             
-            // Anti-bot protection: honeypot check
-            if (honeypot) {
-              console.log('Bot detected');
+            // Vérifier le consentement
+            if (!consent) {
+              toast({
+                title: "Consentement requis",
+                description: "Veuillez accepter les conditions pour continuer.",
+                variant: "destructive",
+              });
               return;
             }
-            
-            // Anti-bot protection: minimum time check (2 seconds)
-            const formDuration = Date.now() - formStartTime;
-            if (formDuration < 2000) {
+
+            // Vérifier le reCAPTCHA
+            if (!recaptchaToken) {
               toast({
-                title: "Erreur",
-                description: "Veuillez prendre le temps de remplir le formulaire.",
+                title: "Vérification requise",
+                description: "Veuillez valider le CAPTCHA.",
                 variant: "destructive",
               });
               return;
@@ -103,21 +111,12 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
               }
             } finally {
               setIsSubmitting(false);
+              // Réinitialiser le reCAPTCHA
+              recaptchaRef.current?.reset();
+              setRecaptchaToken(null);
             }
           }}
         >
-          {/* Honeypot field - hidden from users but visible to bots */}
-          <input
-            type="text"
-            name="website"
-            value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
-            style={{ position: 'absolute', left: '-9999px' }}
-            tabIndex={-1}
-            autoComplete="off"
-            aria-hidden="true"
-          />
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Input
