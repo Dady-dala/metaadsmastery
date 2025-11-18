@@ -61,7 +61,7 @@ const Index = () => {
             size="lg"
             className="cinematic-cta text-lg px-12 py-6"
           >
-            Je Rejoins la Formation Maintenant
+            Je Rejoins la Formation
           </Button>
         </div>
       </section>
