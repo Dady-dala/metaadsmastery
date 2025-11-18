@@ -1,0 +1,79 @@
+import { useState, useEffect } from 'react';
+import { Clock } from 'lucide-react';
+
+interface TimeLeft {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+const CountdownTimer = () => {
+  const calculateTimeLeft = (): TimeLeft => {
+    // Set countdown to 3 days from now
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 3);
+    endDate.setHours(23, 59, 59, 999);
+    
+    const difference = endDate.getTime() - new Date().getTime();
+    
+    if (difference > 0) {
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      };
+    }
+    
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  };
+
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const TimeUnit = ({ value, label }: { value: number; label: string }) => (
+    <div className="flex flex-col items-center bg-black/60 border border-yellow-400/30 rounded-lg p-4 min-w-[80px]">
+      <div className="text-4xl md:text-5xl font-bold text-yellow-400 tabular-nums">
+        {value.toString().padStart(2, '0')}
+      </div>
+      <div className="text-gray-400 text-sm mt-2 uppercase tracking-wider">{label}</div>
+    </div>
+  );
+
+  return (
+    <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border-2 border-red-500/50 rounded-xl p-8 my-8">
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <Clock className="w-6 h-6 text-red-500 animate-pulse" />
+        <h3 className="text-2xl font-bold text-white">
+          ⏰ L'Offre de Lancement Expire Dans :
+        </h3>
+      </div>
+      
+      <div className="flex justify-center gap-3 md:gap-6 mb-6">
+        <TimeUnit value={timeLeft.days} label="Jours" />
+        <TimeUnit value={timeLeft.hours} label="Heures" />
+        <TimeUnit value={timeLeft.minutes} label="Minutes" />
+        <TimeUnit value={timeLeft.seconds} label="Secondes" />
+      </div>
+
+      <div className="text-center">
+        <p className="text-red-400 font-bold text-lg">
+          🔥 Après expiration, le prix passe à $229 !
+        </p>
+        <p className="text-gray-300 text-sm mt-2">
+          Ne laisse pas passer cette opportunité unique
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default CountdownTimer;
