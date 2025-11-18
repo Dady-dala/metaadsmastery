@@ -36,8 +36,8 @@ const FAQ = () => {
       answer: "Absolument ! Facebook met régulièrement à jour sa plateforme publicitaire. Chaque fois qu'il y a des changements importants, on met à jour les vidéos concernées et tu y as accès GRATUITEMENT. Ton accès est valable à vie avec toutes les futures mises à jour incluses."
     },
     {
-      question: "Puis-je suivre la formation depuis mon téléphone ?",
-      answer: "Oui ! La plateforme de formation est 100% responsive et fonctionne parfaitement sur smartphone, tablette ou ordinateur. Tu peux apprendre en déplacement, depuis chez toi, au bureau... où tu veux, quand tu veux. Seule une connexion internet est nécessaire."
+      question: "Pourquoi WhatsApp Business au lieu du Pixel Facebook ?",
+      answer: "WhatsApp Business est beaucoup plus accessible et efficace en Afrique ! La majorité des Africains utilisent déjà WhatsApp au quotidien. En dirigeant tes prospects vers WhatsApp, tu crées une expérience familière, tu peux répondre instantanément, qualifier tes leads en temps réel et convertir plus facilement. Pas besoin de site web compliqué ni de connaissances techniques avancées."
     },
     {
       question: "Vais-je vraiment être capable de gérer des pubs Facebook pour des clients après cette formation ?",

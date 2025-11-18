@@ -18,7 +18,7 @@ const Services = () => {
     },
     {
       icon: XCircle,
-      problem: "Tu ne comprends rien au Business Manager et aux pixels de conversion"
+      problem: "Tu ne sais pas comment utiliser WhatsApp Business pour convertir tes prospects en clients"
     },
     {
       icon: XCircle,
@@ -36,14 +36,14 @@ const Services = () => {
 
   const learnings = [
     "Créer et configurer ton Business Manager de A à Z comme un pro",
-    "Installer et configurer le Pixel Facebook pour tracker TOUTES tes conversions",
+    "Mettre en place WhatsApp Business comme tunnel de conversion automatique",
     "Créer des audiences hyper-ciblées qui convertissent réellement",
     "Maîtriser les objectifs de campagne : Notoriété, Trafic, Conversions, Ventes",
     "Rédiger des textes publicitaires qui captent l'attention et vendent",
     "Créer des visuels et vidéos publicitaires qui arrêtent le scroll",
     "Lancer tes premières campagnes rentables même avec un petit budget",
     "Analyser et optimiser tes résultats pour multiplier ton ROI",
-    "Faire du retargeting pour convertir ceux qui n'ont pas acheté la 1ère fois",
+    "Utiliser WhatsApp Business pour qualifier et convertir tes prospects automatiquement",
     "Scaler tes campagnes gagnantes sans perdre en rentabilité"
   ];
 
@@ -82,8 +82,8 @@ const Services = () => {
     },
     {
       number: "02",
-      title: "Le Pixel Facebook",
-      description: "Installation, configuration et tracking des événements de conversion sur ton site web ou landing page."
+      title: "WhatsApp Business & Tunnels",
+      description: "Configuration complète de WhatsApp Business comme tunnel de conversion, automatisation des réponses et qualification des prospects."
     },
     {
       number: "03",
@@ -107,8 +107,8 @@ const Services = () => {
     },
     {
       number: "07",
-      title: "Retargeting & Remarketing",
-      description: "Récupérer les visiteurs qui n'ont pas acheté, créer des tunnels de conversion efficaces."
+      title: "WhatsApp Marketing Avancé",
+      description: "Stratégies avancées pour convertir tes conversations WhatsApp en ventes, automatisation et suivi client."
     },
     {
       number: "08",
