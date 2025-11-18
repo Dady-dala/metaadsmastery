@@ -1,0 +1,125 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import ReCAPTCHA from "react-google-recaptcha";
+import { toast } from "sonner";
+
+const contactMessageSchema = z.object({
+  name: z.string().trim().min(1, "Le nom est requis").max(100, "Maximum 100 caractères"),
+  email: z.string().trim().email("Email invalide").max(255, "Maximum 255 caractères"),
+  message: z.string().trim().min(1, "Le message est requis").max(250, "Maximum 250 caractères"),
+});
+
+type ContactMessageForm = z.infer<typeof contactMessageSchema>;
+
+export const ContactMessageForm = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ContactMessageForm>({
+    resolver: zodResolver(contactMessageSchema),
+  });
+
+  const onSubmit = async (data: ContactMessageForm) => {
+    if (!recaptchaToken) {
+      toast.error("Veuillez valider le reCAPTCHA");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from("contact_messages")
+        .insert([{
+          name: data.name,
+          email: data.email,
+          message: data.message,
+        }]);
+
+      if (error) throw error;
+
+      toast.success("Message envoyé avec succès !");
+      reset();
+      setRecaptchaToken(null);
+    } catch (error) {
+      console.error("Erreur lors de l'envoi:", error);
+      toast.error("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="name">Nom</Label>
+        <Input
+          id="name"
+          {...register("name")}
+          placeholder="Votre nom"
+          disabled={isSubmitting}
+        />
+        {errors.name && (
+          <p className="text-sm text-destructive">{errors.name.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email de contact</Label>
+        <Input
+          id="email"
+          type="email"
+          {...register("email")}
+          placeholder="votre@email.com"
+          disabled={isSubmitting}
+        />
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="message">Message</Label>
+        <Textarea
+          id="message"
+          {...register("message")}
+          placeholder="Votre message (max 250 caractères)"
+          maxLength={250}
+          disabled={isSubmitting}
+          className="min-h-[120px]"
+        />
+        {errors.message && (
+          <p className="text-sm text-destructive">{errors.message.message}</p>
+        )}
+      </div>
+
+      <div className="flex justify-center">
+        <ReCAPTCHA
+          sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+          onChange={(token) => setRecaptchaToken(token)}
+        />
+      </div>
+
+      <Button
+        type="submit"
+        size="lg"
+        className="w-full cinematic-cta"
+        disabled={isSubmitting || !recaptchaToken}
+      >
+        {isSubmitting ? "Envoi en cours..." : "Envoyer"}
+      </Button>
+    </form>
+  );
+};
