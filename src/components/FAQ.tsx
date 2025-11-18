@@ -83,13 +83,6 @@ const FAQ = () => {
             </AccordionItem>
           ))}
         </Accordion>
-
-        <div className="mt-12 text-center">
-          <p className="text-gray-300 text-lg">
-            Tu as encore une question ? 
-            <span className="text-primary font-semibold ml-2">Contacte-nous directement !</span>
-          </p>
-        </div>
       </div>
     </section>
   );
