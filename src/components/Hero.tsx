@@ -67,7 +67,7 @@ const Hero = () => {
           <p className="text-base md:text-lg text-gray-300 font-normal max-w-3xl mx-auto cinematic-text-shadow" style={{
           lineHeight: '1.5'
         }}>
-            <span className="font-semibold text-yellow-400">90-Day Performance Guarantee:</span> If your new video doesn't lift one agreed metric we'll keep producing iterations free until it does.
+            <span className="font-semibold text-yellow-400">Garantie de Performance 90 Jours :</span> Si votre nouvelle vidéo n'améliore pas une métrique convenue, nous continuerons à produire des itérations gratuitement jusqu'à ce qu'elle le fasse.
           </p>
         </div>
 
