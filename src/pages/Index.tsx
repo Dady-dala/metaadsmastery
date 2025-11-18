@@ -4,6 +4,7 @@ import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
 import ContactFormDialog from '@/components/ContactFormDialog';
+import { Button } from '@/components/ui/button';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 
@@ -39,6 +40,33 @@ const Index = () => {
       <FAQ />
       
       <section className="cinematic-section py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
+            Prêt à Maîtriser Meta Ads et Transformer Ton Business ?
+          </h2>
+          <p className="text-xl text-gray-300 mb-8 leading-relaxed">
+            Ne laisse pas passer cette opportunité. Rejoins Meta Ads Mastery maintenant et commence à générer des résultats dès aujourd'hui !
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-3xl sm:text-4xl font-bold text-foreground line-through opacity-50">$229</span>
+              <span className="text-5xl sm:text-6xl font-bold text-primary">$49.99</span>
+            </div>
+          </div>
+          <p className="text-warning font-semibold text-lg mb-8">
+            ⚠️ Offre limitée - Le prix augmente bientôt !
+          </p>
+          <Button 
+            onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
+            size="lg"
+            className="cinematic-cta text-lg px-12 py-6"
+          >
+            Je Rejoins la Formation Maintenant
+          </Button>
+        </div>
+      </section>
+      
+      <section id="contact-form" className="cinematic-section py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
