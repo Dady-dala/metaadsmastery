@@ -30,7 +30,7 @@
     --accent: 142 84% 47%;
     --accent-foreground: 262 47% 15%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 100% 50%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 142 84% 47% / 0.2;
@@ -44,14 +44,14 @@
     --success-foreground: 262 47% 15%;
 
     /* Warning colors */
-    --warning: 0 84% 60%;
+    --warning: 0 100% 50%;
     --warning-foreground: 0 0% 100%;
 
     /* Purple & Green gradients */
     --gradient-primary: linear-gradient(135deg, hsl(262 47% 25%), hsl(262 60% 35%));
     --gradient-subtle: linear-gradient(135deg, hsl(262 47% 18%), hsl(262 47% 15%));
     --gradient-success: linear-gradient(135deg, hsl(142 84% 47%), hsl(142 100% 60%));
-    --gradient-warning: linear-gradient(135deg, hsl(0 84% 60%), hsl(0 100% 70%));
+    --gradient-warning: linear-gradient(135deg, hsl(0 100% 50%), hsl(0 100% 60%));
 
     /* Enhanced shadows */
     --shadow-sm: 0 1px 2px 0 hsl(142 84% 47% / 0.15);

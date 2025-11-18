@@ -11,6 +11,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 interface ContactFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  inlineForm?: boolean;
 }
 
 const contactSchema = z.object({
@@ -20,7 +21,7 @@ const contactSchema = z.object({
   phoneNumber: z.string().trim().min(1, { message: "Le numéro de téléphone est requis" }).max(20),
 });
 
-const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => {
+const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: ContactFormDialogProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -30,183 +31,184 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
 
   const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
   
+  const formContent = (
+    <form 
+      className="space-y-4"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (isSubmitting) return;
+        
+        // Vérifier le consentement
+        if (!consent) {
+          toast({
+            title: "Consentement requis",
+            description: "Veuillez accepter les conditions pour continuer.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Vérifier le reCAPTCHA
+        if (!recaptchaToken) {
+          toast({
+            title: "Vérification requise",
+            description: "Veuillez valider le CAPTCHA.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        setIsSubmitting(true);
+        setErrors({});
+        
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+        
+        const data = {
+          firstName: formData.get('firstName') as string,
+          lastName: formData.get('lastName') as string,
+          email: formData.get('email') as string,
+          phoneNumber: formData.get('phoneNumber') as string,
+        };
+        
+        try {
+          // Validate data
+          const validated = contactSchema.parse(data);
+          
+          // Insert into Supabase
+          const { error } = await supabase
+            .from('contact_submissions')
+            .insert({
+              first_name: validated.firstName,
+              last_name: validated.lastName,
+              email: validated.email,
+              phone_number: validated.phoneNumber,
+            });
+          
+          if (error) throw error;
+          
+          // Redirect to thank you page
+          window.location.href = '/merci';
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            const fieldErrors: Record<string, string> = {};
+            error.errors.forEach((err) => {
+              if (err.path[0]) {
+                fieldErrors[err.path[0] as string] = err.message;
+              }
+            });
+            setErrors(fieldErrors);
+          } else {
+            toast({
+              title: "Erreur",
+              description: "Une erreur s'est produite. Veuillez réessayer.",
+              variant: "destructive",
+            });
+          }
+        } finally {
+          setIsSubmitting(false);
+          // Réinitialiser le reCAPTCHA
+          recaptchaRef.current?.reset();
+          setRecaptchaToken(null);
+        }
+      }}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Input
+            name="firstName"
+            type="text"
+            placeholder="Prénom"
+            required
+          />
+          {errors.firstName && (
+            <p className="text-sm text-red-500 mt-1">{errors.firstName}</p>
+          )}
+        </div>
+        <div>
+          <Input
+            name="lastName"
+            type="text"
+            placeholder="Nom"
+            required
+          />
+          {errors.lastName && (
+            <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
+          )}
+        </div>
+      </div>
+      <div>
+        <Input
+          name="email"
+          type="email"
+          placeholder="Email"
+          required
+        />
+        {errors.email && (
+          <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+        )}
+      </div>
+      <div>
+        <Input
+          name="phoneNumber"
+          type="tel"
+          placeholder="Numéro de téléphone"
+          required
+        />
+        {errors.phoneNumber && (
+          <p className="text-sm text-red-500 mt-1">{errors.phoneNumber}</p>
+        )}
+      </div>
+
+      {/* Consent Checkbox */}
+      <div className="flex items-start space-x-2">
+        <Checkbox 
+          id="consent"
+          checked={consent}
+          onCheckedChange={(checked) => setConsent(checked === true)}
+          className="mt-1"
+        />
+        <label 
+          htmlFor="consent" 
+          className="text-sm text-gray-300 cursor-pointer leading-relaxed"
+        >
+          J'accepte que mes informations soient collectées et utilisées pour me contacter concernant cette formation.
+        </label>
+      </div>
+
+      {/* reCAPTCHA */}
+      {RECAPTCHA_SITE_KEY && (
+        <div className="flex justify-center">
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={RECAPTCHA_SITE_KEY}
+            onChange={(token) => setRecaptchaToken(token)}
+            onExpired={() => setRecaptchaToken(null)}
+          />
+        </div>
+      )}
+
+      <Button 
+        type="submit" 
+        className="w-full cinematic-cta"
+        disabled={isSubmitting || !consent || (!recaptchaToken && !!RECAPTCHA_SITE_KEY)}
+      >
+        {isSubmitting ? 'Inscription en cours...' : 'Rejoindre la Formation'}
+      </Button>
+    </form>
+  );
+  
+  if (inlineForm) {
+    return formContent;
+  }
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Démarrez Votre Inscription Gratuite</DialogTitle>
         </DialogHeader>
-        <form 
-          className="space-y-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (isSubmitting) return;
-            
-            // Vérifier le consentement
-            if (!consent) {
-              toast({
-                title: "Consentement requis",
-                description: "Veuillez accepter les conditions pour continuer.",
-                variant: "destructive",
-              });
-              return;
-            }
-
-            // Vérifier le reCAPTCHA
-            if (!recaptchaToken) {
-              toast({
-                title: "Vérification requise",
-                description: "Veuillez valider le CAPTCHA.",
-                variant: "destructive",
-              });
-              return;
-            }
-            
-            setIsSubmitting(true);
-            setErrors({});
-            
-            const form = e.target as HTMLFormElement;
-            const formData = new FormData(form);
-            
-            const data = {
-              firstName: formData.get('firstName') as string,
-              lastName: formData.get('lastName') as string,
-              email: formData.get('email') as string,
-              phoneNumber: formData.get('phoneNumber') as string,
-            };
-            
-            try {
-              // Validate data
-              const validated = contactSchema.parse(data);
-              
-              // Insert into Supabase
-              const { error } = await supabase
-                .from('contact_submissions')
-                .insert({
-                  first_name: validated.firstName,
-                  last_name: validated.lastName,
-                  email: validated.email,
-                  phone_number: validated.phoneNumber,
-                });
-              
-              if (error) throw error;
-              
-              // Redirect to thank you page
-              window.location.href = '/merci';
-            } catch (error) {
-              if (error instanceof z.ZodError) {
-                const fieldErrors: Record<string, string> = {};
-                error.errors.forEach((err) => {
-                  if (err.path[0]) {
-                    fieldErrors[err.path[0] as string] = err.message;
-                  }
-                });
-                setErrors(fieldErrors);
-              } else {
-                toast({
-                  title: "Erreur",
-                  description: "Une erreur s'est produite. Veuillez réessayer.",
-                  variant: "destructive",
-                });
-              }
-            } finally {
-              setIsSubmitting(false);
-              // Réinitialiser le reCAPTCHA
-              recaptchaRef.current?.reset();
-              setRecaptchaToken(null);
-            }
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Input
-                name="firstName"
-                type="text"
-                placeholder="Prénom"
-                required
-              />
-              {errors.firstName && (
-                <p className="text-sm text-red-500 mt-1">{errors.firstName}</p>
-              )}
-            </div>
-            <div>
-              <Input
-                name="lastName"
-                type="text"
-                placeholder="Nom"
-                required
-              />
-              {errors.lastName && (
-                <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
-              )}
-            </div>
-          </div>
-          <div>
-            <Input
-              name="email"
-              type="email"
-              placeholder="Email"
-              required
-            />
-            {errors.email && (
-              <p className="text-sm text-red-500 mt-1">{errors.email}</p>
-            )}
-          </div>
-          <div>
-            <Input
-              name="phoneNumber"
-              type="tel"
-              placeholder="Numéro de téléphone"
-              required
-            />
-            {errors.phoneNumber && (
-              <p className="text-sm text-red-500 mt-1">{errors.phoneNumber}</p>
-            )}
-          </div>
-
-          {/* reCAPTCHA */}
-          {RECAPTCHA_SITE_KEY && (
-            <div className="flex justify-center">
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={RECAPTCHA_SITE_KEY}
-                onChange={(token) => setRecaptchaToken(token)}
-                onExpired={() => setRecaptchaToken(null)}
-              />
-            </div>
-          )}
-
-          {!RECAPTCHA_SITE_KEY && (
-            <div className="p-4 bg-muted rounded-md text-sm text-muted-foreground">
-              ⚠️ Configuration reCAPTCHA en attente
-            </div>
-          )}
-
-          {/* Checkbox de consentement */}
-          <div className="flex items-start space-x-2">
-            <Checkbox
-              id="consent"
-              checked={consent}
-              onCheckedChange={(checked) => setConsent(checked === true)}
-              disabled={isSubmitting}
-            />
-            <label
-              htmlFor="consent"
-              className="text-sm leading-tight cursor-pointer"
-            >
-              J'accepte de soumettre ce formulaire et consens au traitement de mes données personnelles conformément à la politique de confidentialité. *
-            </label>
-          </div>
-
-          <Button 
-            type="submit" 
-            size="lg" 
-            className="w-full cinematic-cta" 
-            disabled={isSubmitting || !consent || (!recaptchaToken && !!RECAPTCHA_SITE_KEY)}
-          >
-            {isSubmitting ? "Envoi en cours..." : "Commencer Ma Formation"}
-          </Button>
-        </form>
+        {formContent}
       </DialogContent>
     </Dialog>
   );

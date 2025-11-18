@@ -21,7 +21,7 @@ const ModernHeader = () => {
           <div className="flex justify-between items-center h-14 sm:h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <div className="text-lg sm:text-xl md:text-2xl font-bold gradient-text">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-primary">
                 Meta Ads Mastery
               </div>
             </div>

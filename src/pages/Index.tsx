@@ -3,6 +3,7 @@ import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
+import ContactFormDialog from '@/components/ContactFormDialog';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 
@@ -36,6 +37,23 @@ const Index = () => {
       </div>
       <Testimonials />
       <FAQ />
+      
+      <section className="cinematic-section py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Une Question ? Contactez-nous
+            </h2>
+            <p className="text-gray-300">
+              Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.
+            </p>
+          </div>
+          
+          <div className="cinematic-card p-8">
+            <ContactFormDialog isOpen={false} onOpenChange={() => {}} inlineForm />
+          </div>
+        </div>
+      </section>
       
       <footer className="cinematic-section py-8 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
