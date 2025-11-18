@@ -51,7 +51,7 @@ const Hero = () => {
           textWrap: 'balance',
           lineHeight: '1.15'
         }}>
-            <span className="cinematic-gradient-text cinematic-text-shadow">La méthode exacte pour transformer 5$ de publicité en 50$ de ventes, dominer votre marché et automatiser votre croissance grâce à Facebook & Instagram.</span>
+            <span className="cinematic-gradient-text cinematic-text-shadow">Maîtrise Facebook & Instagram Ads et Transforme Ton Business en Machine à Ventes Automatique</span>
           </h1>
         </div>
 
@@ -59,7 +59,7 @@ const Hero = () => {
         <div className="text-center mb-6">
           <p className="text-xl md:text-2xl text-gray-200 font-medium max-w-3xl mx-auto cinematic-text-shadow" style={{
           lineHeight: '1.45'
-        }}>Arrêtez de Jeter Votre Argent par les Fenêtres avec le Bouton "Booster".</p>
+        }}>La Formation Complète qui t'Apprend à Créer, Lancer et Optimiser des Publicités Facebook & Instagram Rentables — Même si tu Pars de Zéro.</p>
         </div>
 
         {/* Subtitle 2 */}
@@ -67,14 +67,14 @@ const Hero = () => {
           <p className="text-base md:text-lg text-gray-300 font-normal max-w-3xl mx-auto cinematic-text-shadow" style={{
           lineHeight: '1.5'
         }}>
-            <span className="font-semibold text-yellow-400">Garantie Résultats 90 Jours :</span> Si vous n'obtenez pas de résultats mesurables sur vos campagnes après notre formation, nous vous accompagnons gratuitement jusqu'à l'atteinte de vos objectifs.
+            <span className="font-semibold text-yellow-400">Garantie Satisfaction 30 Jours :</span> Si la formation ne correspond pas à tes attentes, tu es remboursé intégralement — sans question, sans condition.
           </p>
         </div>
 
         {/* CTA Button */}
         <div className="flex justify-center mb-16">
           <Button size="lg" className="cinematic-cta text-lg px-10 py-6 font-semibold shadow-2xl hover:shadow-glow transition-all duration-500 transform hover:scale-105" onClick={() => setIsDialogOpen(true)}>
-            Obtenez Votre Plan de Formation Gratuit →
+            Je Veux Accéder à la Formation →
           </Button>
         </div>
 
@@ -107,7 +107,7 @@ const Hero = () => {
         contain: 'layout'
       }}>
           <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-white cinematic-text-shadow">Trusted By</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-white cinematic-text-shadow">Ils Nous Font Confiance</h2>
           </div>
           <ScrollingBrands />
         </div>
