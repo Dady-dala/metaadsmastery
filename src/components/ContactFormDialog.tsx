@@ -163,8 +163,48 @@ const ContactFormDialog = ({ isOpen, onOpenChange }: ContactFormDialogProps) => 
               <p className="text-sm text-red-500 mt-1">{errors.phoneNumber}</p>
             )}
           </div>
-          <Button type="submit" size="lg" className="w-full cinematic-cta" disabled={isSubmitting}>
-            {isSubmitting ? "Envoi en cours..." : "Soumettre"}
+
+          {/* reCAPTCHA */}
+          {RECAPTCHA_SITE_KEY && (
+            <div className="flex justify-center">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={(token) => setRecaptchaToken(token)}
+                onExpired={() => setRecaptchaToken(null)}
+              />
+            </div>
+          )}
+
+          {!RECAPTCHA_SITE_KEY && (
+            <div className="p-4 bg-muted rounded-md text-sm text-muted-foreground">
+              ⚠️ Configuration reCAPTCHA en attente
+            </div>
+          )}
+
+          {/* Checkbox de consentement */}
+          <div className="flex items-start space-x-2">
+            <Checkbox
+              id="consent"
+              checked={consent}
+              onCheckedChange={(checked) => setConsent(checked === true)}
+              disabled={isSubmitting}
+            />
+            <label
+              htmlFor="consent"
+              className="text-sm leading-tight cursor-pointer"
+            >
+              J'accepte de soumettre ce formulaire et consens au traitement de mes données personnelles conformément à la politique de confidentialité. *
+            </label>
+          </div>
+
+          <Button 
+            type="submit" 
+            size="lg" 
+            className="w-full cinematic-cta" 
+            disabled={isSubmitting || !consent || (!recaptchaToken && !!RECAPTCHA_SITE_KEY)}
+          >
+            {isSubmitting ? "Envoi en cours..." : "Commencer Ma Formation"}
           </Button>
         </form>
       </DialogContent>
