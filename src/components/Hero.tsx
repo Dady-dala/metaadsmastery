@@ -59,7 +59,7 @@ const Hero = () => {
         <div className="text-center mb-6">
           <p className="text-xl md:text-2xl text-gray-200 font-medium max-w-3xl mx-auto cinematic-text-shadow" style={{
           lineHeight: '1.45'
-        }}>Turn video into your growth channel. We handle strategy, scripting, filming, editing, and optimization.</p>
+        }}>Arrêtez de Jeter Votre Argent par les Fenêtres avec le Bouton "Booster".</p>
         </div>
 
         {/* Subtitle 2 */}
