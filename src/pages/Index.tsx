@@ -36,6 +36,12 @@ const Index = () => {
       </div>
       <Testimonials />
       <FAQ />
+      
+      <footer className="cinematic-section py-8 border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-gray-300 text-sm">© 2025 Meta Ads Mastery. Tous droits réservés.</p>
+        </div>
+      </footer>
     </div>
   );
 };
