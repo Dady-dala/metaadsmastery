@@ -59,7 +59,7 @@ const Hero = () => {
         <div className="text-center mb-6">
           <p className="text-xl md:text-2xl text-gray-200 font-medium max-w-3xl mx-auto cinematic-text-shadow" style={{
           lineHeight: '1.45'
-        }}>La Formation Complète qui t'Apprend à Créer, Lancer et Optimiser des Publicités Facebook & Instagram Rentables — Même si tu Pars de Zéro.</p>
+        }}>La Formation Complète pour Vendre SANS Site Web grâce à Facebook, Instagram & WhatsApp Business — Même si tu Pars de Zéro.</p>
         </div>
 
         {/* Subtitle 2 */}

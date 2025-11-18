@@ -8,6 +8,10 @@ const FAQ = () => {
       answer: "Absolument ! Meta Ads Mastery est conçu pour partir de zéro. Même si tu n'as jamais créé de publicité de ta vie, tu vas tout comprendre grâce à nos explications claires et nos démonstrations pas à pas. Aucun prérequis technique n'est nécessaire."
     },
     {
+      question: "Je n'ai pas de site web, est-ce que je peux quand même vendre ?",
+      answer: "OUI, c'est justement tout l'intérêt de notre méthode ! Tu n'as BESOIN d'AUCUN site web. On t'apprend à utiliser WhatsApp Business comme tunnel de vente direct. Tes prospects cliquent sur ta pub, arrivent directement sur ton WhatsApp, tu discutes avec eux et tu vends. Simple, efficace, et pas besoin de payer un développeur ou d'avoir des connaissances techniques !"
+    },
+    {
       question: "De quel budget ai-je besoin pour pratiquer après la formation ?",
       answer: "Tu peux commencer à tester tes premières campagnes avec aussi peu que 5 000 à 10 000 FCFA (environ 10-20$). L'important n'est pas le montant, mais de bien structurer tes campagnes. On t'apprend justement à maximiser chaque franc investi, même avec un petit budget."
     },

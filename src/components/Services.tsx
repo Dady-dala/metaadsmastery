@@ -18,7 +18,7 @@ const Services = () => {
     },
     {
       icon: XCircle,
-      problem: "Tu ne sais pas comment utiliser WhatsApp Business pour convertir tes prospects en clients"
+      problem: "Tu n'as pas de site web et tu penses que c'est impossible de vendre en ligne"
     },
     {
       icon: XCircle,
@@ -30,7 +30,7 @@ const Services = () => {
     },
     {
       icon: XCircle,
-      problem: "Tu ne sais pas cibler la bonne audience ni optimiser tes campagnes"
+      problem: "Tu ne sais pas comment utiliser WhatsApp Business pour convertir tes prospects en clients"
     }
   ];
 
@@ -148,8 +148,8 @@ const Services = () => {
   const differentiators = [
     {
       icon: Target,
-      title: "Adapté au Marché Africain",
-      description: "Exemples concrets, cas d'usage locaux, stratégies qui marchent ICI."
+      title: "Vends Sans Site Web",
+      description: "Utilise WhatsApp Business comme tunnel. Pas besoin de site web, de landing page ou de développeur."
     },
     {
       icon: TrendingUp,
@@ -158,8 +158,8 @@ const Services = () => {
     },
     {
       icon: Shield,
-      title: "Accompagnement Inclus",
-      description: "Groupe privé où tu peux poser tes questions et progresser avec d'autres."
+      title: "Adapté à l'Afrique",
+      description: "Exemples concrets, budgets locaux, méthodes qui marchent vraiment ICI."
     },
     {
       icon: Zap,
