@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp, UserCircle } from 'lucide-react';
+import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp, UserCircle, UserPlus, BarChart3 } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CourseManagement } from '@/components/admin/CourseManagement';
 import { VideoManagement } from '@/components/admin/VideoManagement';
 import StudentProgressManagement from '@/components/admin/StudentProgressManagement';
 import { AdminProfileSettings } from '@/components/admin/AdminProfileSettings';
+import { QuizManagement } from '@/components/admin/QuizManagement';
+import { AdvancedAnalytics } from '@/components/admin/AdvancedAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -205,7 +207,7 @@ const Admin = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 mb-6 bg-muted">
+            <TabsList className="grid w-full grid-cols-9 mb-6 bg-muted">
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Utilisateurs</span>
@@ -218,9 +220,17 @@ const Admin = () => {
                 <Video className="w-4 h-4" />
                 <span className="hidden sm:inline">Vidéos</span>
               </TabsTrigger>
+              <TabsTrigger value="quiz" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden sm:inline">Quiz</span>
+              </TabsTrigger>
               <TabsTrigger value="progress" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 <span className="hidden sm:inline">Progression</span>
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Analytics</span>
               </TabsTrigger>
               <TabsTrigger value="submissions" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
@@ -248,8 +258,16 @@ const Admin = () => {
               <VideoManagement />
             </TabsContent>
 
+            <TabsContent value="quiz" className="mt-0">
+              <QuizManagement />
+            </TabsContent>
+
             <TabsContent value="progress" className="mt-0">
               <StudentProgressManagement />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="mt-0">
+              <AdvancedAnalytics />
             </TabsContent>
 
             <TabsContent value="profile" className="mt-0">
