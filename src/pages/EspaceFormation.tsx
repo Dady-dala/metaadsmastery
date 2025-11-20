@@ -9,6 +9,7 @@ import { LogOut, PlayCircle, BookOpen, Settings, BarChart3, CheckCircle2 } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSettings } from '@/components/student/ProfileSettings';
 import { EnhancedCourseProgress } from '@/components/student/EnhancedCourseProgress';
+import { QuizTaking } from '@/components/student/QuizTaking';
 
 interface Course {
   id: string;
@@ -32,6 +33,7 @@ const EspaceFormation = () => {
   const [courseVideos, setCourseVideos] = useState<CourseVideo[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(null);
   const [videoProgress, setVideoProgress] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useState<'videos' | 'quiz'>('videos');
   const navigate = useNavigate();
 
   useEffect(() => {
