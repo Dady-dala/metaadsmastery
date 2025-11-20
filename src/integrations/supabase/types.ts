@@ -140,18 +140,21 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_certifying: boolean
           title: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: string
+          is_certifying?: boolean
           title: string
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: string
+          is_certifying?: boolean
           title?: string
         }
         Relationships: []
