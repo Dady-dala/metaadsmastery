@@ -19,8 +19,30 @@ const Auth = () => {
   useEffect(() => {
     // Vérifier si l'utilisateur est déjà connecté avec un rôle assigné
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        // Si erreur ou pas de session, nettoyer l'état
+        if (sessionError || !session) {
+          setIsConnectedWithoutRole(false);
+          return;
+        }
+
+        // Valider que la session est toujours active en testant une requête
+        const { error: testError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .limit(1);
+
+        // Si la requête échoue (token invalide), nettoyer la session
+        if (testError) {
+          console.error('Session invalide, déconnexion:', testError);
+          await supabase.auth.signOut();
+          setIsConnectedWithoutRole(false);
+          return;
+        }
+
         // Vérifier le rôle de l'utilisateur
         const { data: roleData } = await supabase
           .from('user_roles')
@@ -41,7 +63,9 @@ const Auth = () => {
           // Utilisateur connecté sans rôle
           setIsConnectedWithoutRole(true);
         }
-      } else {
+      } catch (error) {
+        console.error('Erreur lors de la vérification de session:', error);
+        await supabase.auth.signOut();
         setIsConnectedWithoutRole(false);
       }
     };

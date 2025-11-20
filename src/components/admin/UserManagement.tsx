@@ -45,8 +45,14 @@ export const UserManagement = () => {
 
   const loadUsers = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast.error('Session expirée, veuillez vous reconnecter');
+        await supabase.auth.signOut();
+        window.location.href = '/auth';
+        return;
+      }
 
       const { data, error } = await supabase.functions.invoke('get-users', {
         headers: {
@@ -54,7 +60,17 @@ export const UserManagement = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Si erreur de token invalide, nettoyer la session
+        if (error.message?.includes('Invalid token') || error.message?.includes('JWT')) {
+          toast.error('Session expirée, reconnexion nécessaire');
+          await supabase.auth.signOut();
+          window.location.href = '/auth';
+          return;
+        }
+        throw error;
+      }
+      
       setUsers(data.users || []);
     } catch (error) {
       console.error('Error loading users:', error);
