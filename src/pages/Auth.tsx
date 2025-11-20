@@ -14,6 +14,7 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isConnectedWithoutRole, setIsConnectedWithoutRole] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +111,32 @@ const Auth = () => {
     toast.success('Déconnexion réussie');
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error('Veuillez entrer votre adresse email');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      toast.success('Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.');
+      setShowForgotPassword(false);
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation:', error);
+      toast.error('Erreur lors de l\'envoi de l\'email de réinitialisation');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -193,16 +220,49 @@ const Auth = () => {
             <>
               <CardHeader>
                 <CardTitle className="text-2xl text-center">
-                  {isLogin ? 'Connexion' : 'Inscription'}
+                  {showForgotPassword ? 'Réinitialiser le mot de passe' : (isLogin ? 'Connexion' : 'Inscription')}
                 </CardTitle>
                 <CardDescription className="text-center">
-                  {isLogin 
-                    ? 'Connectez-vous à votre espace'
-                    : 'Créez votre compte'}
+                  {showForgotPassword 
+                    ? 'Entrez votre email pour recevoir un lien de réinitialisation'
+                    : (isLogin 
+                      ? 'Connectez-vous à votre espace'
+                      : 'Créez votre compte')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleAuth} className="space-y-4">
+                {showForgotPassword ? (
+                  <form onSubmit={handleResetPassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="votre-email@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={loading}
+                    >
+                      {loading ? 'Envoi en cours...' : 'Envoyer le lien'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => setShowForgotPassword(false)}
+                    >
+                      Retour à la connexion
+                    </Button>
+                  </form>
+                ) : (
+                  <>
+                    <form onSubmit={handleAuth} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -233,18 +293,29 @@ const Auth = () => {
                   >
                     {loading ? 'Chargement...' : (isLogin ? 'Se connecter' : "S'inscrire")}
                   </Button>
-                </form>
-                <div className="mt-4 text-center text-sm">
-                  <button
-                    type="button"
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="text-primary hover:underline"
-                  >
-                    {isLogin 
-                      ? "Pas encore de compte ? S'inscrire"
-                      : 'Déjà un compte ? Se connecter'}
-                  </button>
-                </div>
+                  {isLogin && (
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-primary hover:underline w-full text-center"
+                    >
+                      Mot de passe oublié ?
+                    </button>
+                  )}
+                    </form>
+                    <div className="mt-4 text-center text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setIsLogin(!isLogin)}
+                        className="text-primary hover:underline"
+                      >
+                        {isLogin 
+                          ? "Pas encore de compte ? S'inscrire"
+                          : 'Déjà un compte ? Se connecter'}
+                      </button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </>
           )}
