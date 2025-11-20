@@ -2,3 +2,6 @@ project_id = "jdczbaswcxwemksfkiuf"
 
 [functions.get-users]
 verify_jwt = true
+
+[functions.submit-contact-message]
+verify_jwt = false
