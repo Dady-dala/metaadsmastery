@@ -34,6 +34,7 @@ const ProtectedRoute = ({ children, requiredRole, redirectTo = '/auth' }: Protec
           .select('role')
           .eq('user_id', session.user.id)
           .eq('role', requiredRole)
+          .eq('is_active', true)
           .single();
 
         if (roleError || !roleData) {
