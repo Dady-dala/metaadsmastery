@@ -274,24 +274,30 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_required: boolean
           passing_score: number
           title: string
+          video_id: string | null
         }
         Insert: {
           course_id: string
           created_at?: string
           description?: string | null
           id?: string
+          is_required?: boolean
           passing_score?: number
           title: string
+          video_id?: string | null
         }
         Update: {
           course_id?: string
           created_at?: string
           description?: string | null
           id?: string
+          is_required?: boolean
           passing_score?: number
           title?: string
+          video_id?: string | null
         }
         Relationships: [
           {
@@ -299,6 +305,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quizzes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "course_videos"
             referencedColumns: ["id"]
           },
         ]

@@ -19,10 +19,19 @@ interface Course {
 interface Quiz {
   id: string;
   course_id: string;
+  video_id: string | null;
   title: string;
   description: string | null;
   passing_score: number;
+  is_required: boolean;
   questionCount?: number;
+}
+
+interface CourseVideo {
+  id: string;
+  course_id: string;
+  title: string;
+  order_index: number;
 }
 
 interface Question {
@@ -38,6 +47,7 @@ interface Question {
 
 export const QuizManagement = () => {
   const [courses, setCourses] = useState<Course[]>([]);
+  const [courseVideos, setCourseVideos] = useState<CourseVideo[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,9 +59,11 @@ export const QuizManagement = () => {
 
   const [quizForm, setQuizForm] = useState({
     course_id: '',
+    video_id: '',
     title: '',
     description: '',
-    passing_score: 70
+    passing_score: 70,
+    is_required: false
   });
 
   const [questionForm, setQuestionForm] = useState({
@@ -143,7 +155,7 @@ export const QuizManagement = () => {
 
       setShowQuizDialog(false);
       setEditingQuiz(null);
-      setQuizForm({ course_id: '', title: '', description: '', passing_score: 70 });
+      setQuizForm({ course_id: '', video_id: '', title: '', description: '', passing_score: 70, is_required: false });
       loadData();
     } catch (error) {
       console.error('Error saving quiz:', error);
@@ -235,20 +247,40 @@ export const QuizManagement = () => {
     }
   };
 
+  const loadCourseVideos = async (courseId: string) => {
+    try {
+      const { data } = await supabase
+        .from('course_videos')
+        .select('id, course_id, title, order_index')
+        .eq('course_id', courseId)
+        .order('order_index');
+      
+      setCourseVideos(data || []);
+    } catch (error) {
+      console.error('Error loading videos:', error);
+    }
+  };
+
   const openEditQuizDialog = (quiz: Quiz) => {
     setEditingQuiz(quiz);
     setQuizForm({
       course_id: quiz.course_id,
+      video_id: quiz.video_id || '',
       title: quiz.title,
       description: quiz.description || '',
-      passing_score: quiz.passing_score
+      passing_score: quiz.passing_score,
+      is_required: quiz.is_required
     });
+    if (quiz.course_id) {
+      loadCourseVideos(quiz.course_id);
+    }
     setShowQuizDialog(true);
   };
 
   const openCreateQuizDialog = () => {
     setEditingQuiz(null);
-    setQuizForm({ course_id: '', title: '', description: '', passing_score: 70 });
+    setQuizForm({ course_id: '', video_id: '', title: '', description: '', passing_score: 70, is_required: false });
+    setCourseVideos([]);
     setShowQuizDialog(true);
   };
 
@@ -318,7 +350,10 @@ export const QuizManagement = () => {
                     <Label htmlFor="course_id" className="text-foreground">Formation</Label>
                     <Select
                       value={quizForm.course_id}
-                      onValueChange={(value) => setQuizForm({ ...quizForm, course_id: value })}
+                      onValueChange={(value) => {
+                        setQuizForm({ ...quizForm, course_id: value, video_id: '' });
+                        loadCourseVideos(value);
+                      }}
                     >
                       <SelectTrigger className="bg-background text-foreground border-border">
                         <SelectValue placeholder="Sélectionnez une formation" />
@@ -327,6 +362,26 @@ export const QuizManagement = () => {
                         {courses.map((course) => (
                           <SelectItem key={course.id} value={course.id}>
                             {course.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="video_id" className="text-foreground">Leçon (vidéo)</Label>
+                    <Select
+                      value={quizForm.video_id}
+                      onValueChange={(value) => setQuizForm({ ...quizForm, video_id: value })}
+                      disabled={!quizForm.course_id}
+                    >
+                      <SelectTrigger className="bg-background text-foreground border-border">
+                        <SelectValue placeholder="Quiz général du cours (aucune vidéo)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Quiz général du cours</SelectItem>
+                        {courseVideos.map((video) => (
+                          <SelectItem key={video.id} value={video.id}>
+                            Leçon {video.order_index + 1}: {video.title}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -365,6 +420,18 @@ export const QuizManagement = () => {
                       className="bg-background text-foreground border-border"
                     />
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="is_required"
+                      checked={quizForm.is_required}
+                      onChange={(e) => setQuizForm({ ...quizForm, is_required: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <Label htmlFor="is_required" className="text-foreground cursor-pointer">
+                      Quiz obligatoire pour progresser
+                    </Label>
+                  </div>
                   <div className="flex gap-2 justify-end">
                     <Button type="button" variant="outline" onClick={() => setShowQuizDialog(false)}>
                       Annuler
@@ -383,9 +450,11 @@ export const QuizManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-foreground">Titre</TableHead>
+                <TableHead className="text-foreground">Type</TableHead>
                 <TableHead className="text-foreground">Formation</TableHead>
                 <TableHead className="text-foreground">Questions</TableHead>
                 <TableHead className="text-foreground">Score requis</TableHead>
+                <TableHead className="text-foreground">Obligatoire</TableHead>
                 <TableHead className="text-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -395,9 +464,15 @@ export const QuizManagement = () => {
                 return (
                   <TableRow key={quiz.id}>
                     <TableCell className="text-foreground font-medium">{quiz.title}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {quiz.video_id ? 'Leçon' : 'Cours général'}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{course?.title}</TableCell>
                     <TableCell className="text-muted-foreground">{quiz.questionCount || 0}</TableCell>
                     <TableCell className="text-muted-foreground">{quiz.passing_score}%</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {quiz.is_required ? '✓ Oui' : '✗ Non'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
