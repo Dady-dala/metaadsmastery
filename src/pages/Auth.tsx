@@ -20,16 +20,43 @@ const Auth = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/admin');
+        // Vérifier si l'utilisateur a le rôle admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .eq('role', 'admin')
+          .single();
+
+        if (roleData) {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     };
 
     checkSession();
 
     // Écouter les changements d'authentification
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session && event === 'SIGNED_IN') {
-        navigate('/admin');
+        // Utiliser setTimeout pour éviter les problèmes de deadlock
+        setTimeout(async () => {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', session.user.id)
+            .eq('role', 'admin')
+            .single();
+
+          if (roleData) {
+            navigate('/admin');
+          } else {
+            toast.success('Connexion réussie !');
+            navigate('/');
+          }
+        }, 0);
       }
     });
 
@@ -53,8 +80,6 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
-        } else {
-          toast.success('Connexion réussie !');
         }
       } else {
         const { error } = await supabase.auth.signUp({
