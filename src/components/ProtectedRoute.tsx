@@ -20,10 +20,12 @@ const ProtectedRoute = ({ children, requiredRole, redirectTo = '/auth' }: Protec
 
   const checkAccess = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!session) {
-        toast.error('Vous devez être connecté pour accéder à cette page');
+      // Si erreur de session ou pas de session, rediriger
+      if (sessionError || !session) {
+        toast.error('Session expirée, veuillez vous reconnecter');
+        await supabase.auth.signOut();
         navigate(redirectTo);
         return;
       }
@@ -37,17 +39,28 @@ const ProtectedRoute = ({ children, requiredRole, redirectTo = '/auth' }: Protec
           .eq('is_active', true)
           .single();
 
-        if (roleError || !roleData) {
-          toast.error("Accès refusé : vous n'avez pas les droits nécessaires");
-          navigate('/');
-          return;
+        // Si erreur JWT ou token invalide, nettoyer la session
+        if (roleError) {
+          if (roleError.message?.includes('JWT') || roleError.message?.includes('token')) {
+            toast.error('Session expirée, reconnexion nécessaire');
+            await supabase.auth.signOut();
+            navigate(redirectTo);
+            return;
+          }
+          if (!roleData) {
+            toast.error("Accès refusé : vous n'avez pas les droits nécessaires");
+            navigate('/');
+            return;
+          }
         }
       }
 
       setHasAccess(true);
     } catch (error) {
+      console.error('Erreur lors de la vérification:', error);
       toast.error('Erreur lors de la vérification des droits');
-      navigate('/');
+      await supabase.auth.signOut();
+      navigate(redirectTo);
     } finally {
       setLoading(false);
     }
