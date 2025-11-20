@@ -8,7 +8,7 @@ import SEO from '@/components/SEO';
 import { LogOut, PlayCircle, BookOpen, Settings, BarChart3, CheckCircle2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSettings } from '@/components/student/ProfileSettings';
-import { CourseProgress } from '@/components/student/CourseProgress';
+import { EnhancedCourseProgress } from '@/components/student/EnhancedCourseProgress';
 
 interface Course {
   id: string;
@@ -376,7 +376,7 @@ const EspaceFormation = () => {
 
             {/* Onglet Progression */}
             <TabsContent value="progress">
-              <CourseProgress courseId={selectedCourse?.id} />
+              <EnhancedCourseProgress />
             </TabsContent>
 
             {/* Onglet Paramètres */}
