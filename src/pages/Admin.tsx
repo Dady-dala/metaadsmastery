@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, Mail, User, Phone, MessageSquare } from 'lucide-react';
+import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
+import { CourseManagement } from '@/components/admin/CourseManagement';
+import { VideoManagement } from '@/components/admin/VideoManagement';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface ContactSubmission {
   id: string;
@@ -31,6 +33,12 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalCourses: 0,
+    totalVideos: 0,
+    totalSubmissions: 0,
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +64,29 @@ const Admin = () => {
 
       if (messagesError) throw messagesError;
       setMessages(messagesData || []);
+
+      // Charger les statistiques
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: usersData } = await supabase.functions.invoke('get-users', {
+          headers: { Authorization: `Bearer ${session.access_token}` }
+        });
+
+        const { count: coursesCount } = await supabase
+          .from('courses')
+          .select('*', { count: 'exact', head: true });
+
+        const { count: videosCount } = await supabase
+          .from('course_videos')
+          .select('*', { count: 'exact', head: true });
+
+        setStats({
+          totalUsers: usersData?.users?.length || 0,
+          totalCourses: coursesCount || 0,
+          totalVideos: videosCount || 0,
+          totalSubmissions: submissionsData?.length || 0,
+        });
+      }
     } catch (error) {
       toast.error('Erreur lors du chargement des données');
     } finally {
@@ -81,8 +112,8 @@ const Admin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a0033] via-[#2d0052] to-[#1a0033]">
-        <div className="text-white text-xl">Chargement...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-foreground text-xl">Chargement...</div>
       </div>
     );
   }
@@ -93,105 +124,153 @@ const Admin = () => {
         title="Administration - Meta Ads Mastery"
         description="Espace d'administration Meta Ads Mastery"
       />
-      <div className="min-h-screen bg-gradient-to-br from-[#1a0033] via-[#2d0052] to-[#1a0033] p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Tableau de Bord Admin
-              </h1>
-              <p className="text-gray-300">
-                Gérez les inscriptions et messages de contact
-              </p>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className="w-8 h-8 text-primary" />
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                    Dashboard Admin
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Meta Ads Mastery
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Déconnexion</span>
+              </Button>
             </div>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Déconnexion
-            </Button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-muted-foreground flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Utilisateurs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-foreground">{stats.totalUsers}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Formations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-foreground">{stats.totalCourses}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-muted-foreground flex items-center gap-2">
+                  <Video className="w-4 h-4" />
+                  Vidéos
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-foreground">{stats.totalVideos}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border">
+              <CardHeader className="pb-2">
+                <CardDescription className="text-muted-foreground flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  Inscriptions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-foreground">{stats.totalSubmissions}</p>
+              </CardContent>
+            </Card>
           </div>
 
+          {/* Tabs */}
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="users">
-                Utilisateurs
+            <TabsList className="grid w-full grid-cols-5 mb-6 bg-muted">
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Utilisateurs</span>
               </TabsTrigger>
-              <TabsTrigger value="submissions">
-                Inscriptions ({submissions.length})
+              <TabsTrigger value="courses" className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden sm:inline">Formations</span>
               </TabsTrigger>
-              <TabsTrigger value="messages">
-                Messages ({messages.length})
+              <TabsTrigger value="videos" className="flex items-center gap-2">
+                <Video className="w-4 h-4" />
+                <span className="hidden sm:inline">Vidéos</span>
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline">Inscriptions</span>
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                <span className="hidden sm:inline">Messages</span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="users">
+            <TabsContent value="users" className="mt-0">
               <UserManagement />
             </TabsContent>
 
-            <TabsContent value="submissions">
-              <Card>
+            <TabsContent value="courses" className="mt-0">
+              <CourseManagement />
+            </TabsContent>
+
+            <TabsContent value="videos" className="mt-0">
+              <VideoManagement />
+            </TabsContent>
+
+            <TabsContent value="submissions" className="mt-0">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5" />
+                  <CardTitle className="text-foreground flex items-center gap-2">
+                    <Mail className="w-5 h-5" />
                     Inscriptions à la Formation
                   </CardTitle>
-                  <CardDescription>
-                    Liste de tous les prospects inscrits à la formation
+                  <CardDescription className="text-muted-foreground">
+                    Liste des prospects inscrits
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Prénom</TableHead>
-                          <TableHead>Nom</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Téléphone</TableHead>
-                          <TableHead>Date</TableHead>
+                        <TableRow className="border-border">
+                          <TableHead className="text-foreground">Nom</TableHead>
+                          <TableHead className="text-foreground">Prénom</TableHead>
+                          <TableHead className="text-foreground">Email</TableHead>
+                          <TableHead className="text-foreground">Téléphone</TableHead>
+                          <TableHead className="text-foreground">Date</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {submissions.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
-                              Aucune inscription pour le moment
-                            </TableCell>
+                        {submissions.map((submission) => (
+                          <TableRow key={submission.id} className="border-border">
+                            <TableCell className="text-foreground">{submission.last_name}</TableCell>
+                            <TableCell className="text-foreground">{submission.first_name}</TableCell>
+                            <TableCell className="text-foreground">{submission.email}</TableCell>
+                            <TableCell className="text-foreground">{submission.phone_number}</TableCell>
+                            <TableCell className="text-muted-foreground">{formatDate(submission.created_at)}</TableCell>
                           </TableRow>
-                        ) : (
-                          submissions.map((submission) => (
-                            <TableRow key={submission.id}>
-                              <TableCell className="font-medium">
-                                {submission.first_name}
-                              </TableCell>
-                              <TableCell>{submission.last_name}</TableCell>
-                              <TableCell>
-                                <a 
-                                  href={`mailto:${submission.email}`}
-                                  className="flex items-center gap-1 text-primary hover:underline"
-                                >
-                                  <Mail className="w-4 h-4" />
-                                  {submission.email}
-                                </a>
-                              </TableCell>
-                              <TableCell>
-                                <a 
-                                  href={`tel:${submission.phone_number}`}
-                                  className="flex items-center gap-1 text-primary hover:underline"
-                                >
-                                  <Phone className="w-4 h-4" />
-                                  {submission.phone_number}
-                                </a>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {formatDate(submission.created_at)}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
@@ -199,61 +278,37 @@ const Admin = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="messages">
-              <Card>
+            <TabsContent value="messages" className="mt-0">
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="text-foreground flex items-center gap-2">
                     <MessageSquare className="w-5 h-5" />
                     Messages de Contact
                   </CardTitle>
-                  <CardDescription>
-                    Messages reçus via le formulaire de contact
+                  <CardDescription className="text-muted-foreground">
+                    Questions et demandes des visiteurs
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Nom</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Message</TableHead>
-                          <TableHead>Date</TableHead>
+                        <TableRow className="border-border">
+                          <TableHead className="text-foreground">Nom</TableHead>
+                          <TableHead className="text-foreground">Email</TableHead>
+                          <TableHead className="text-foreground">Message</TableHead>
+                          <TableHead className="text-foreground">Date</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {messages.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground">
-                              Aucun message pour le moment
-                            </TableCell>
+                        {messages.map((message) => (
+                          <TableRow key={message.id} className="border-border">
+                            <TableCell className="text-foreground">{message.name}</TableCell>
+                            <TableCell className="text-foreground">{message.email}</TableCell>
+                            <TableCell className="text-foreground max-w-md truncate">{message.message}</TableCell>
+                            <TableCell className="text-muted-foreground">{formatDate(message.created_at)}</TableCell>
                           </TableRow>
-                        ) : (
-                          messages.map((message) => (
-                            <TableRow key={message.id}>
-                              <TableCell className="font-medium">
-                                {message.name}
-                              </TableCell>
-                              <TableCell>
-                                <a 
-                                  href={`mailto:${message.email}`}
-                                  className="flex items-center gap-1 text-primary hover:underline"
-                                >
-                                  <Mail className="w-4 h-4" />
-                                  {message.email}
-                                </a>
-                              </TableCell>
-                              <TableCell className="max-w-md">
-                                <p className="truncate" title={message.message}>
-                                  {message.message}
-                                </p>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground">
-                                {formatDate(message.created_at)}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
+                        ))}
                       </TableBody>
                     </Table>
                   </div>
