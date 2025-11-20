@@ -492,7 +492,7 @@ export const CourseQuizManagement = ({ courseId, courseTitle, onClose }: CourseQ
 
       {/* Dialog Création/Édition Quiz */}
       <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
-        <DialogContent className="bg-card border-border max-w-2xl">
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">
               {editingQuiz ? 'Modifier le quiz' : 'Nouveau quiz'}
@@ -501,17 +501,17 @@ export const CourseQuizManagement = ({ courseId, courseTitle, onClose }: CourseQ
               Configurez les informations du quiz
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmitQuiz} className="space-y-4">
+          <form onSubmit={handleSubmitQuiz} className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="quiz_type" className="text-foreground">Type de quiz</Label>
               <Select
                 value={quizForm.video_id}
                 onValueChange={(value) => setQuizForm({ ...quizForm, video_id: value })}
               >
-                <SelectTrigger className="bg-background text-foreground border-border">
+                <SelectTrigger id="quiz_type" className="bg-background text-foreground border-border">
                   <SelectValue placeholder="Sélectionnez le type de quiz" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-border">
                   <SelectItem value="">Quiz général du cours</SelectItem>
                   {courseVideos.map((video) => (
                     <SelectItem key={video.id} value={video.id}>
@@ -580,7 +580,7 @@ export const CourseQuizManagement = ({ courseId, courseTitle, onClose }: CourseQ
 
       {/* Dialog Création/Édition Question */}
       <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-        <DialogContent className="bg-card border-border max-w-2xl">
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground">
               {editingQuestion ? 'Modifier la question' : 'Nouvelle question'}
@@ -589,7 +589,7 @@ export const CourseQuizManagement = ({ courseId, courseTitle, onClose }: CourseQ
               Configurez les détails de la question
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmitQuestion} className="space-y-4">
+          <form onSubmit={handleSubmitQuestion} className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="question_text" className="text-foreground">Question</Label>
               <Textarea
@@ -607,10 +607,10 @@ export const CourseQuizManagement = ({ courseId, courseTitle, onClose }: CourseQ
                 value={questionForm.question_type}
                 onValueChange={(value: any) => setQuestionForm({ ...questionForm, question_type: value })}
               >
-                <SelectTrigger className="bg-background text-foreground border-border">
+                <SelectTrigger id="question_type" className="bg-background text-foreground border-border">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border-border">
                   <SelectItem value="multiple_choice">Choix multiple</SelectItem>
                   <SelectItem value="true_false">Vrai/Faux</SelectItem>
                   <SelectItem value="short_answer">Réponse courte</SelectItem>
