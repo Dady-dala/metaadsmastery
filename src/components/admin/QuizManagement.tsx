@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Pencil, Trash2, ListPlus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -334,122 +334,123 @@ export const QuizManagement = () => {
                 Créez et gérez les quiz pour vos formations
               </CardDescription>
             </div>
-            <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
-              <DialogTrigger asChild>
-                <Button onClick={openCreateQuizDialog} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Créer un quiz
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="bg-card border-border max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-foreground">
-                    {editingQuiz ? 'Modifier le quiz' : 'Nouveau quiz'}
-                  </DialogTitle>
-                  <DialogDescription className="text-muted-foreground">
-                    Configurez les informations du quiz
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmitQuiz} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="course_id" className="text-foreground">Formation</Label>
-                    <Select
-                      value={quizForm.course_id}
-                      onValueChange={(value) => {
-                        setQuizForm({ ...quizForm, course_id: value, video_id: '' });
-                        loadCourseVideos(value);
-                      }}
-                    >
-                      <SelectTrigger className="bg-background text-foreground border-border">
-                        <SelectValue placeholder="Sélectionnez une formation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courses.map((course) => (
-                          <SelectItem key={course.id} value={course.id}>
-                            {course.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="video_id" className="text-foreground">Leçon (vidéo)</Label>
-                    <Select
-                      value={quizForm.video_id}
-                      onValueChange={(value) => setQuizForm({ ...quizForm, video_id: value })}
-                      disabled={!quizForm.course_id}
-                    >
-                      <SelectTrigger className="bg-background text-foreground border-border">
-                        <SelectValue placeholder="Quiz général du cours (aucune vidéo)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Quiz général du cours</SelectItem>
-                        {courseVideos.map((video) => (
-                          <SelectItem key={video.id} value={video.id}>
-                            Leçon {video.order_index + 1}: {video.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="title" className="text-foreground">Titre du quiz</Label>
-                    <Input
-                      id="title"
-                      value={quizForm.title}
-                      onChange={(e) => setQuizForm({ ...quizForm, title: e.target.value })}
-                      placeholder="Ex: Quiz Module 1"
-                      required
-                      className="bg-background text-foreground border-border"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-foreground">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={quizForm.description}
-                      onChange={(e) => setQuizForm({ ...quizForm, description: e.target.value })}
-                      placeholder="Description du quiz"
-                      className="bg-background text-foreground border-border"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="passing_score" className="text-foreground">Score de réussite (%)</Label>
-                    <Input
-                      id="passing_score"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={quizForm.passing_score}
-                      onChange={(e) => setQuizForm({ ...quizForm, passing_score: parseInt(e.target.value) })}
-                      className="bg-background text-foreground border-border"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="is_required"
-                      checked={quizForm.is_required}
-                      onChange={(e) => setQuizForm({ ...quizForm, is_required: e.target.checked })}
-                      className="w-4 h-4"
-                    />
-                    <Label htmlFor="is_required" className="text-foreground cursor-pointer">
-                      Quiz obligatoire pour progresser
-                    </Label>
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="outline" onClick={() => setShowQuizDialog(false)}>
-                      Annuler
-                    </Button>
-                    <Button type="submit">
-                      {editingQuiz ? 'Modifier' : 'Créer'}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <div className="flex items-center gap-2">
+              <Button onClick={openCreateQuizDialog} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Créer un quiz
+              </Button>
+            </div>
           </div>
         </CardHeader>
+
+        <Dialog open={showQuizDialog} onOpenChange={setShowQuizDialog}>
+          <DialogContent className="bg-card border-border max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">
+                {editingQuiz ? 'Modifier le quiz' : 'Nouveau quiz'}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Configurez les informations du quiz
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmitQuiz} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="course_id" className="text-foreground">Formation</Label>
+                <Select
+                  value={quizForm.course_id}
+                  onValueChange={(value) => {
+                    setQuizForm({ ...quizForm, course_id: value, video_id: '' });
+                    loadCourseVideos(value);
+                  }}
+                >
+                  <SelectTrigger className="bg-background text-foreground border-border">
+                    <SelectValue placeholder="Sélectionnez une formation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="video_id" className="text-foreground">Leçon (vidéo)</Label>
+                <Select
+                  value={quizForm.video_id}
+                  onValueChange={(value) => setQuizForm({ ...quizForm, video_id: value })}
+                  disabled={!quizForm.course_id}
+                >
+                  <SelectTrigger className="bg-background text-foreground border-border">
+                    <SelectValue placeholder="Quiz général du cours (aucune vidéo)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Quiz général du cours</SelectItem>
+                    {courseVideos.map((video) => (
+                      <SelectItem key={video.id} value={video.id}>
+                        Leçon {video.order_index + 1}: {video.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-foreground">Titre du quiz</Label>
+                <Input
+                  id="title"
+                  value={quizForm.title}
+                  onChange={(e) => setQuizForm({ ...quizForm, title: e.target.value })}
+                  placeholder="Ex: Quiz Module 1"
+                  required
+                  className="bg-background text-foreground border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-foreground">Description</Label>
+                <Textarea
+                  id="description"
+                  value={quizForm.description}
+                  onChange={(e) => setQuizForm({ ...quizForm, description: e.target.value })}
+                  placeholder="Description du quiz"
+                  className="bg-background text-foreground border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="passing_score" className="text-foreground">Score de réussite (%)</Label>
+                <Input
+                  id="passing_score"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={quizForm.passing_score}
+                  onChange={(e) => setQuizForm({ ...quizForm, passing_score: parseInt(e.target.value) })}
+                  className="bg-background text-foreground border-border"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_required"
+                  checked={quizForm.is_required}
+                  onChange={(e) => setQuizForm({ ...quizForm, is_required: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                <Label htmlFor="is_required" className="text-foreground cursor-pointer">
+                  Quiz obligatoire pour progresser
+                </Label>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowQuizDialog(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit">
+                  {editingQuiz ? 'Modifier' : 'Créer'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
         <CardContent>
           <Table>
             <TableHeader>
@@ -522,13 +523,11 @@ export const QuizManagement = () => {
                 </CardDescription>
               </div>
               <div className="flex gap-2">
+                <Button onClick={openCreateQuestionDialog} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Ajouter une question
+                </Button>
                 <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-                  <DialogTrigger asChild>
-                    <Button onClick={openCreateQuestionDialog} className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      Ajouter une question
-                    </Button>
-                  </DialogTrigger>
                   <DialogContent className="bg-card border-border max-w-2xl">
                     <DialogHeader>
                       <DialogTitle className="text-foreground">
