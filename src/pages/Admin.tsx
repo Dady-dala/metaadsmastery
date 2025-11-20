@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp } from 'lucide-react';
+import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp, UserCircle } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CourseManagement } from '@/components/admin/CourseManagement';
 import { VideoManagement } from '@/components/admin/VideoManagement';
 import StudentProgressManagement from '@/components/admin/StudentProgressManagement';
+import { AdminProfileSettings } from '@/components/admin/AdminProfileSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -204,7 +205,7 @@ const Admin = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-6 bg-muted">
+            <TabsList className="grid w-full grid-cols-7 mb-6 bg-muted">
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Utilisateurs</span>
@@ -229,6 +230,10 @@ const Admin = () => {
                 <MessageSquare className="w-4 h-4" />
                 <span className="hidden sm:inline">Messages</span>
               </TabsTrigger>
+              <TabsTrigger value="profile" className="flex items-center gap-2">
+                <UserCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Profil</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="users" className="mt-0">
@@ -245,6 +250,10 @@ const Admin = () => {
 
             <TabsContent value="progress" className="mt-0">
               <StudentProgressManagement />
+            </TabsContent>
+
+            <TabsContent value="profile" className="mt-0">
+              <AdminProfileSettings />
             </TabsContent>
 
             <TabsContent value="submissions" className="mt-0">
