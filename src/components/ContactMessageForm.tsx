@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -21,6 +21,7 @@ type ContactMessageForm = z.infer<typeof contactMessageSchema>;
 export const ContactMessageForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const {
     register,
@@ -40,19 +41,26 @@ export const ContactMessageForm = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .insert([{
+      const { data: result, error } = await supabase.functions.invoke('submit-contact-message', {
+        body: {
           name: data.name,
           email: data.email,
           message: data.message,
-        }]);
+          recaptchaToken: recaptchaToken
+        }
+      });
 
       if (error) throw error;
+
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
 
       toast.success("Message envoyé avec succès !");
       reset();
       setRecaptchaToken(null);
+      recaptchaRef.current?.reset();
     } catch (error) {
       console.error("Erreur lors de l'envoi:", error);
       toast.error("Une erreur est survenue. Veuillez réessayer.");
@@ -107,6 +115,7 @@ export const ContactMessageForm = () => {
 
       <div className="flex justify-center">
         <ReCAPTCHA
+          ref={recaptchaRef}
           sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
           onChange={(token) => setRecaptchaToken(token)}
         />
