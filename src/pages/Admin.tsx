@@ -28,48 +28,13 @@ interface ContactMessage {
 
 const Admin = () => {
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkAdminAccess();
+    loadData();
   }, []);
-
-  const checkAdminAccess = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        toast.error('Vous devez être connecté pour accéder à cette page');
-        navigate('/auth');
-        return;
-      }
-
-      // Vérifier si l'utilisateur est admin
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', session.user.id)
-        .eq('role', 'admin')
-        .single();
-
-      if (roleError || !roleData) {
-        toast.error("Accès refusé : vous n'avez pas les droits administrateur");
-        navigate('/');
-        return;
-      }
-
-      setIsAdmin(true);
-      await loadData();
-    } catch (error) {
-      toast.error('Erreur lors de la vérification des droits');
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadData = async () => {
     try {
@@ -92,6 +57,8 @@ const Admin = () => {
       setMessages(messagesData || []);
     } catch (error) {
       toast.error('Erreur lors du chargement des données');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,10 +84,6 @@ const Admin = () => {
         <div className="text-white text-xl">Chargement...</div>
       </div>
     );
-  }
-
-  if (!isAdmin) {
-    return null;
   }
 
   return (

@@ -20,16 +20,21 @@ const Auth = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Vérifier si l'utilisateur a le rôle admin
+        // Vérifier le rôle de l'utilisateur
         const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', session.user.id)
-          .eq('role', 'admin')
-          .single();
+          .maybeSingle();
 
         if (roleData) {
-          navigate('/admin');
+          if (roleData.role === 'admin') {
+            navigate('/admin');
+          } else if (roleData.role === 'student') {
+            navigate('/espace-formation');
+          } else {
+            navigate('/');
+          }
         } else {
           navigate('/');
         }
@@ -47,11 +52,18 @@ const Auth = () => {
             .from('user_roles')
             .select('role')
             .eq('user_id', session.user.id)
-            .eq('role', 'admin')
-            .single();
+            .maybeSingle();
 
           if (roleData) {
-            navigate('/admin');
+            if (roleData.role === 'admin') {
+              navigate('/admin');
+            } else if (roleData.role === 'student') {
+              toast.success('Connexion réussie !');
+              navigate('/espace-formation');
+            } else {
+              toast.success('Connexion réussie !');
+              navigate('/');
+            }
           } else {
             toast.success('Connexion réussie !');
             navigate('/');

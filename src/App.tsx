@@ -27,6 +27,8 @@ import VideoGrowth from "./pages/VideoGrowth";
 import ThankYou from "./pages/ThankYou";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import EspaceFormation from "./pages/EspaceFormation";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -60,7 +62,22 @@ const App = () => (
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/merci" element={<ThankYou />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <Admin />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/espace-formation" 
+            element={
+              <ProtectedRoute requiredRole="student">
+                <EspaceFormation />
+              </ProtectedRoute>
+            } 
+          />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
