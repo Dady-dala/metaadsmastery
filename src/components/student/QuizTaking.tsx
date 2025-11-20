@@ -258,9 +258,12 @@ export const QuizTaking = ({ courseId, videoId }: { courseId: string; videoId?: 
         // Récupérer les infos du cours et de l'étudiant
         const { data: course } = await supabase
           .from('courses')
-          .select('title')
+          .select('title, is_certifying')
           .eq('id', courseId)
           .single();
+        
+        // Vérifier si le cours est certifiant
+        if (!course || !course.is_certifying) return;
 
         const { data: profile } = await supabase
           .from('profiles')

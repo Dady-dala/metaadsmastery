@@ -13,6 +13,7 @@ interface Course {
   id: string;
   title: string;
   description: string;
+  is_certifying: boolean;
   created_at: string;
 }
 
@@ -27,7 +28,7 @@ export const CourseManagement = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', is_certifying: true });
   const [videoCount, setVideoCount] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -85,7 +86,7 @@ export const CourseManagement = () => {
       }
       
       setDialogOpen(false);
-      setFormData({ title: '', description: '' });
+      setFormData({ title: '', description: '', is_certifying: true });
       setEditingCourse(null);
       loadCourses();
     } catch (error) {
@@ -114,13 +115,13 @@ export const CourseManagement = () => {
 
   const openEditDialog = (course: Course) => {
     setEditingCourse(course);
-    setFormData({ title: course.title, description: course.description || '' });
+    setFormData({ title: course.title, description: course.description || '', is_certifying: course.is_certifying });
     setDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingCourse(null);
-    setFormData({ title: '', description: '' });
+    setFormData({ title: '', description: '', is_certifying: true });
     setDialogOpen(true);
   };
 
@@ -184,6 +185,18 @@ export const CourseManagement = () => {
                     className="bg-input border-border text-foreground"
                   />
                 </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is_certifying"
+                    checked={formData.is_certifying}
+                    onChange={(e) => setFormData({ ...formData, is_certifying: e.target.checked })}
+                    className="w-4 h-4"
+                  />
+                  <Label htmlFor="is_certifying" className="text-foreground cursor-pointer">
+                    Ce cours délivre un certificat
+                  </Label>
+                </div>
                 <div className="flex gap-2">
                   <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     {editingCourse ? 'Mettre à jour' : 'Créer'}
@@ -215,9 +228,16 @@ export const CourseManagement = () => {
                     {course.description && (
                       <p className="text-sm text-muted-foreground mb-2">{course.description}</p>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Video className="w-3 h-3" />
-                      <span>{videoCount[course.id] || 0} vidéos</span>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Video className="w-3 h-3" />
+                        <span>{videoCount[course.id] || 0} vidéos</span>
+                      </div>
+                      {course.is_certifying && (
+                        <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full font-medium">
+                          🏆 Certifiant
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2 ml-4">
