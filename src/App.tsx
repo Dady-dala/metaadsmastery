@@ -25,6 +25,8 @@ import CreatorLed from "./pages/CreatorLed";
 import Schedule from "./pages/Schedule";
 import VideoGrowth from "./pages/VideoGrowth";
 import ThankYou from "./pages/ThankYou";
+import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
@@ -57,6 +59,8 @@ const App = () => (
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/merci" element={<ThankYou />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
