@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, CheckCircle2, Clock, Trophy, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { BookOpen, CheckCircle2, Clock, Trophy, Award, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface CourseProgressData {
@@ -16,6 +17,7 @@ interface CourseProgressData {
   completedQuizzes: number;
   averageQuizScore: number;
   hasCertificate: boolean;
+  certificateUrl: string | null;
   lastActivity: string | null;
 }
 
@@ -99,7 +101,7 @@ export const EnhancedCourseProgress = () => {
 
         const { data: certificate } = await supabase
           .from('certificates')
-          .select('id')
+          .select('id, certificate_url')
           .eq('student_id', session.user.id)
           .eq('course_id', course.id)
           .single();
@@ -120,6 +122,7 @@ export const EnhancedCourseProgress = () => {
           completedQuizzes: passedQuizzes,
           averageQuizScore: avgScore,
           hasCertificate: !!certificate,
+          certificateUrl: certificate?.certificate_url || null,
           lastActivity
         };
       });
@@ -145,6 +148,15 @@ export const EnhancedCourseProgress = () => {
   };
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+
+  const downloadCertificate = (certificateUrl: string, courseTitle: string) => {
+    const link = document.createElement('a');
+    link.href = certificateUrl;
+    link.download = `Certificat_${courseTitle.replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (loading) {
     return (
@@ -298,11 +310,22 @@ export const EnhancedCourseProgress = () => {
                   <BookOpen className="w-5 h-5 text-primary" />
                   {progress.courseTitle}
                 </CardTitle>
-                {progress.hasCertificate && (
-                  <Badge variant="secondary" className="gap-1">
-                    <Trophy className="w-3 h-3" />
-                    Certificat obtenu
-                  </Badge>
+                {progress.hasCertificate && progress.certificateUrl && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="gap-1">
+                      <Trophy className="w-3 h-3" />
+                      Certificat obtenu
+                    </Badge>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => downloadCertificate(progress.certificateUrl!, progress.courseTitle)}
+                      className="gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Télécharger
+                    </Button>
+                  </div>
                 )}
               </div>
               <CardDescription className="text-muted-foreground">
