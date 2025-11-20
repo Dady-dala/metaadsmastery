@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CourseManagement } from '@/components/admin/CourseManagement';
 import { VideoManagement } from '@/components/admin/VideoManagement';
+import StudentProgressManagement from '@/components/admin/StudentProgressManagement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -203,7 +204,7 @@ const Admin = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-6 bg-muted">
+            <TabsList className="grid w-full grid-cols-6 mb-6 bg-muted">
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Utilisateurs</span>
@@ -215,6 +216,10 @@ const Admin = () => {
               <TabsTrigger value="videos" className="flex items-center gap-2">
                 <Video className="w-4 h-4" />
                 <span className="hidden sm:inline">Vidéos</span>
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Progression</span>
               </TabsTrigger>
               <TabsTrigger value="submissions" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
@@ -236,6 +241,10 @@ const Admin = () => {
 
             <TabsContent value="videos" className="mt-0">
               <VideoManagement />
+            </TabsContent>
+
+            <TabsContent value="progress" className="mt-0">
+              <StudentProgressManagement />
             </TabsContent>
 
             <TabsContent value="submissions" className="mt-0">
