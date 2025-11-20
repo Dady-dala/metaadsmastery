@@ -10,11 +10,24 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface User {
   id: string;
@@ -37,6 +50,14 @@ export const UserManagement = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [assigningCourse, setAssigningCourse] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToResetPassword, setUserToResetPassword] = useState<User | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -185,6 +206,94 @@ export const UserManagement = () => {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!newUserEmail || !newUserPassword) {
+      toast.error("Email et mot de passe requis");
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expirée");
+        window.location.href = '/auth';
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { email: newUserEmail, password: newUserPassword }
+      });
+
+      if (error) throw error;
+
+      toast.success("Utilisateur créé avec succès");
+      setShowCreateDialog(false);
+      setNewUserEmail("");
+      setNewUserPassword("");
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast.error(error.message || "Erreur lors de la création");
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expirée");
+        window.location.href = '/auth';
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: userToDelete.id }
+      });
+
+      if (error) throw error;
+
+      toast.success("Utilisateur supprimé avec succès");
+      setShowDeleteDialog(false);
+      setUserToDelete(null);
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.message || "Erreur lors de la suppression");
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!userToResetPassword || !resetPassword) {
+      toast.error("Mot de passe requis");
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Session expirée");
+        window.location.href = '/auth';
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke('reset-user-password', {
+        body: { userId: userToResetPassword.id, newPassword: resetPassword }
+      });
+
+      if (error) throw error;
+
+      toast.success("Mot de passe réinitialisé avec succès");
+      setShowResetPasswordDialog(false);
+      setUserToResetPassword(null);
+      setResetPassword("");
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast.error(error.message || "Erreur lors de la réinitialisation");
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -216,6 +325,12 @@ export const UserManagement = () => {
               Gérez les rôles, les accès aux formations et le statut des étudiants
             </CardDescription>
           </div>
+          <Button 
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+          >
+            Créer un utilisateur
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -354,6 +469,30 @@ export const UserManagement = () => {
                               </>
                             )}
                           </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setUserToResetPassword(user);
+                              setShowResetPasswordDialog(true);
+                            }}
+                            className="border-white/20 text-white hover:bg-white/10"
+                          >
+                            Réinitialiser MDP
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setUserToDelete(user);
+                              setShowDeleteDialog(true);
+                            }}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Supprimer
+                          </Button>
                         </>
                       )}
                     </div>
@@ -364,6 +503,128 @@ export const UserManagement = () => {
           </TableBody>
         </Table>
       </CardContent>
+
+      {/* Create User Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="bg-[#1a1a2e] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white">Créer un nouvel utilisateur</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email" className="text-gray-300">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                placeholder="exemple@email.com"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <div>
+              <Label htmlFor="password" className="text-gray-300">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+                placeholder="Minimum 6 caractères"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCreateDialog(false)}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleCreateUser}
+              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+            >
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
+        <DialogContent className="bg-[#1a1a2e] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white">Réinitialiser le mot de passe</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-300">
+              Utilisateur: <strong className="text-white">{userToResetPassword?.email}</strong>
+            </p>
+            <div>
+              <Label htmlFor="new-password" className="text-gray-300">Nouveau mot de passe</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={resetPassword}
+                onChange={(e) => setResetPassword(e.target.value)}
+                placeholder="Minimum 6 caractères"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowResetPasswordDialog(false);
+                setResetPassword("");
+                setUserToResetPassword(null);
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleResetPassword}
+              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+            >
+              Réinitialiser
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-[#1a1a2e] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              Êtes-vous sûr de vouloir supprimer l'utilisateur{" "}
+              <strong className="text-white">{userToDelete?.email}</strong> ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setUserToDelete(null);
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
