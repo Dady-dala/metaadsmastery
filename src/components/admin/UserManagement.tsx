@@ -1,0 +1,297 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { UserPlus, Users, BookOpen } from 'lucide-react';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface User {
+  id: string;
+  email: string;
+  created_at: string;
+  roles: string[];
+}
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export const UserManagement = () => {
+  const [users, setUsers] = useState<User[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [assigningCourse, setAssigningCourse] = useState(false);
+
+  useEffect(() => {
+    loadUsers();
+    loadCourses();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data, error } = await supabase.functions.invoke('get-users', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast.error('Erreur lors du chargement des utilisateurs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCourses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCourses(data || []);
+    } catch (error) {
+      console.error('Error loading courses:', error);
+      toast.error('Erreur lors du chargement des cours');
+    }
+  };
+
+  const assignStudentRole = async (userId: string) => {
+    try {
+      // Check if user already has student role
+      const user = users.find(u => u.id === userId);
+      if (user?.roles.includes('student')) {
+        toast.info('Cet utilisateur est déjà étudiant');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: 'student'
+        });
+
+      if (error) throw error;
+
+      toast.success('Rôle étudiant attribué avec succès');
+      loadUsers();
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      toast.error('Erreur lors de l\'attribution du rôle');
+    }
+  };
+
+  const assignToCourse = async () => {
+    if (!selectedUserId || !selectedCourseId) {
+      toast.error('Veuillez sélectionner un cours');
+      return;
+    }
+
+    setAssigningCourse(true);
+    try {
+      // Check if already enrolled
+      const { data: existing } = await supabase
+        .from('student_enrollments')
+        .select('id')
+        .eq('student_id', selectedUserId)
+        .eq('course_id', selectedCourseId)
+        .single();
+
+      if (existing) {
+        toast.info('Cet étudiant est déjà inscrit à ce cours');
+        setAssigningCourse(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('student_enrollments')
+        .insert({
+          student_id: selectedUserId,
+          course_id: selectedCourseId
+        });
+
+      if (error) throw error;
+
+      toast.success('Étudiant assigné au cours avec succès');
+      setSelectedUserId(null);
+      setSelectedCourseId('');
+    } catch (error) {
+      console.error('Error assigning to course:', error);
+      toast.error('Erreur lors de l\'assignation au cours');
+    } finally {
+      setAssigningCourse(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-white">Chargement...</div>
+      </div>
+    );
+  }
+
+  return (
+    <Card className="bg-white/5 border-white/10">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Gestion des Utilisateurs
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Gérez les rôles et les accès aux formations
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/10 hover:bg-white/5">
+              <TableHead className="text-gray-300">Email</TableHead>
+              <TableHead className="text-gray-300">Date d'inscription</TableHead>
+              <TableHead className="text-gray-300">Rôles</TableHead>
+              <TableHead className="text-gray-300">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.length === 0 ? (
+              <TableRow className="border-white/10">
+                <TableCell colSpan={4} className="text-center text-gray-400 py-8">
+                  Aucun utilisateur trouvé
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map((user) => (
+                <TableRow key={user.id} className="border-white/10 hover:bg-white/5">
+                  <TableCell className="text-white">{user.email}</TableCell>
+                  <TableCell className="text-gray-300">
+                    {formatDate(user.created_at)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2 flex-wrap">
+                      {user.roles.length === 0 ? (
+                        <Badge variant="outline" className="text-gray-400 border-gray-600">
+                          Aucun rôle
+                        </Badge>
+                      ) : (
+                        user.roles.map((role) => (
+                          <Badge 
+                            key={role}
+                            variant={role === 'admin' ? 'default' : 'secondary'}
+                            className={role === 'admin' ? 'bg-[#00ff87] text-black' : ''}
+                          >
+                            {role}
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      {!user.roles.includes('student') && (
+                        <Button
+                          size="sm"
+                          onClick={() => assignStudentRole(user.id)}
+                          className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+                        >
+                          <UserPlus className="w-4 h-4 mr-1" />
+                          Valider Étudiant
+                        </Button>
+                      )}
+                      {user.roles.includes('student') && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedUserId(user.id)}
+                              className="border-[#00ff87] text-[#00ff87] hover:bg-[#00ff87]/10"
+                            >
+                              <BookOpen className="w-4 h-4 mr-1" />
+                              Assigner au Cours
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-[#1a0033] border-white/10">
+                            <DialogHeader>
+                              <DialogTitle className="text-white">
+                                Assigner au Cours
+                              </DialogTitle>
+                              <DialogDescription className="text-gray-300">
+                                Sélectionnez un cours pour {user.email}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 mt-4">
+                              <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                  <SelectValue placeholder="Sélectionner un cours" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#1a0033] border-white/10">
+                                  {courses.map((course) => (
+                                    <SelectItem 
+                                      key={course.id} 
+                                      value={course.id}
+                                      className="text-white hover:bg-white/10"
+                                    >
+                                      {course.title}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                onClick={assignToCourse}
+                                disabled={!selectedCourseId || assigningCourse}
+                                className="w-full bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+                              >
+                                {assigningCourse ? 'Assignation...' : 'Assigner'}
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+};
