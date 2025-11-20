@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { BookOpen, Plus, Trash2, Edit2, Video } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Edit2, Video, ClipboardList } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
+import { CourseQuizManagement } from './CourseQuizManagement';
 
 interface Course {
   id: string;
@@ -30,6 +31,7 @@ export const CourseManagement = () => {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState({ title: '', description: '', is_certifying: true });
   const [videoCount, setVideoCount] = useState<Record<string, number>>({});
+  const [selectedCourseForQuiz, setSelectedCourseForQuiz] = useState<Course | null>(null);
 
   useEffect(() => {
     loadCourses();
@@ -132,6 +134,16 @@ export const CourseManagement = () => {
           <p className="text-muted-foreground">Chargement...</p>
         </CardContent>
       </Card>
+    );
+  }
+
+  if (selectedCourseForQuiz) {
+    return (
+      <CourseQuizManagement
+        courseId={selectedCourseForQuiz.id}
+        courseTitle={selectedCourseForQuiz.title}
+        onClose={() => setSelectedCourseForQuiz(null)}
+      />
     );
   }
 
@@ -241,6 +253,15 @@ export const CourseManagement = () => {
                     </div>
                   </div>
                   <div className="flex gap-2 ml-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedCourseForQuiz(course)}
+                      className="border-border"
+                      title="Gérer les quiz"
+                    >
+                      <ClipboardList className="w-4 h-4" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
