@@ -5,9 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { User, Mail, Lock, Moon, Sun, Globe } from 'lucide-react';
+import { User, Mail, Lock, Moon, Sun, Globe, Award, Download } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface Certificate {
+  id: string;
+  course_id: string;
+  certificate_url: string;
+  issued_at: string;
+  courses: {
+    title: string;
+  };
+}
 
 export const ProfileSettings = () => {
   const [email, setEmail] = useState('');
@@ -16,9 +26,11 @@ export const ProfileSettings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const { theme, setTheme } = useTheme();
   const [language, setLanguage] = useState('fr');
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   useEffect(() => {
     loadProfile();
+    loadCertificates();
   }, []);
 
   const loadProfile = async () => {
@@ -26,6 +38,42 @@ export const ProfileSettings = () => {
     if (user) {
       setEmail(user.email || '');
     }
+  };
+
+  const loadCertificates = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from('certificates')
+      .select(`
+        id,
+        course_id,
+        certificate_url,
+        issued_at,
+        courses (
+          title
+        )
+      `)
+      .eq('student_id', session.user.id)
+      .order('issued_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading certificates:', error);
+      toast.error('Erreur lors du chargement des certificats');
+    } else if (data) {
+      setCertificates(data as Certificate[]);
+    }
+  };
+
+  const downloadCertificate = (certificateUrl: string, courseTitle: string) => {
+    const link = document.createElement('a');
+    link.href = certificateUrl;
+    link.download = `Certificat-${courseTitle.replace(/\s+/g, '-')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Téléchargement du certificat en cours...');
   };
 
   const handlePasswordUpdate = async () => {
@@ -180,6 +228,56 @@ export const ProfileSettings = () => {
               </SelectContent>
             </Select>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Certificats */}
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <Award className="w-5 h-5" />
+            Mes Certificats
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Vos certificats de réussite
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {certificates.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Aucun certificat pour le moment. Complétez vos cours pour obtenir vos certificats !
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {certificates.map((cert) => (
+                <div
+                  key={cert.id}
+                  className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/50"
+                >
+                  <div className="flex items-center gap-3">
+                    <Award className="w-8 h-8 text-primary" />
+                    <div>
+                      <h4 className="font-semibold text-foreground">
+                        {cert.courses.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        Délivré le {new Date(cert.issued_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => downloadCertificate(cert.certificate_url, cert.courses.title)}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Télécharger
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
