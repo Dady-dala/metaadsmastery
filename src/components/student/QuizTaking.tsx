@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, XCircle, Trophy, Clock } from 'lucide-react';
@@ -338,21 +339,65 @@ export const QuizTaking = ({ courseId, videoId }: { courseId: string; videoId?: 
             <h3 className="text-lg font-semibold text-foreground">
               {currentQuestion.question_text}
             </h3>
-            
-            {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options && (
+
+            {/* Questions à choix multiple */}
+            {currentQuestion.question_type === 'multiple_choice' &&
+              currentQuestion.options &&
+              currentQuestion.options.length > 0 && (
+                <RadioGroup
+                  value={answers[currentQuestion.id] || ''}
+                  onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
+                >
+                  {currentQuestion.options
+                    .filter((option) => option && option.trim() !== '')
+                    .map((option, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value={option}
+                          id={`option-${currentQuestion.id}-${index}`}
+                        />
+                        <Label
+                          htmlFor={`option-${currentQuestion.id}-${index}`}
+                          className="text-foreground cursor-pointer"
+                        >
+                          {option}
+                        </Label>
+                      </div>
+                    ))}
+                </RadioGroup>
+              )}
+
+            {/* Questions vrai / faux */}
+            {currentQuestion.question_type === 'true_false' && (
               <RadioGroup
                 value={answers[currentQuestion.id] || ''}
                 onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
               >
-                {currentQuestion.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`option-${index}`} />
-                    <Label htmlFor={`option-${index}`} className="text-foreground cursor-pointer">
+                {['Vrai', 'Faux'].map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <RadioGroupItem
+                      value={option}
+                      id={`option-${currentQuestion.id}-${option}`}
+                    />
+                    <Label
+                      htmlFor={`option-${currentQuestion.id}-${option}`}
+                      className="text-foreground cursor-pointer"
+                    >
                       {option}
                     </Label>
                   </div>
                 ))}
               </RadioGroup>
+            )}
+
+            {/* Questions à réponse courte */}
+            {currentQuestion.question_type === 'short_answer' && (
+              <Input
+                value={answers[currentQuestion.id] || ''}
+                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                placeholder="Votre réponse"
+                className="max-w-xl"
+              />
             )}
           </div>
 
