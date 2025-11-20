@@ -75,17 +75,24 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
           // Validate data
           const validated = contactSchema.parse(data);
           
-          // Insert into Supabase
-          const { error } = await supabase
-            .from('contact_submissions')
-            .insert({
+          // Appeler l'Edge Function sécurisé au lieu d'insérer directement
+          const { data: result, error } = await supabase.functions.invoke('submit-contact', {
+            body: {
               first_name: validated.firstName,
               last_name: validated.lastName,
               email: validated.email,
               phone_number: validated.phoneNumber,
-            });
+            }
+          });
           
-          if (error) throw error;
+          if (error) {
+            console.error('Edge function error:', error);
+            throw new Error(error.message || 'Erreur lors de la soumission');
+          }
+          
+          if (result?.error) {
+            throw new Error(result.error);
+          }
           
           // Redirect to thank you page
           window.location.href = '/merci';
@@ -99,9 +106,10 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
             });
             setErrors(fieldErrors);
           } else {
+            const errorMessage = error instanceof Error ? error.message : 'Une erreur s\'est produite. Veuillez réessayer.';
             toast({
               title: "Erreur",
-              description: "Une erreur s'est produite. Veuillez réessayer.",
+              description: errorMessage,
               variant: "destructive",
             });
           }
