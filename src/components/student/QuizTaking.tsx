@@ -109,10 +109,28 @@ export const QuizTaking = ({ courseId, videoId }: { courseId: string; videoId?: 
       .order('order_index');
 
     if (questionsData) {
-      const formattedQuestions: Question[] = questionsData.map(q => ({
-        ...q,
-        options: q.options ? (q.options as string[]) : null
-      }));
+      const formattedQuestions: Question[] = questionsData.map(q => {
+        let options = null;
+        if (q.options) {
+          // Si options est déjà un tableau, l'utiliser directement
+          if (Array.isArray(q.options)) {
+            options = q.options as string[];
+          } 
+          // Si c'est un objet/string JSON, essayer de le parser
+          else if (typeof q.options === 'string') {
+            try {
+              const parsed = JSON.parse(q.options);
+              options = Array.isArray(parsed) ? parsed : null;
+            } catch {
+              options = null;
+            }
+          }
+        }
+        return {
+          ...q,
+          options
+        };
+      });
       setQuestions(formattedQuestions);
     }
   };

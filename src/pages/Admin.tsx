@@ -207,7 +207,7 @@ const Admin = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="grid w-full grid-cols-9 mb-6 bg-muted">
+            <TabsList className="grid w-full grid-cols-8 mb-6 bg-muted">
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Utilisateurs</span>
@@ -219,10 +219,6 @@ const Admin = () => {
               <TabsTrigger value="videos" className="flex items-center gap-2">
                 <Video className="w-4 h-4" />
                 <span className="hidden sm:inline">Vidéos</span>
-              </TabsTrigger>
-              <TabsTrigger value="quiz" className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                <span className="hidden sm:inline">Quiz</span>
               </TabsTrigger>
               <TabsTrigger value="progress" className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
@@ -256,10 +252,6 @@ const Admin = () => {
 
             <TabsContent value="videos" className="mt-0">
               <VideoManagement />
-            </TabsContent>
-
-            <TabsContent value="quiz" className="mt-0">
-              <QuizManagement />
             </TabsContent>
 
             <TabsContent value="progress" className="mt-0">
