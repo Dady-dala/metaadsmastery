@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UserPlus, Users, BookOpen } from 'lucide-react';
+import { UserPlus, Users, BookOpen, Ban, CheckCircle } from 'lucide-react';
 import { 
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ interface User {
   email: string;
   created_at: string;
   roles: string[];
+  is_active?: boolean;
 }
 
 interface Course {
@@ -146,6 +147,28 @@ export const UserManagement = () => {
     }
   };
 
+  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ is_active: !currentStatus })
+        .eq('user_id', userId)
+        .eq('role', 'student');
+
+      if (error) throw error;
+
+      toast.success(
+        !currentStatus 
+          ? 'Étudiant réactivé avec succès' 
+          : 'Étudiant suspendu avec succès'
+      );
+      loadUsers();
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      toast.error('Erreur lors de la modification du statut');
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -174,7 +197,7 @@ export const UserManagement = () => {
               Gestion des Utilisateurs
             </CardTitle>
             <CardDescription className="text-gray-300">
-              Gérez les rôles et les accès aux formations
+              Gérez les rôles, les accès aux formations et le statut des étudiants
             </CardDescription>
           </div>
         </div>
@@ -186,13 +209,14 @@ export const UserManagement = () => {
               <TableHead className="text-gray-300">Email</TableHead>
               <TableHead className="text-gray-300">Date d'inscription</TableHead>
               <TableHead className="text-gray-300">Rôles</TableHead>
+              <TableHead className="text-gray-300">Statut</TableHead>
               <TableHead className="text-gray-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={4} className="text-center text-gray-400 py-8">
+                <TableCell colSpan={5} className="text-center text-gray-400 py-8">
                   Aucun utilisateur trouvé
                 </TableCell>
               </TableRow>
@@ -223,8 +247,17 @@ export const UserManagement = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
-                      {!user.roles.includes('student') && (
+                    {user.roles.includes('student') && (
+                      <Badge 
+                        variant={user.is_active !== false ? 'default' : 'destructive'}
+                        className={user.is_active !== false ? 'bg-[#00ff87] text-black' : 'bg-red-500 text-white'}
+                      >
+                        {user.is_active !== false ? 'Actif' : 'Suspendu'}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2 flex-wrap">{!user.roles.includes('student') && (
                         <Button
                           size="sm"
                           onClick={() => assignStudentRole(user.id)}
@@ -235,54 +268,77 @@ export const UserManagement = () => {
                         </Button>
                       )}
                       {user.roles.includes('student') && (
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedUserId(user.id)}
-                              className="border-[#00ff87] text-[#00ff87] hover:bg-[#00ff87]/10"
-                            >
-                              <BookOpen className="w-4 h-4 mr-1" />
-                              Assigner au Cours
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="bg-[#1a0033] border-white/10">
-                            <DialogHeader>
-                              <DialogTitle className="text-white">
-                                Assigner au Cours
-                              </DialogTitle>
-                              <DialogDescription className="text-gray-300">
-                                Sélectionnez un cours pour {user.email}
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 mt-4">
-                              <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-                                <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                  <SelectValue placeholder="Sélectionner un cours" />
-                                </SelectTrigger>
-                                <SelectContent className="bg-[#1a0033] border-white/10">
-                                  {courses.map((course) => (
-                                    <SelectItem 
-                                      key={course.id} 
-                                      value={course.id}
-                                      className="text-white hover:bg-white/10"
-                                    >
-                                      {course.title}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                        <>
+                          <Dialog>
+                            <DialogTrigger asChild>
                               <Button
-                                onClick={assignToCourse}
-                                disabled={!selectedCourseId || assigningCourse}
-                                className="w-full bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setSelectedUserId(user.id)}
+                                className="border-[#00ff87] text-[#00ff87] hover:bg-[#00ff87]/10"
                               >
-                                {assigningCourse ? 'Assignation...' : 'Assigner'}
+                                <BookOpen className="w-4 h-4 mr-1" />
+                                Assigner
                               </Button>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                            </DialogTrigger>
+                            <DialogContent className="bg-[#1a0033] border-white/10">
+                              <DialogHeader>
+                                <DialogTitle className="text-white">
+                                  Assigner au Cours
+                                </DialogTitle>
+                                <DialogDescription className="text-gray-300">
+                                  Sélectionnez un cours pour {user.email}
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4 mt-4">
+                                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                                    <SelectValue placeholder="Sélectionner un cours" />
+                                  </SelectTrigger>
+                                  <SelectContent className="bg-[#1a0033] border-white/10">
+                                    {courses.map((course) => (
+                                      <SelectItem 
+                                        key={course.id} 
+                                        value={course.id}
+                                        className="text-white hover:bg-white/10"
+                                      >
+                                        {course.title}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  onClick={assignToCourse}
+                                  disabled={!selectedCourseId || assigningCourse}
+                                  className="w-full bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+                                >
+                                  {assigningCourse ? 'Assignation...' : 'Assigner'}
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+
+                          <Button
+                            size="sm"
+                            variant={user.is_active !== false ? 'destructive' : 'default'}
+                            onClick={() => toggleUserStatus(user.id, user.is_active !== false)}
+                            className={user.is_active !== false 
+                              ? 'bg-red-500 hover:bg-red-600' 
+                              : 'bg-[#00ff87] text-black hover:bg-[#00cc6e]'}
+                          >
+                            {user.is_active !== false ? (
+                              <>
+                                <Ban className="w-4 h-4 mr-1" />
+                                Suspendre
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                Réactiver
+                              </>
+                            )}
+                          </Button>
+                        </>
                       )}
                     </div>
                   </TableCell>
