@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, PlayCircle, BookOpen, Settings, BarChart3, CheckCircle2 } from 'lucide-react';
+import { LogOut, PlayCircle, BookOpen, Settings, BarChart3, CheckCircle2, Award } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSettings } from '@/components/student/ProfileSettings';
 import { EnhancedCourseProgress } from '@/components/student/EnhancedCourseProgress';
 import { QuizTaking } from '@/components/student/QuizTaking';
+import { StudentCertificates } from '@/components/student/StudentCertificates';
 
 interface Course {
   id: string;
@@ -209,7 +210,7 @@ const EspaceFormation = () => {
           </div>
 
           <Tabs defaultValue="courses" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-card border-border mb-6">
+            <TabsList className="grid w-full grid-cols-4 bg-card border-border mb-6">
               <TabsTrigger value="courses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BookOpen className="w-4 h-4 mr-2" />
                 Mes Cours
@@ -217,6 +218,10 @@ const EspaceFormation = () => {
               <TabsTrigger value="progress" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Progression
+              </TabsTrigger>
+              <TabsTrigger value="certificates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Award className="w-4 h-4 mr-2" />
+                Certificats
               </TabsTrigger>
               <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Settings className="w-4 h-4 mr-2" />
@@ -388,6 +393,11 @@ const EspaceFormation = () => {
             {/* Onglet Progression */}
             <TabsContent value="progress">
               <EnhancedCourseProgress />
+            </TabsContent>
+
+            {/* Onglet Certificats */}
+            <TabsContent value="certificates">
+              <StudentCertificates />
             </TabsContent>
 
             {/* Onglet Paramètres */}
