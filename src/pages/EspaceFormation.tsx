@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, PlayCircle, BookOpen } from 'lucide-react';
+import { LogOut, PlayCircle, BookOpen, Settings, BarChart3, CheckCircle2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ProfileSettings } from '@/components/student/ProfileSettings';
+import { CourseProgress } from '@/components/student/CourseProgress';
 
 interface Course {
   id: string;
@@ -28,6 +31,7 @@ const EspaceFormation = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [courseVideos, setCourseVideos] = useState<CourseVideo[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(null);
+  const [videoProgress, setVideoProgress] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,8 +57,65 @@ const EspaceFormation = () => {
   useEffect(() => {
     if (selectedCourse) {
       loadCourseVideos(selectedCourse.id);
+      loadVideoProgress(selectedCourse.id);
     }
   }, [selectedCourse]);
+
+  const loadVideoProgress = async (courseId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: videos } = await supabase
+        .from('course_videos')
+        .select('id')
+        .eq('course_id', courseId);
+
+      if (!videos) return;
+
+      const { data: progress } = await supabase
+        .from('video_progress')
+        .select('video_id, completed')
+        .eq('student_id', session.user.id)
+        .in('video_id', videos.map(v => v.id));
+
+      const progressMap: Record<string, boolean> = {};
+      progress?.forEach(p => {
+        progressMap[p.video_id] = p.completed;
+      });
+      setVideoProgress(progressMap);
+    } catch (error) {
+      console.error('Error loading video progress:', error);
+    }
+  };
+
+  const markVideoAsCompleted = async (videoId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase
+        .from('video_progress')
+        .upsert({
+          student_id: session.user.id,
+          video_id: videoId,
+          completed: true,
+          watch_percentage: 100
+        });
+
+      if (error) throw error;
+
+      setVideoProgress(prev => ({ ...prev, [videoId]: true }));
+      toast.success('Vidéo marquée comme terminée');
+      
+      if (selectedCourse) {
+        loadVideoProgress(selectedCourse.id);
+      }
+    } catch (error) {
+      console.error('Error marking video as completed:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
 
   const loadEnrolledCourses = async () => {
     try {
@@ -116,8 +177,8 @@ const EspaceFormation = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a0033] via-[#2d0052] to-[#1a0033]">
-        <div className="text-white text-xl">Chargement...</div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-foreground text-xl">Chargement...</div>
       </div>
     );
   }
@@ -126,131 +187,203 @@ const EspaceFormation = () => {
     <>
       <SEO 
         title="Espace Formation - Meta Ads Mastery"
-        description="Accédez à votre formation Meta Ads Mastery"
+        description="Accédez à votre espace de formation Meta Ads Mastery"
+        keywords="formation, meta ads, apprentissage, cours en ligne"
       />
-      <div className="min-h-screen bg-gradient-to-br from-[#1a0033] via-[#2d0052] to-[#1a0033] p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
+      
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-white">
-              Espace Formation
-            </h1>
-            <Button 
+            <h1 className="text-3xl font-bold text-foreground">Espace Formation</h1>
+            <Button
               onClick={handleLogout}
               variant="outline"
-              className="bg-white/10 border-[#00ff87] text-white hover:bg-[#00ff87] hover:text-black"
+              className="border-border hover:bg-muted"
             >
-              <LogOut className="mr-2 h-4 w-4" />
+              <LogOut className="w-4 h-4 mr-2" />
               Déconnexion
             </Button>
           </div>
 
-          {enrolledCourses.length === 0 ? (
-            <Card className="bg-white/5 border-[#00ff87]/20">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <BookOpen className="h-6 w-6" />
-                  Aucun cours disponible
-                </CardTitle>
-                <CardDescription className="text-gray-300">
-                  Vous n'êtes inscrit à aucun cours pour le moment. Veuillez contacter l'administrateur.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Liste des cours */}
-              <div className="lg:col-span-1">
-                <Card className="bg-white/5 border-[#00ff87]/20">
-                  <CardHeader>
-                    <CardTitle className="text-white">Mes Cours</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {enrolledCourses.map((course) => (
-                      <Button
-                        key={course.id}
-                        onClick={() => setSelectedCourse(course)}
-                        variant={selectedCourse?.id === course.id ? "default" : "outline"}
-                        className={`w-full justify-start ${
-                          selectedCourse?.id === course.id
-                            ? 'bg-[#00ff87] text-black hover:bg-[#00ff87]/90'
-                            : 'bg-white/10 border-[#00ff87]/20 text-white hover:bg-white/20'
-                        }`}
-                      >
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        {course.title}
-                      </Button>
-                    ))}
+          <Tabs defaultValue="courses" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-card border-border mb-6">
+              <TabsTrigger value="courses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Mes Cours
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Progression
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Settings className="w-4 h-4 mr-2" />
+                Paramètres
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Onglet Cours */}
+            <TabsContent value="courses">
+              {enrolledCourses.length === 0 ? (
+                <Card className="bg-card border-border">
+                  <CardContent className="p-8 text-center">
+                    <BookOpen className="w-16 h-16 text-primary mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-foreground mb-2">
+                      Aucun cours disponible
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Vous n'êtes inscrit à aucun cours pour le moment.
+                    </p>
                   </CardContent>
                 </Card>
-              </div>
-
-              {/* Lecteur vidéo et liste des vidéos */}
-              <div className="lg:col-span-3">
-                {selectedCourse && (
-                  <>
-                    <Card className="bg-white/5 border-[#00ff87]/20 mb-6">
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                  {/* Left sidebar - Course list */}
+                  <div className="lg:col-span-1">
+                    <Card className="bg-card border-border">
                       <CardHeader>
-                        <CardTitle className="text-white">{selectedCourse.title}</CardTitle>
-                        {selectedCourse.description && (
-                          <CardDescription className="text-gray-300">
-                            {selectedCourse.description}
-                          </CardDescription>
-                        )}
-                      </CardHeader>
-                      {selectedVideo && (
-                        <CardContent>
-                          <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                            <wistia-player 
-                              media-id={selectedVideo.wistia_media_id}
-                              seo="false"
-                              aspect="1.7777777777777777"
-                              className="w-full h-full"
-                            />
-                          </div>
-                          <div className="mt-4">
-                            <h3 className="text-xl font-semibold text-white mb-2">
-                              {selectedVideo.title}
-                            </h3>
-                            {selectedVideo.description && (
-                              <p className="text-gray-300">{selectedVideo.description}</p>
-                            )}
-                          </div>
-                        </CardContent>
-                      )}
-                    </Card>
-
-                    <Card className="bg-white/5 border-[#00ff87]/20">
-                      <CardHeader>
-                        <CardTitle className="text-white">Liste des vidéos</CardTitle>
+                        <CardTitle className="text-foreground flex items-center gap-2">
+                          <BookOpen className="w-5 h-5 text-primary" />
+                          Mes Cours
+                        </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        {courseVideos.length === 0 ? (
-                          <p className="text-gray-400">Aucune vidéo disponible pour ce cours.</p>
-                        ) : (
-                          courseVideos.map((video, index) => (
-                            <Button
-                              key={video.id}
-                              onClick={() => setSelectedVideo(video)}
-                              variant={selectedVideo?.id === video.id ? "default" : "outline"}
-                              className={`w-full justify-start ${
-                                selectedVideo?.id === video.id
-                                  ? 'bg-[#00ff87] text-black hover:bg-[#00ff87]/90'
-                                  : 'bg-white/10 border-[#00ff87]/20 text-white hover:bg-white/20'
-                              }`}
-                            >
-                              <PlayCircle className="mr-2 h-4 w-4" />
-                              <span className="mr-2 font-semibold">{index + 1}.</span>
-                              {video.title}
-                            </Button>
-                          ))
-                        )}
+                        {enrolledCourses.map((course) => (
+                          <Button
+                            key={course.id}
+                            variant={selectedCourse?.id === course.id ? "default" : "outline"}
+                            className="w-full justify-start"
+                            onClick={() => setSelectedCourse(course)}
+                          >
+                            {course.title}
+                          </Button>
+                        ))}
                       </CardContent>
                     </Card>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+                  </div>
+
+                  {/* Main content - Video player and details */}
+                  <div className="lg:col-span-3 space-y-6">
+                    {selectedCourse && (
+                      <>
+                        <Card className="bg-card border-border">
+                          <CardHeader>
+                            <CardTitle className="text-foreground">{selectedCourse.title}</CardTitle>
+                            {selectedCourse.description && (
+                              <CardDescription className="text-muted-foreground">
+                                {selectedCourse.description}
+                              </CardDescription>
+                            )}
+                          </CardHeader>
+                          {selectedVideo && (
+                            <CardContent>
+                              <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                                <div 
+                                  className="wistia_responsive_padding" 
+                                  style={{ padding: '56.25% 0 0 0', position: 'relative' }}
+                                >
+                                  <div 
+                                    className="wistia_responsive_wrapper" 
+                                    style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}
+                                  >
+                                    <div 
+                                      className={`wistia_embed wistia_async_${selectedVideo.wistia_media_id} seo=true videoFoam=true`}
+                                      style={{ height: '100%', position: 'relative', width: '100%' }}
+                                    >
+                                      <div 
+                                        className="wistia_swatch" 
+                                        style={{ 
+                                          height: '100%', 
+                                          left: 0, 
+                                          opacity: 0, 
+                                          overflow: 'hidden', 
+                                          position: 'absolute', 
+                                          top: 0, 
+                                          transition: 'opacity 200ms', 
+                                          width: '100%' 
+                                        }}
+                                      >
+                                        <img 
+                                          src={`https://fast.wistia.com/embed/medias/${selectedVideo.wistia_media_id}/swatch`}
+                                          style={{ filter: 'blur(5px)', height: '100%', objectFit: 'contain', width: '100%' }}
+                                          alt=""
+                                          aria-hidden="true"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1">
+                                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                                    {selectedVideo.title}
+                                  </h3>
+                                  {selectedVideo.description && (
+                                    <p className="text-muted-foreground">{selectedVideo.description}</p>
+                                  )}
+                                </div>
+                                {!videoProgress[selectedVideo.id] && (
+                                  <Button
+                                    onClick={() => markVideoAsCompleted(selectedVideo.id)}
+                                    variant="outline"
+                                    className="border-success text-success hover:bg-success hover:text-success-foreground shrink-0"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                    Terminé
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          )}
+                        </Card>
+
+                        {/* Video list */}
+                        <Card className="bg-card border-border">
+                          <CardHeader>
+                            <CardTitle className="text-foreground flex items-center gap-2">
+                              <PlayCircle className="w-5 h-5 text-primary" />
+                              Vidéos du cours ({courseVideos.length})
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {courseVideos.map((video, index) => (
+                                <Button
+                                  key={video.id}
+                                  variant={selectedVideo?.id === video.id ? "default" : "outline"}
+                                  className="w-full justify-between"
+                                  onClick={() => setSelectedVideo(video)}
+                                >
+                                  <span className="flex items-center">
+                                    <span className="mr-2">{index + 1}.</span>
+                                    {video.title}
+                                  </span>
+                                  {videoProgress[video.id] && (
+                                    <CheckCircle2 className="w-4 h-4 text-success" />
+                                  )}
+                                </Button>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Onglet Progression */}
+            <TabsContent value="progress">
+              <CourseProgress courseId={selectedCourse?.id} />
+            </TabsContent>
+
+            {/* Onglet Paramètres */}
+            <TabsContent value="settings">
+              <ProfileSettings />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </>
