@@ -136,10 +136,15 @@ export const QuizManagement = () => {
   const handleSubmitQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const quizData = {
+        ...quizForm,
+        video_id: quizForm.video_id === '' ? null : quizForm.video_id
+      };
+
       if (editingQuiz) {
         const { error } = await supabase
           .from('quizzes')
-          .update(quizForm)
+          .update(quizData)
           .eq('id', editingQuiz.id);
 
         if (error) throw error;
@@ -147,7 +152,7 @@ export const QuizManagement = () => {
       } else {
         const { error } = await supabase
           .from('quizzes')
-          .insert([quizForm]);
+          .insert([quizData]);
 
         if (error) throw error;
         toast.success('Quiz créé avec succès');

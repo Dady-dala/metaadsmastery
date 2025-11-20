@@ -56,18 +56,13 @@ export const QuizTaking = ({ courseId, videoId }: { courseId: string; videoId?: 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      let query = supabase
+      // Charger le quiz général du cours + le quiz de la vidéo courante si elle existe
+      const { data: quizzesData } = await supabase
         .from('quizzes')
         .select('*')
-        .eq('course_id', courseId);
-
-      if (videoId) {
-        query = query.eq('video_id', videoId);
-      } else {
-        query = query.is('video_id', null);
-      }
-
-      const { data: quizzesData } = await query.order('created_at');
+        .eq('course_id', courseId)
+        .or(videoId ? `video_id.is.null,video_id.eq.${videoId}` : 'video_id.is.null')
+        .order('created_at');
 
       if (quizzesData) {
         setQuizzes(quizzesData);
