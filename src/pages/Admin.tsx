@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
 import { LogOut, Mail, User, Phone, MessageSquare } from 'lucide-react';
+import { UserManagement } from '@/components/admin/UserManagement';
 
 interface ContactSubmission {
   id: string;
@@ -113,8 +114,11 @@ const Admin = () => {
             </Button>
           </div>
 
-          <Tabs defaultValue="submissions" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+          <Tabs defaultValue="users" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="users">
+                Utilisateurs
+              </TabsTrigger>
               <TabsTrigger value="submissions">
                 Inscriptions ({submissions.length})
               </TabsTrigger>
@@ -122,6 +126,10 @@ const Admin = () => {
                 Messages ({messages.length})
               </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="users">
+              <UserManagement />
+            </TabsContent>
 
             <TabsContent value="submissions">
               <Card>
