@@ -340,33 +340,42 @@ const EspaceFormation = () => {
                           )}
                         </Card>
 
-                        {/* Video list */}
+                        {/* Tabs vidéos / quiz */}
                         <Card className="bg-card border-border">
                           <CardHeader>
-                            <CardTitle className="text-foreground flex items-center gap-2">
-                              <PlayCircle className="w-5 h-5 text-primary" />
-                              Vidéos du cours ({courseVideos.length})
-                            </CardTitle>
+                            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'videos' | 'quiz')} className="w-full">
+                              <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="videos">Vidéos du cours</TabsTrigger>
+                                <TabsTrigger value="quiz">Quiz</TabsTrigger>
+                              </TabsList>
+                            </Tabs>
                           </CardHeader>
                           <CardContent>
-                            <div className="space-y-2">
-                              {courseVideos.map((video, index) => (
-                                <Button
-                                  key={video.id}
-                                  variant={selectedVideo?.id === video.id ? "default" : "outline"}
-                                  className="w-full justify-between"
-                                  onClick={() => setSelectedVideo(video)}
-                                >
-                                  <span className="flex items-center">
-                                    <span className="mr-2">{index + 1}.</span>
-                                    {video.title}
-                                  </span>
-                                  {videoProgress[video.id] && (
-                                    <CheckCircle2 className="w-4 h-4 text-success" />
-                                  )}
-                                </Button>
-                              ))}
-                            </div>
+                            {activeTab === 'videos' ? (
+                              <div className="space-y-2">
+                                {courseVideos.map((video, index) => (
+                                  <Button
+                                    key={video.id}
+                                    variant={selectedVideo?.id === video.id ? "default" : "outline"}
+                                    className="w-full justify-between"
+                                    onClick={() => setSelectedVideo(video)}
+                                  >
+                                    <span className="flex items-center">
+                                      <span className="mr-2">{index + 1}.</span>
+                                      {video.title}
+                                    </span>
+                                    {videoProgress[video.id] && (
+                                      <CheckCircle2 className="w-4 h-4 text-success" />
+                                    )}
+                                  </Button>
+                                ))}
+                              </div>
+                            ) : (
+                              <QuizTaking 
+                                courseId={selectedCourse.id} 
+                                videoId={selectedVideo?.id}
+                              />
+                            )}
                           </CardContent>
                         </Card>
                       </>

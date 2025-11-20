@@ -16,6 +16,8 @@ interface Quiz {
   description: string | null;
   passing_score: number;
   course_id: string;
+  video_id: string | null;
+  is_required: boolean;
 }
 
 interface Question {
@@ -33,7 +35,7 @@ interface QuizAttempt {
   completed_at: string;
 }
 
-export const QuizTaking = ({ courseId }: { courseId: string }) => {
+export const QuizTaking = ({ courseId, videoId }: { courseId: string; videoId?: string }) => {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -46,18 +48,26 @@ export const QuizTaking = ({ courseId }: { courseId: string }) => {
 
   useEffect(() => {
     loadQuizzes();
-  }, [courseId]);
+  }, [courseId, videoId]);
 
   const loadQuizzes = async () => {
     try {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: quizzesData } = await supabase
+      let query = supabase
         .from('quizzes')
         .select('*')
-        .eq('course_id', courseId)
-        .order('created_at');
+        .eq('course_id', courseId);
+
+      if (videoId) {
+        query = query.eq('video_id', videoId);
+      } else {
+        query = query.is('video_id', null);
+      }
+
+      const { data: quizzesData } = await query.order('created_at');
 
       if (quizzesData) {
         setQuizzes(quizzesData);
@@ -375,6 +385,11 @@ export const QuizTaking = ({ courseId }: { courseId: string }) => {
                   <div className="flex-1">
                     <CardTitle className="text-foreground flex items-center gap-2">
                       {quiz.title}
+                      {quiz.is_required && (
+                        <Badge variant="destructive" className="gap-1">
+                          Obligatoire
+                        </Badge>
+                      )}
                       {attempt?.passed && (
                         <Badge variant="secondary" className="gap-1">
                           <CheckCircle2 className="w-3 h-3" />
