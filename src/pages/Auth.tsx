@@ -16,7 +16,7 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
+    // Vérifier si l'utilisateur est déjà connecté avec un rôle assigné
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -27,6 +27,7 @@ const Auth = () => {
           .eq('user_id', session.user.id)
           .maybeSingle();
 
+        // Rediriger SEULEMENT si un rôle est assigné
         if (roleData) {
           if (roleData.role === 'admin') {
             navigate('/admin');
@@ -35,9 +36,8 @@ const Auth = () => {
           } else {
             navigate('/');
           }
-        } else {
-          navigate('/');
         }
+        // Si pas de rôle, rester sur /auth pour permettre la déconnexion ou attendre l'assignation
       }
     };
 
@@ -65,8 +65,8 @@ const Auth = () => {
               navigate('/');
             }
           } else {
-            toast.success('Connexion réussie !');
-            navigate('/');
+            // Informer l'utilisateur qu'il doit attendre l'assignation d'un rôle
+            toast.info("Compte créé ! En attente d'assignation de rôle par l'administrateur.");
           }
         }, 0);
       }
@@ -109,7 +109,7 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
-          toast.success('Compte créé ! Vous pouvez maintenant vous connecter.');
+          toast.success('Compte créé avec succès ! Connectez-vous pour accéder à votre espace.');
           setIsLogin(true);
         }
       }
