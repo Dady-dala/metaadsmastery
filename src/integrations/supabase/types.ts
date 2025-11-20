@@ -174,6 +174,41 @@ export type Database = {
         }
         Relationships: []
       }
+      video_progress: {
+        Row: {
+          completed: boolean
+          id: string
+          last_watched_at: string
+          student_id: string
+          video_id: string
+          watch_percentage: number
+        }
+        Insert: {
+          completed?: boolean
+          id?: string
+          last_watched_at?: string
+          student_id: string
+          video_id: string
+          watch_percentage?: number
+        }
+        Update: {
+          completed?: boolean
+          id?: string
+          last_watched_at?: string
+          student_id?: string
+          video_id?: string
+          watch_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_progress_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "course_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
