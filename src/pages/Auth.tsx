@@ -13,6 +13,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isConnectedWithoutRole, setIsConnectedWithoutRole] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,8 +37,12 @@ const Auth = () => {
           } else {
             navigate('/');
           }
+        } else {
+          // Utilisateur connecté sans rôle
+          setIsConnectedWithoutRole(true);
         }
-        // Si pas de rôle, rester sur /auth pour permettre la déconnexion ou attendre l'assignation
+      } else {
+        setIsConnectedWithoutRole(false);
       }
     };
 
@@ -74,6 +79,12 @@ const Auth = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsConnectedWithoutRole(false);
+    toast.success('Déconnexion réussie');
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,61 +139,91 @@ const Auth = () => {
       />
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a0033] via-[#2d0052] to-[#1a0033] p-4">
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              {isLogin ? 'Connexion' : 'Inscription'}
-            </CardTitle>
-            <CardDescription className="text-center">
-              {isLogin 
-                ? 'Connectez-vous à votre espace administrateur'
-                : 'Créez votre compte administrateur'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAuth} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="admin@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full"
-                disabled={loading}
-              >
-                {loading ? 'Chargement...' : (isLogin ? 'Se connecter' : "S'inscrire")}
-              </Button>
-            </form>
-            <div className="mt-4 text-center text-sm">
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary hover:underline"
-              >
-                {isLogin 
-                  ? "Pas encore de compte ? S'inscrire"
-                  : 'Déjà un compte ? Se connecter'}
-              </button>
-            </div>
-          </CardContent>
+          {isConnectedWithoutRole ? (
+            <>
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">
+                  Compte en attente
+                </CardTitle>
+                <CardDescription className="text-center">
+                  Votre compte a été créé avec succès
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800 text-center">
+                    Votre compte est en attente d'assignation de rôle par l'administrateur. 
+                    Vous recevrez un accès dès que votre rôle sera configuré.
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Se déconnecter
+                </Button>
+              </CardContent>
+            </>
+          ) : (
+            <>
+              <CardHeader>
+                <CardTitle className="text-2xl text-center">
+                  {isLogin ? 'Connexion' : 'Inscription'}
+                </CardTitle>
+                <CardDescription className="text-center">
+                  {isLogin 
+                    ? 'Connectez-vous à votre espace'
+                    : 'Créez votre compte'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleAuth} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="admin@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Mot de passe</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={loading}
+                  >
+                    {loading ? 'Chargement...' : (isLogin ? 'Se connecter' : "S'inscrire")}
+                  </Button>
+                </form>
+                <div className="mt-4 text-center text-sm">
+                  <button
+                    type="button"
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="text-primary hover:underline"
+                  >
+                    {isLogin 
+                      ? "Pas encore de compte ? S'inscrire"
+                      : 'Déjà un compte ? Se connecter'}
+                  </button>
+                </div>
+              </CardContent>
+            </>
+          )}
         </Card>
       </div>
     </>
