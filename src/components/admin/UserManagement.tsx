@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit } from 'lucide-react';
+import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit, Search, AlertCircle } from 'lucide-react';
 import { 
   Dialog,
   DialogContent,
@@ -92,7 +92,6 @@ export const UserManagement = () => {
       });
 
       if (error) {
-        // Si erreur de token invalide, nettoyer la session
         if (error.message?.includes('Invalid token') || error.message?.includes('JWT')) {
           toast.error('Session expirée, reconnexion nécessaire');
           await supabase.auth.signOut();
@@ -131,7 +130,6 @@ export const UserManagement = () => {
       const user = users.find(u => u.id === userId);
       if (!user) return;
 
-      // Supprimer tous les rôles existants de l'utilisateur
       const { error: deleteError } = await supabase
         .from('user_roles')
         .delete()
@@ -139,7 +137,6 @@ export const UserManagement = () => {
 
       if (deleteError) throw deleteError;
 
-      // Ajouter le nouveau rôle
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert({
@@ -165,7 +162,6 @@ export const UserManagement = () => {
 
     setAssigningCourse(true);
     try {
-      // Check if already enrolled
       const { data: existing } = await supabase
         .from('student_enrollments')
         .select('id')
@@ -374,299 +370,320 @@ export const UserManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-white">Chargement...</div>
+        <div className="text-foreground">Chargement...</div>
       </div>
     );
   }
 
   return (
-    <Card className="bg-white/5 border-white/10">
-      <CardHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Users className="w-5 h-5" />
+    <div className="space-y-6">
+      {/* Header Card */}
+      <Card className="bg-card border-border shadow-lg">
+        <CardHeader>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle className="text-foreground flex items-center gap-2 text-2xl">
+                <Users className="w-6 h-6 text-primary" />
                 Gestion des Utilisateurs
               </CardTitle>
-              <CardDescription className="text-gray-300">
+              <CardDescription className="text-muted-foreground">
                 Gérez les rôles, les accès aux formations et le statut des étudiants
               </CardDescription>
             </div>
             <Button 
               onClick={() => setShowCreateDialog(true)}
-              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
+              size="lg"
             >
+              <UserPlus className="w-4 h-4 mr-2" />
               Créer un utilisateur
             </Button>
           </div>
-          
-          {/* Search bar */}
+        </CardHeader>
+      </Card>
+
+      {/* Search Bar Card */}
+      <Card className="bg-card border-border shadow-md">
+        <CardContent className="pt-6">
           <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Rechercher par nom, prénom ou email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+              className="pl-10 bg-background border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10 hover:bg-white/5">
-              <TableHead className="text-gray-300">Nom complet</TableHead>
-              <TableHead className="text-gray-300">Email</TableHead>
-              <TableHead className="text-gray-300">Date d'inscription</TableHead>
-              <TableHead className="text-gray-300">Rôles</TableHead>
-              <TableHead className="text-gray-300">Statut</TableHead>
-              <TableHead className="text-gray-300">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.length === 0 ? (
-              <TableRow className="border-white/10">
-                <TableCell colSpan={6} className="text-center text-gray-400 py-8">
-                  {searchQuery ? 'Aucun utilisateur ne correspond à votre recherche' : 'Aucun utilisateur trouvé'}
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredUsers.map((user) => (
-                <TableRow key={user.id} className="border-white/10 hover:bg-white/5">
-                  <TableCell className="text-white">
-                    <div className="flex items-center gap-2">
-                      {user.first_name && user.last_name 
-                        ? `${user.first_name} ${user.last_name}`
-                        : <span className="text-gray-400 italic">Non renseigné</span>
-                      }
-                      {(!user.first_name || !user.last_name) && (
-                        <Badge variant="outline" className="border-yellow-500 text-yellow-500 text-xs">
-                          Profil incomplet
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-white">{user.email}</TableCell>
-                  <TableCell className="text-gray-300">
-                    {formatDate(user.created_at)}
-                  </TableCell>
-                  <TableCell>
-                    <Select 
-                      value={user.roles[0] || ''} 
-                      onValueChange={(value) => assignRole(user.id, value as 'admin' | 'student')}
-                    >
-                      <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white">
-                        <SelectValue placeholder="Sélectionner un rôle">
-                          {user.roles.length === 0 ? 'Aucun rôle' : (
-                            <Badge 
-                              variant={user.roles[0] === 'admin' ? 'default' : 'secondary'}
-                              className={user.roles[0] === 'admin' ? 'bg-[#00ff87] text-black' : ''}
-                            >
-                              {user.roles[0] === 'admin' ? 'Administrateur' : 'Étudiant'}
+        </CardContent>
+      </Card>
+
+      {/* Users Table Card */}
+      <Card className="bg-card border-border shadow-lg">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border bg-muted/50">
+                  <TableHead className="text-foreground font-semibold">Nom complet</TableHead>
+                  <TableHead className="text-foreground font-semibold">Email</TableHead>
+                  <TableHead className="text-foreground font-semibold">Date d'inscription</TableHead>
+                  <TableHead className="text-foreground font-semibold">Rôles</TableHead>
+                  <TableHead className="text-foreground font-semibold">Statut</TableHead>
+                  <TableHead className="text-foreground font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow className="border-border">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <Users className="w-12 h-12 text-muted-foreground/50" />
+                        <p className="text-lg font-medium">
+                          {searchQuery ? 'Aucun utilisateur ne correspond à votre recherche' : 'Aucun utilisateur trouvé'}
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.id} className="border-border hover:bg-muted/30 transition-colors">
+                      <TableCell className="text-foreground font-medium">
+                        <div className="flex items-center gap-2">
+                          {user.first_name && user.last_name 
+                            ? `${user.first_name} ${user.last_name}`
+                            : <span className="text-muted-foreground italic">Non renseigné</span>
+                          }
+                          {(!user.first_name || !user.last_name) && (
+                            <Badge variant="outline" className="border-warning text-warning text-xs gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              Profil incomplet
                             </Badge>
                           )}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1a0033] border-white/10">
-                        <SelectItem value="student" className="text-white hover:bg-white/10">
-                          Étudiant
-                        </SelectItem>
-                        <SelectItem value="admin" className="text-white hover:bg-white/10">
-                          Administrateur
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {user.roles.includes('student') && (
-                      <Badge 
-                        variant={user.is_active !== false ? 'default' : 'destructive'}
-                        className={user.is_active !== false ? 'bg-[#00ff87] text-black' : 'bg-red-500 text-white'}
-                      >
-                        {user.is_active !== false ? 'Actif' : 'Suspendu'}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2 flex-wrap">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEditDialog(user)}
-                        className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
-                      >
-                        Modifier
-                      </Button>
-                      
-                      {user.roles.includes('student') && (
-                        <>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setSelectedUserId(user.id)}
-                                className="border-[#00ff87] text-[#00ff87] hover:bg-[#00ff87]/10"
-                              >
-                                <BookOpen className="w-4 h-4 mr-1" />
-                                Assigner
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="bg-[#1a0033] border-white/10">
-                              <DialogHeader>
-                                <DialogTitle className="text-white">
-                                  Assigner au Cours
-                                </DialogTitle>
-                                <DialogDescription className="text-gray-300">
-                                  Sélectionnez un cours pour {user.email}
-                                </DialogDescription>
-                              </DialogHeader>
-                              <div className="space-y-4 mt-4">
-                                <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-                                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                    <SelectValue placeholder="Sélectionner un cours" />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-[#1a0033] border-white/10">
-                                    {courses.map((course) => (
-                                      <SelectItem 
-                                        key={course.id} 
-                                        value={course.id}
-                                        className="text-white hover:bg-white/10"
-                                      >
-                                        {course.title}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <Button
-                                  onClick={assignToCourse}
-                                  disabled={!selectedCourseId || assigningCourse}
-                                  className="w-full bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-foreground">{user.email}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {formatDate(user.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <Select 
+                          value={user.roles[0] || ''} 
+                          onValueChange={(value) => assignRole(user.id, value as 'admin' | 'student')}
+                        >
+                          <SelectTrigger className="w-[180px] bg-background border-border text-foreground">
+                            <SelectValue placeholder="Sélectionner un rôle">
+                              {user.roles.length === 0 ? 'Aucun rôle' : (
+                                <Badge 
+                                  variant={user.roles[0] === 'admin' ? 'default' : 'secondary'}
+                                  className={user.roles[0] === 'admin' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}
                                 >
-                                  {assigningCourse ? 'Assignation...' : 'Assigner'}
-                                </Button>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-
-                          <Button
-                            size="sm"
-                            variant={user.is_active !== false ? 'destructive' : 'default'}
-                            onClick={() => toggleUserStatus(user.id, user.is_active !== false)}
-                            className={user.is_active !== false 
-                              ? 'bg-red-500 hover:bg-red-600' 
-                              : 'bg-[#00ff87] text-black hover:bg-[#00cc6e]'}
+                                  {user.roles[0] === 'admin' ? 'Administrateur' : 'Étudiant'}
+                                </Badge>
+                              )}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover border-border">
+                            <SelectItem value="student" className="text-foreground hover:bg-accent">
+                              Étudiant
+                            </SelectItem>
+                            <SelectItem value="admin" className="text-foreground hover:bg-accent">
+                              Administrateur
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        {user.roles.includes('student') && (
+                          <Badge 
+                            variant={user.is_active !== false ? 'default' : 'destructive'}
+                            className={user.is_active !== false ? 'bg-primary text-primary-foreground' : 'bg-destructive text-destructive-foreground'}
                           >
-                            {user.is_active !== false ? (
-                              <>
-                                <Ban className="w-4 h-4 mr-1" />
-                                Suspendre
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-1" />
-                                Réactiver
-                              </>
-                            )}
-                          </Button>
-                          
+                            {user.is_active !== false ? 'Actif' : 'Suspendu'}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2 flex-wrap">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              setUserToResetPassword(user);
-                              setShowResetPasswordDialog(true);
-                            }}
-                            className="border-white/20 text-white hover:bg-white/10"
+                            onClick={() => openEditDialog(user)}
+                            className="border-primary text-primary hover:bg-primary/10"
                           >
-                            Réinitialiser MDP
+                            <Edit className="w-3 h-3 mr-1" />
+                            Modifier
                           </Button>
+                          
+                          {user.roles.includes('student') && (
+                            <>
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setSelectedUserId(user.id)}
+                                    className="border-primary text-primary hover:bg-primary/10"
+                                  >
+                                    <BookOpen className="w-3 h-3 mr-1" />
+                                    Assigner
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="bg-popover border-border">
+                                  <DialogHeader>
+                                    <DialogTitle className="text-foreground">
+                                      Assigner au Cours
+                                    </DialogTitle>
+                                    <DialogDescription className="text-muted-foreground">
+                                      Sélectionnez un cours pour {user.email}
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="space-y-4 mt-4">
+                                    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                                      <SelectTrigger className="bg-background border-border text-foreground">
+                                        <SelectValue placeholder="Sélectionner un cours" />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-popover border-border">
+                                        {courses.map((course) => (
+                                          <SelectItem 
+                                            key={course.id} 
+                                            value={course.id}
+                                            className="text-foreground hover:bg-accent"
+                                          >
+                                            {course.title}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      onClick={assignToCourse}
+                                      disabled={!selectedCourseId || assigningCourse}
+                                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+                                    >
+                                      {assigningCourse ? 'Assignation...' : 'Assigner'}
+                                    </Button>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
 
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                              setUserToDelete(user);
-                              setShowDeleteDialog(true);
-                            }}
-                            className="bg-red-500 hover:bg-red-600"
-                          >
-                            Supprimer
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
+                              <Button
+                                size="sm"
+                                variant={user.is_active !== false ? 'destructive' : 'default'}
+                                onClick={() => toggleUserStatus(user.id, user.is_active !== false)}
+                                className={user.is_active !== false 
+                                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
+                                  : 'bg-primary text-primary-foreground hover:bg-primary/90'}
+                              >
+                                {user.is_active !== false ? (
+                                  <>
+                                    <Ban className="w-3 h-3 mr-1" />
+                                    Suspendre
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    Réactiver
+                                  </>
+                                )}
+                              </Button>
+                              
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setUserToResetPassword(user);
+                                  setShowResetPasswordDialog(true);
+                                }}
+                                className="border-border text-foreground hover:bg-accent"
+                              >
+                                Réinitialiser MDP
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => {
+                                  setUserToDelete(user);
+                                  setShowDeleteDialog(true);
+                                }}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Supprimer
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Create User Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-[#1a1a2e] border-white/10">
+        <DialogContent className="bg-popover border-border">
           <DialogHeader>
-            <DialogTitle className="text-white">Créer un nouvel utilisateur</DialogTitle>
+            <DialogTitle className="text-foreground">Créer un nouvel utilisateur</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="firstName" className="text-gray-300">Prénom</Label>
+              <Label htmlFor="firstName" className="text-foreground">Prénom</Label>
               <Input
                 id="firstName"
                 type="text"
                 value={newUserFirstName}
                 onChange={(e) => setNewUserFirstName(e.target.value)}
                 placeholder="Prénom"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div>
-              <Label htmlFor="lastName" className="text-gray-300">Nom</Label>
+              <Label htmlFor="lastName" className="text-foreground">Nom</Label>
               <Input
                 id="lastName"
                 type="text"
                 value={newUserLastName}
                 onChange={(e) => setNewUserLastName(e.target.value)}
                 placeholder="Nom"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div>
-              <Label htmlFor="email" className="text-gray-300">Email</Label>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={newUserEmail}
                 onChange={(e) => setNewUserEmail(e.target.value)}
                 placeholder="exemple@email.com"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div>
-              <Label htmlFor="password" className="text-gray-300">Mot de passe</Label>
+              <Label htmlFor="password" className="text-foreground">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
                 value={newUserPassword}
                 onChange={(e) => setNewUserPassword(e.target.value)}
                 placeholder="Minimum 6 caractères"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div>
-              <Label htmlFor="role" className="text-gray-300">Rôle</Label>
+              <Label htmlFor="role" className="text-foreground">Rôle</Label>
               <Select value={newUserRole} onValueChange={setNewUserRole}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger className="bg-background border-border text-foreground">
                   <SelectValue placeholder="Sélectionner un rôle" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a0033] border-white/10">
-                  <SelectItem value="student" className="text-white hover:bg-white/10">
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="student" className="text-foreground hover:bg-accent">
                     Étudiant
                   </SelectItem>
-                  <SelectItem value="admin" className="text-white hover:bg-white/10">
+                  <SelectItem value="admin" className="text-foreground hover:bg-accent">
                     Administrateur
                   </SelectItem>
                 </SelectContent>
@@ -677,13 +694,13 @@ export const UserManagement = () => {
             <Button 
               variant="outline" 
               onClick={() => setShowCreateDialog(false)}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-border text-foreground hover:bg-accent"
             >
               Annuler
             </Button>
             <Button 
               onClick={handleCreateUser}
-              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Créer
             </Button>
@@ -693,23 +710,23 @@ export const UserManagement = () => {
 
       {/* Reset Password Dialog */}
       <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
-        <DialogContent className="bg-[#1a1a2e] border-white/10">
+        <DialogContent className="bg-popover border-border">
           <DialogHeader>
-            <DialogTitle className="text-white">Réinitialiser le mot de passe</DialogTitle>
+            <DialogTitle className="text-foreground">Réinitialiser le mot de passe</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-300">
-              Utilisateur: <strong className="text-white">{userToResetPassword?.email}</strong>
+            <p className="text-sm text-muted-foreground">
+              Utilisateur: <strong className="text-foreground">{userToResetPassword?.email}</strong>
             </p>
             <div>
-              <Label htmlFor="new-password" className="text-gray-300">Nouveau mot de passe</Label>
+              <Label htmlFor="new-password" className="text-foreground">Nouveau mot de passe</Label>
               <Input
                 id="new-password"
                 type="password"
                 value={resetPassword}
                 onChange={(e) => setResetPassword(e.target.value)}
                 placeholder="Minimum 6 caractères"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
           </div>
@@ -721,13 +738,13 @@ export const UserManagement = () => {
                 setResetPassword("");
                 setUserToResetPassword(null);
               }}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-border text-foreground hover:bg-accent"
             >
               Annuler
             </Button>
             <Button 
               onClick={handleResetPassword}
-              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Réinitialiser
             </Button>
@@ -737,12 +754,12 @@ export const UserManagement = () => {
 
       {/* Delete User Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-[#1a1a2e] border-white/10">
+        <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Confirmer la suppression</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-300">
+            <AlertDialogTitle className="text-foreground">Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               Êtes-vous sûr de vouloir supprimer l'utilisateur{" "}
-              <strong className="text-white">{userToDelete?.email}</strong> ? Cette action est irréversible.
+              <strong className="text-foreground">{userToDelete?.email}</strong> ? Cette action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -751,13 +768,13 @@ export const UserManagement = () => {
                 setShowDeleteDialog(false);
                 setUserToDelete(null);
               }}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-border text-foreground hover:bg-accent"
             >
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteUser}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Supprimer
             </AlertDialogAction>
@@ -767,34 +784,34 @@ export const UserManagement = () => {
 
       {/* Edit User Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="bg-[#1a1a2e] border-white/10">
+        <DialogContent className="bg-popover border-border">
           <DialogHeader>
-            <DialogTitle className="text-white">Modifier le profil</DialogTitle>
-            <DialogDescription className="text-gray-300">
-              Utilisateur: <strong className="text-white">{userToEdit?.email}</strong>
+            <DialogTitle className="text-foreground">Modifier le profil</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Utilisateur: <strong className="text-foreground">{userToEdit?.email}</strong>
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-firstName" className="text-gray-300">Prénom</Label>
+              <Label htmlFor="edit-firstName" className="text-foreground">Prénom</Label>
               <Input
                 id="edit-firstName"
                 type="text"
                 value={editFirstName}
                 onChange={(e) => setEditFirstName(e.target.value)}
                 placeholder="Prénom"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div>
-              <Label htmlFor="edit-lastName" className="text-gray-300">Nom</Label>
+              <Label htmlFor="edit-lastName" className="text-foreground">Nom</Label>
               <Input
                 id="edit-lastName"
                 type="text"
                 value={editLastName}
                 onChange={(e) => setEditLastName(e.target.value)}
                 placeholder="Nom"
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-background border-border text-foreground"
               />
             </div>
           </div>
@@ -807,19 +824,19 @@ export const UserManagement = () => {
                 setEditFirstName("");
                 setEditLastName("");
               }}
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-border text-foreground hover:bg-accent"
             >
               Annuler
             </Button>
             <Button 
               onClick={handleEditUser}
-              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Enregistrer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 };
