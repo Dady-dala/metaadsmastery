@@ -145,11 +145,11 @@ const StudentProgressManagement = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Suivi de Progression des Étudiants</CardTitle>
+      <CardHeader className="p-4 md:p-6">
+        <CardTitle className="text-base md:text-lg">Suivi de Progression des Étudiants</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -177,8 +177,8 @@ const StudentProgressManagement = () => {
                     <TableCell>{progress.courseName}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Progress value={progress.progressPercentage} className="w-[100px]" />
-                        <span className="text-sm text-muted-foreground">
+                        <Progress value={progress.progressPercentage} className="w-16 md:w-[100px]" />
+                        <span className="text-xs md:text-sm text-muted-foreground whitespace-nowrap">
                           {progress.progressPercentage}%
                         </span>
                       </div>

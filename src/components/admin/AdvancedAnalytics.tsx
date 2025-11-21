@@ -212,63 +212,63 @@ export const AdvancedAnalytics = () => {
   }));
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-4 md:space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         <Card className="bg-card border-border">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Étudiants totaux</p>
-                <p className="text-3xl font-bold text-foreground">{globalStats.totalStudents}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Étudiants totaux</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{globalStats.totalStudents}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {globalStats.activeStudents} actifs (7j)
                 </p>
               </div>
-              <Users className="w-10 h-10 text-primary" />
+              <Users className="w-8 h-8 md:w-10 md:h-10 text-primary" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Certificats délivrés</p>
-                <p className="text-3xl font-bold text-foreground">{globalStats.totalCertificates}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Certificats délivrés</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{globalStats.totalCertificates}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {globalStats.averageCompletionRate}% taux de complétion
                 </p>
               </div>
-              <GraduationCap className="w-10 h-10 text-success" />
+              <GraduationCap className="w-8 h-8 md:w-10 md:h-10 text-success" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border">
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Tentatives de quiz</p>
-                <p className="text-3xl font-bold text-foreground">{globalStats.totalQuizAttempts}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Tentatives de quiz</p>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{globalStats.totalQuizAttempts}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Score moyen: {globalStats.averageQuizScore}%
                 </p>
               </div>
-              <Award className="w-10 h-10 text-accent" />
+              <Award className="w-8 h-8 md:w-10 md:h-10 text-accent" />
             </div>
           </CardContent>
         </Card>
       </div>
 
       <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground">Performance par cours</CardTitle>
-          <CardDescription className="text-muted-foreground">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg text-foreground">Performance par cours</CardTitle>
+          <CardDescription className="text-xs md:text-sm text-muted-foreground">
             Analyse comparative des taux de complétion et scores
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
+        <CardContent className="p-2 md:p-6">
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
@@ -288,14 +288,15 @@ export const AdvancedAnalytics = () => {
       </Card>
 
       <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-foreground">Détails par cours</CardTitle>
-          <CardDescription className="text-muted-foreground">
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg text-foreground">Détails par cours</CardTitle>
+          <CardDescription className="text-xs md:text-sm text-muted-foreground">
             Métriques détaillées pour chaque formation
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="text-foreground">Cours</TableHead>
@@ -337,6 +338,7 @@ export const AdvancedAnalytics = () => {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
