@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, PlayCircle, BookOpen, Settings, BarChart3, CheckCircle2, Award } from 'lucide-react';
+import { LogOut, BookOpen, Settings, BarChart3, CheckCircle2, Award } from 'lucide-react';
+import { WistiaPlayer } from '@wistia/wistia-player-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileSettings } from '@/components/student/ProfileSettings';
 import { EnhancedCourseProgress } from '@/components/student/EnhancedCourseProgress';
@@ -29,7 +30,6 @@ interface CourseVideo {
 
 const EspaceFormation = () => {
   const [loading, setLoading] = useState(true);
-  const [wistiaLoaded, setWistiaLoaded] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [courseVideos, setCourseVideos] = useState<CourseVideo[]>([]);
@@ -40,33 +40,6 @@ const EspaceFormation = () => {
 
   useEffect(() => {
     loadEnrolledCourses();
-    
-    // Load Wistia player script (web component standard method)
-    const existingScript = document.querySelector('script[src="https://fast.wistia.com/player.js"]');
-    
-    if (existingScript) {
-      setWistiaLoaded(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://fast.wistia.com/player.js';
-    script.async = true;
-    script.onload = () => {
-      console.log('Wistia player script loaded successfully');
-      setWistiaLoaded(true);
-    };
-    script.onerror = () => {
-      console.error('Failed to load Wistia player script');
-      toast.error('Erreur de chargement du lecteur vidéo');
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -297,21 +270,12 @@ const EspaceFormation = () => {
                           {selectedVideo && (
                             <CardContent>
                               <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
-                                {!wistiaLoaded ? (
-                                  <div className="w-full h-full flex items-center justify-center bg-muted">
-                                    <div className="text-center">
-                                      <PlayCircle className="w-16 h-16 text-muted-foreground mx-auto mb-2 animate-pulse" />
-                                      <p className="text-muted-foreground">Chargement du lecteur vidéo...</p>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <wistia-player 
-                                    media-id={selectedVideo.wistia_media_id}
-                                    seo="true"
-                                    aspect="1.7777777777777777"
-                                    className="w-full h-full"
-                                  ></wistia-player>
-                                )}
+                                <WistiaPlayer
+                                  mediaId={selectedVideo.wistia_media_id}
+                                  aspect={1.7777777777777777}
+                                  seo={true}
+                                  className="w-full h-full"
+                                />
                               </div>
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">

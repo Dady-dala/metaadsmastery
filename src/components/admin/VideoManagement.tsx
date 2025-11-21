@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { WistiaPlayer } from '@wistia/wistia-player-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,18 +42,6 @@ export const VideoManagement = () => {
 
   useEffect(() => {
     loadCourses();
-    
-    // Load Wistia player script for preview
-    const script = document.createElement('script');
-    script.src = 'https://fast.wistia.com/player.js';
-    script.async = true;
-    document.head.appendChild(script);
-
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
   }, []);
 
   useEffect(() => {
@@ -330,12 +319,12 @@ export const VideoManagement = () => {
                     <Label className="text-foreground">Aperçu de la vidéo</Label>
                     <div className="mt-2 rounded-lg overflow-hidden bg-black border border-border">
                       <div className="aspect-video">
-                        <wistia-player 
-                          media-id={previewWistiaId}
-                          seo="false"
-                          aspect="1.7777777777777777"
+                        <WistiaPlayer 
+                          mediaId={previewWistiaId}
+                          seo={false}
+                          aspect={1.7777777777777777}
                           className="w-full h-full"
-                        ></wistia-player>
+                        />
                       </div>
                     </div>
                     <p className="text-xs text-success mt-1">
