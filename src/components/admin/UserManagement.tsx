@@ -379,21 +379,21 @@ export const UserManagement = () => {
     <div className="space-y-6">
       {/* Header Card */}
       <Card className="bg-card border-border shadow-lg">
-        <CardHeader>
+        <CardHeader className="p-4 md:p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="space-y-1">
-              <CardTitle className="text-foreground flex items-center gap-2 text-2xl">
-                <Users className="w-6 h-6 text-primary" />
+              <CardTitle className="text-base md:text-2xl text-foreground flex items-center gap-2">
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                 Gestion des Utilisateurs
               </CardTitle>
-              <CardDescription className="text-muted-foreground">
+              <CardDescription className="text-xs md:text-sm text-muted-foreground">
                 Gérez les rôles, les accès aux formations et le statut des étudiants
               </CardDescription>
             </div>
             <Button 
               onClick={() => setShowCreateDialog(true)}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
-              size="lg"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md w-full md:w-auto"
+              size="default"
             >
               <UserPlus className="w-4 h-4 mr-2" />
               Créer un utilisateur
@@ -404,7 +404,7 @@ export const UserManagement = () => {
 
       {/* Search Bar Card */}
       <Card className="bg-card border-border shadow-md">
-        <CardContent className="pt-6">
+        <CardContent className="p-4 md:pt-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
@@ -421,7 +421,7 @@ export const UserManagement = () => {
       <Card className="bg-card border-border shadow-lg">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow className="border-border bg-muted/50">
                   <TableHead className="text-foreground font-semibold">Nom complet</TableHead>

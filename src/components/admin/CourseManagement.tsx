@@ -447,14 +447,14 @@ export const CourseManagement = () => {
 
   return (
     <Card className="bg-card border-border">
-      <CardHeader>
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-4 md:p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <CardTitle className="text-foreground flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
+            <CardTitle className="text-base md:text-lg text-foreground flex items-center gap-2">
+              <BookOpen className="w-4 h-4 md:w-5 md:h-5" />
               Gestion des Formations
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-xs md:text-sm text-muted-foreground">
               Créez et gérez vos formations et leurs quiz
             </CardDescription>
           </div>
