@@ -84,10 +84,44 @@ export const VideoManagement = () => {
     }
   };
 
+  // Extract Wistia media ID from various formats
+  const extractWistiaId = (input: string): string => {
+    // Remove whitespace
+    const trimmed = input.trim();
+    
+    // Format 1: Direct ID (e.g., "jbs50a8vzd")
+    if (/^[a-z0-9]+$/i.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Format 2: URL (e.g., "https://dadykakwata.wistia.com/medias/jbs50a8vzd?...")
+    const urlMatch = trimmed.match(/wistia\.com\/medias\/([a-z0-9]+)/i);
+    if (urlMatch) {
+      return urlMatch[1];
+    }
+    
+    // Format 3: Web component code (e.g., '<wistia-player media-id="jbs50a8vzd"...')
+    const componentMatch = trimmed.match(/media-id=["']([a-z0-9]+)["']/i);
+    if (componentMatch) {
+      return componentMatch[1];
+    }
+    
+    // If no pattern matches, return as-is and let validation handle it
+    return trimmed;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const courseId = formData.course_id || selectedCourseId;
+      
+      // Extract clean Wistia ID
+      const cleanWistiaId = extractWistiaId(formData.wistia_media_id);
+      
+      if (!cleanWistiaId) {
+        toast.error('ID Wistia invalide');
+        return;
+      }
       
       if (editingVideo) {
         const { error } = await supabase
@@ -95,7 +129,7 @@ export const VideoManagement = () => {
           .update({
             title: formData.title,
             description: formData.description,
-            wistia_media_id: formData.wistia_media_id,
+            wistia_media_id: cleanWistiaId,
             course_id: courseId,
           })
           .eq('id', editingVideo.id);
@@ -118,7 +152,9 @@ export const VideoManagement = () => {
         const { error } = await supabase
           .from('course_videos')
           .insert([{
-            ...formData,
+            title: formData.title,
+            description: formData.description,
+            wistia_media_id: cleanWistiaId,
             course_id: courseId,
             order_index: nextOrderIndex,
           }]);
@@ -245,15 +281,19 @@ export const VideoManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="wistia_media_id" className="text-foreground">ID Média Wistia</Label>
-                  <Input
+                  <Label htmlFor="wistia_media_id" className="text-foreground">ID ou Code Wistia</Label>
+                  <Textarea
                     id="wistia_media_id"
                     value={formData.wistia_media_id}
                     onChange={(e) => setFormData({ ...formData, wistia_media_id: e.target.value })}
                     required
-                    placeholder="ex: abc123xyz"
-                    className="bg-input border-border text-foreground"
+                    placeholder="Collez l'ID, l'URL complète ou le code embed Wistia"
+                    className="bg-input border-border text-foreground font-mono text-sm"
+                    rows={3}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Formats acceptés: ID simple (jbs50a8vzd), URL (https://...wistia.com/medias/jbs50a8vzd) ou code embed complet
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="description" className="text-foreground">Description</Label>
