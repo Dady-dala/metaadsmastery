@@ -26,6 +26,7 @@ export type Database = {
           organization_subtitle: string
           primary_color: string
           trainer_name: string
+          trainer_signature_url: string | null
           updated_at: string
         }
         Insert: {
@@ -39,6 +40,7 @@ export type Database = {
           organization_subtitle?: string
           primary_color?: string
           trainer_name?: string
+          trainer_signature_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -52,6 +54,7 @@ export type Database = {
           organization_subtitle?: string
           primary_color?: string
           trainer_name?: string
+          trainer_signature_url?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -18,14 +18,17 @@ interface CertificateSettings {
   trainer_name: string;
   certificate_title: string;
   logo_url: string | null;
+  trainer_signature_url: string | null;
 }
 
 export const CertificateSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<CertificateSettings>({
     id: '',
     primary_color: '#6B21A8',
@@ -36,6 +39,7 @@ export const CertificateSettings = () => {
     trainer_name: 'Formateur Expert',
     certificate_title: 'CERTIFICAT DE RÉUSSITE',
     logo_url: null,
+    trainer_signature_url: null,
   });
 
   useEffect(() => {
@@ -103,6 +107,47 @@ export const CertificateSettings = () => {
     }
   };
 
+  const handleSignatureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('L\'image ne doit pas dépasser 2 MB');
+      return;
+    }
+
+    setUploadingSignature(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `signature-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('certificate-logos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('certificate-logos')
+        .getPublicUrl(filePath);
+
+      setSettings({ ...settings, trainer_signature_url: publicUrl });
+      toast.success('Signature uploadée avec succès');
+    } catch (error: any) {
+      console.error('Error uploading signature:', error);
+      toast.error(error.message || 'Erreur lors de l\'upload');
+    } finally {
+      setUploadingSignature(false);
+    }
+  };
+
   const handleGeneratePreview = async () => {
     try {
       // Sauvegarder temporairement les paramètres dans la base de données
@@ -117,6 +162,7 @@ export const CertificateSettings = () => {
           trainer_name: settings.trainer_name,
           certificate_title: settings.certificate_title,
           logo_url: settings.logo_url,
+          trainer_signature_url: settings.trainer_signature_url,
         })
         .eq('id', settings.id);
 
@@ -152,6 +198,7 @@ export const CertificateSettings = () => {
           trainer_name: settings.trainer_name,
           certificate_title: settings.certificate_title,
           logo_url: settings.logo_url,
+          trainer_signature_url: settings.trainer_signature_url,
         })
         .eq('id', settings.id);
 
@@ -362,6 +409,44 @@ export const CertificateSettings = () => {
               placeholder="Formateur Expert"
               className="bg-white/5 border-white/10 text-white mt-2"
             />
+            <p className="text-xs text-gray-400 mt-1">Affiché si aucune signature numérisée n'est uploadée</p>
+          </div>
+          <div>
+            <Label htmlFor="signature_upload" className="text-gray-300">Signature numérisée (optionnel)</Label>
+            <div className="flex gap-2 items-center mt-2">
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleSignatureUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                onClick={() => signatureInputRef.current?.click()}
+                disabled={uploadingSignature}
+                variant="outline"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploadingSignature ? 'Upload...' : 'Uploader une signature'}
+              </Button>
+              {settings.trainer_signature_url && (
+                <div className="flex items-center gap-2">
+                  <img src={settings.trainer_signature_url} alt="Signature" className="h-12 object-contain rounded border border-white/10 bg-white px-2" />
+                  <Button
+                    type="button"
+                    onClick={() => setSettings({ ...settings, trainer_signature_url: null })}
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  >
+                    Supprimer
+                  </Button>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Recommandé : image PNG transparente pour un meilleur rendu</p>
           </div>
         </CardContent>
       </Card>

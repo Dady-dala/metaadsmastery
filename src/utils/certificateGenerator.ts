@@ -16,6 +16,7 @@ interface CertificateSettings {
   trainer_name: string;
   certificate_title: string;
   logo_url: string | null;
+  trainer_signature_url: string | null;
 }
 
 const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
@@ -62,6 +63,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
       trainer_name: 'Formateur Expert',
       certificate_title: 'CERTIFICAT DE RÉUSSITE',
       logo_url: null,
+      trainer_signature_url: null,
     };
   } else {
     settings = settingsData;
@@ -143,12 +145,41 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   doc.setFont('helvetica', 'italic');
   doc.text(settings.organization_subtitle, 148.5, 172, { align: 'center' });
 
-  // Ligne de signature
-  doc.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
-  doc.line(110, 180, 187, 180);
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.text(settings.trainer_name, 148.5, 186, { align: 'center' });
+  // Signature - image ou texte
+  if (settings.trainer_signature_url) {
+    try {
+      // Charger l'image de signature
+      const response = await fetch(settings.trainer_signature_url);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      
+      await new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const imgData = reader.result as string;
+          // Ajouter l'image de signature (centré, largeur max 60mm)
+          doc.addImage(imgData, 'PNG', 118.5, 175, 60, 15, undefined, 'FAST');
+          resolve(true);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading signature image:', error);
+      // Fallback sur le texte si l'image ne charge pas
+      doc.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+      doc.line(110, 180, 187, 180);
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.text(settings.trainer_name, 148.5, 186, { align: 'center' });
+    }
+  } else {
+    // Ligne de signature et texte
+    doc.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    doc.line(110, 180, 187, 180);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text(settings.trainer_name, 148.5, 186, { align: 'center' });
+  }
 
   // Générer le PDF en data URL
   const pdfDataUri = doc.output('dataurlstring');
