@@ -11,15 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, Moon, Sun, LogOut, User, Menu } from 'lucide-react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Bell, Moon, Sun, LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
 
-interface AdminHeaderProps {
-  onMenuClick: () => void;
-}
-
-export const AdminHeader = ({ onMenuClick }: AdminHeaderProps) => {
+export const AdminHeader = () => {
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<{ first_name: string | null; last_name: string | null; avatar_url: string | null } | null>(null);
@@ -66,47 +63,40 @@ export const AdminHeader = ({ onMenuClick }: AdminHeaderProps) => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="flex h-16 items-center justify-between px-4 md:px-6">
-        {/* Left: Menu button for mobile */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={onMenuClick}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-
-        {/* Logo/Title - visible on desktop */}
-        <div className="hidden md:flex items-center gap-2">
-          <h1 className="text-xl font-bold text-foreground">Meta Ads Mastery</h1>
-          <span className="text-sm text-muted-foreground">- Admin</span>
+      <div className="flex h-14 md:h-16 items-center justify-between px-2 md:px-6 gap-2">
+        {/* Left: Sidebar toggle + Logo/Title */}
+        <div className="flex items-center gap-2">
+          <SidebarTrigger className="h-9 w-9 md:h-10 md:w-10" />
+          <div className="flex items-center gap-1 md:gap-2">
+            <h1 className="text-base md:text-xl font-bold text-foreground">Meta Ads Mastery</h1>
+            <span className="hidden sm:inline text-xs md:text-sm text-muted-foreground">- Admin</span>
+          </div>
         </div>
 
         {/* Right side: Profile, Notifications, Theme toggle */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="relative h-9 w-9 md:h-10 md:w-10">
+            <Bell className="h-4 w-4 md:h-5 md:w-5" />
             {notifications > 0 && (
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#00ff87]" />
             )}
           </Button>
 
           {/* Theme Toggle */}
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9 md:h-10 md:w-10">
             {theme === 'dark' ? (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-4 w-4 md:h-5 md:w-5" />
             ) : (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-4 w-4 md:h-5 md:w-5" />
             )}
           </Button>
 
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
+              <Button variant="ghost" className="relative h-9 w-9 md:h-10 md:w-10 rounded-full">
+                <Avatar className="h-9 w-9 md:h-10 md:w-10">
                   <AvatarImage src={profile?.avatar_url || undefined} alt="Profile" />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {getInitials()}
