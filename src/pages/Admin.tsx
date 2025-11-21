@@ -144,7 +144,7 @@ const Admin = () => {
             <main className="flex-1 overflow-auto">
               {/* Stats Cards */}
               {activeTab === 'overview' && (
-                <div className="p-6">
+                <div className="p-6 space-y-6">
                   <h2 className="text-2xl font-bold text-foreground mb-4">Vue d'ensemble</h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <Card className="bg-card border-border">
@@ -191,6 +191,18 @@ const Admin = () => {
                         <p className="text-3xl font-bold text-foreground">{stats.totalSubmissions}</p>
                       </CardContent>
                     </Card>
+                  </div>
+
+                  {/* Analytics */}
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground mb-4">Analytique</h3>
+                    <AdvancedAnalytics />
+                  </div>
+
+                  {/* Student Progress */}
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground mb-4">Progression des Étudiants</h3>
+                    <StudentProgressManagement />
                   </div>
                 </div>
               )}
