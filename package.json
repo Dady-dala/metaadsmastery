@@ -43,6 +43,7 @@
     "@sanity/client": "^7.8.1",
     "@supabase/supabase-js": "^2.83.0",
     "@tanstack/react-query": "^5.56.2",
+    "@wistia/wistia-player-react": "^0.3.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
