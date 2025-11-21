@@ -13,6 +13,7 @@ interface CertificateSettings {
   primary_color: string;
   accent_color: string;
   background_color: string;
+  text_color: string;
   organization_name: string;
   organization_subtitle: string;
   trainer_name: string;
@@ -34,6 +35,7 @@ export const CertificateSettings = () => {
     primary_color: '#6B21A8',
     accent_color: '#22C55E',
     background_color: '#1A0B2E',
+    text_color: '#FFFFFF',
     organization_name: 'Meta Ads Mastery',
     organization_subtitle: 'Formation professionnelle en publicité Meta',
     trainer_name: 'Formateur Expert',
@@ -157,6 +159,7 @@ export const CertificateSettings = () => {
           primary_color: settings.primary_color,
           accent_color: settings.accent_color,
           background_color: settings.background_color,
+          text_color: settings.text_color,
           organization_name: settings.organization_name,
           organization_subtitle: settings.organization_subtitle,
           trainer_name: settings.trainer_name,
@@ -193,6 +196,7 @@ export const CertificateSettings = () => {
           primary_color: settings.primary_color,
           accent_color: settings.accent_color,
           background_color: settings.background_color,
+          text_color: settings.text_color,
           organization_name: settings.organization_name,
           organization_subtitle: settings.organization_subtitle,
           trainer_name: settings.trainer_name,
@@ -256,7 +260,7 @@ export const CertificateSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="primary_color" className="text-gray-300">Couleur primaire</Label>
               <div className="flex gap-2 items-center mt-2">
@@ -307,6 +311,24 @@ export const CertificateSettings = () => {
                   type="text"
                   value={settings.background_color}
                   onChange={(e) => setSettings({ ...settings, background_color: e.target.value })}
+                  className="flex-1 bg-white/5 border-white/10 text-white"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="text_color" className="text-gray-300">Couleur de texte</Label>
+              <div className="flex gap-2 items-center mt-2">
+                <Input
+                  id="text_color"
+                  type="color"
+                  value={settings.text_color}
+                  onChange={(e) => setSettings({ ...settings, text_color: e.target.value })}
+                  className="w-20 h-10 bg-white/5 border-white/10"
+                />
+                <Input
+                  type="text"
+                  value={settings.text_color}
+                  onChange={(e) => setSettings({ ...settings, text_color: e.target.value })}
                   className="flex-1 bg-white/5 border-white/10 text-white"
                 />
               </div>
