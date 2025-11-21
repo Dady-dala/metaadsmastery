@@ -410,13 +410,22 @@ export const UserManagement = () => {
                         </Badge>
                       ) : (
                         user.roles.map((role) => (
-                          <Badge 
-                            key={role}
-                            variant={role === 'admin' ? 'default' : 'secondary'}
-                            className={role === 'admin' ? 'bg-[#00ff87] text-black' : ''}
-                          >
-                            {role}
-                          </Badge>
+                          <div key={role} className="flex items-center gap-1">
+                            <Badge 
+                              variant={role === 'admin' ? 'default' : 'secondary'}
+                              className={role === 'admin' ? 'bg-[#00ff87] text-black' : ''}
+                            >
+                              {role}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeRole(user.id, role as 'admin' | 'student' | 'user')}
+                              className="h-6 w-6 p-0 text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                            >
+                              ×
+                            </Button>
+                          </div>
                         ))
                       )}
                     </div>
