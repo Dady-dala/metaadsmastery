@@ -142,6 +142,50 @@ export const UserManagement = () => {
     }
   };
 
+  const assignAdminRole = async (userId: string) => {
+    try {
+      // Check if user already has admin role
+      const user = users.find(u => u.id === userId);
+      if (user?.roles.includes('admin')) {
+        toast.info('Cet utilisateur est déjà administrateur');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: 'admin'
+        });
+
+      if (error) throw error;
+
+      toast.success('Rôle administrateur attribué avec succès');
+      loadUsers();
+    } catch (error) {
+      console.error('Error assigning admin role:', error);
+      toast.error('Erreur lors de l\'attribution du rôle admin');
+    }
+  };
+
+  const removeRole = async (userId: string, role: 'admin' | 'student' | 'user') => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role', role);
+
+      if (error) throw error;
+
+      toast.success(`Rôle ${role} retiré avec succès`);
+      loadUsers();
+    } catch (error) {
+      console.error('Error removing role:', error);
+      toast.error('Erreur lors du retrait du rôle');
+    }
+  };
+
   const assignToCourse = async () => {
     if (!selectedUserId || !selectedCourseId) {
       toast.error('Veuillez sélectionner un cours');
@@ -388,14 +432,26 @@ export const UserManagement = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-2 flex-wrap">{!user.roles.includes('student') && (
+                    <div className="flex gap-2 flex-wrap">
+                      {/* Boutons d'ajout de rôles */}
+                      {!user.roles.includes('student') && (
                         <Button
                           size="sm"
                           onClick={() => assignStudentRole(user.id)}
                           className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
                         >
                           <UserPlus className="w-4 h-4 mr-1" />
-                          Valider Étudiant
+                          Ajouter Étudiant
+                        </Button>
+                      )}
+                      {!user.roles.includes('admin') && (
+                        <Button
+                          size="sm"
+                          onClick={() => assignAdminRole(user.id)}
+                          className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+                        >
+                          <UserPlus className="w-4 h-4 mr-1" />
+                          Ajouter Admin
                         </Button>
                       )}
                       {user.roles.includes('student') && (
