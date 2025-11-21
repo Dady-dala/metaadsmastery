@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UserPlus, Users, BookOpen, Ban, CheckCircle } from 'lucide-react';
+import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit } from 'lucide-react';
 import { 
   Dialog,
   DialogContent,
@@ -55,6 +55,7 @@ export const UserManagement = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [newUserFirstName, setNewUserFirstName] = useState("");
   const [newUserLastName, setNewUserLastName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
@@ -63,6 +64,10 @@ export const UserManagement = () => {
   const [resetPassword, setResetPassword] = useState("");
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToResetPassword, setUserToResetPassword] = useState<User | null>(null);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadUsers();
@@ -313,6 +318,49 @@ export const UserManagement = () => {
     }
   };
 
+  const handleEditUser = async () => {
+    if (!userToEdit || !editFirstName || !editLastName) {
+      toast.error("Tous les champs sont requis");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.functions.invoke('update-user-profile', {
+        body: { 
+          userId: userToEdit.id, 
+          firstName: editFirstName,
+          lastName: editLastName
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success("Profil modifié avec succès");
+      setShowEditDialog(false);
+      setUserToEdit(null);
+      setEditFirstName("");
+      setEditLastName("");
+      loadUsers();
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.message || "Erreur lors de la modification");
+    }
+  };
+
+  const openEditDialog = (user: User) => {
+    setUserToEdit(user);
+    setEditFirstName(user.first_name || "");
+    setEditLastName(user.last_name || "");
+    setShowEditDialog(true);
+  };
+
+  const filteredUsers = users.filter(user => {
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
+    const email = user.email.toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return fullName.includes(query) || email.includes(query);
+  });
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -334,22 +382,34 @@ export const UserManagement = () => {
   return (
     <Card className="bg-white/5 border-white/10">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Gestion des Utilisateurs
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Gérez les rôles, les accès aux formations et le statut des étudiants
-            </CardDescription>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Gestion des Utilisateurs
+              </CardTitle>
+              <CardDescription className="text-gray-300">
+                Gérez les rôles, les accès aux formations et le statut des étudiants
+              </CardDescription>
+            </div>
+            <Button 
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+            >
+              Créer un utilisateur
+            </Button>
           </div>
-          <Button 
-            onClick={() => setShowCreateDialog(true)}
-            className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
-          >
-            Créer un utilisateur
-          </Button>
+          
+          {/* Search bar */}
+          <div className="relative">
+            <Input
+              placeholder="Rechercher par nom, prénom ou email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -365,20 +425,27 @@ export const UserManagement = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <TableRow className="border-white/10">
                 <TableCell colSpan={6} className="text-center text-gray-400 py-8">
-                  Aucun utilisateur trouvé
+                  {searchQuery ? 'Aucun utilisateur ne correspond à votre recherche' : 'Aucun utilisateur trouvé'}
                 </TableCell>
               </TableRow>
             ) : (
-              users.map((user) => (
+              filteredUsers.map((user) => (
                 <TableRow key={user.id} className="border-white/10 hover:bg-white/5">
                   <TableCell className="text-white">
-                    {user.first_name && user.last_name 
-                      ? `${user.first_name} ${user.last_name}`
-                      : <span className="text-gray-400 italic">Non renseigné</span>
-                    }
+                    <div className="flex items-center gap-2">
+                      {user.first_name && user.last_name 
+                        ? `${user.first_name} ${user.last_name}`
+                        : <span className="text-gray-400 italic">Non renseigné</span>
+                      }
+                      {(!user.first_name || !user.last_name) && (
+                        <Badge variant="outline" className="border-yellow-500 text-yellow-500 text-xs">
+                          Profil incomplet
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-white">{user.email}</TableCell>
                   <TableCell className="text-gray-300">
@@ -423,6 +490,15 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2 flex-wrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEditDialog(user)}
+                        className="border-blue-500 text-blue-500 hover:bg-blue-500/10"
+                      >
+                        Modifier
+                      </Button>
+                      
                       {user.roles.includes('student') && (
                         <>
                           <Dialog>
@@ -688,6 +764,62 @@ export const UserManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-[#1a1a2e] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white">Modifier le profil</DialogTitle>
+            <DialogDescription className="text-gray-300">
+              Utilisateur: <strong className="text-white">{userToEdit?.email}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-firstName" className="text-gray-300">Prénom</Label>
+              <Input
+                id="edit-firstName"
+                type="text"
+                value={editFirstName}
+                onChange={(e) => setEditFirstName(e.target.value)}
+                placeholder="Prénom"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-lastName" className="text-gray-300">Nom</Label>
+              <Input
+                id="edit-lastName"
+                type="text"
+                value={editLastName}
+                onChange={(e) => setEditLastName(e.target.value)}
+                placeholder="Nom"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowEditDialog(false);
+                setUserToEdit(null);
+                setEditFirstName("");
+                setEditLastName("");
+              }}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleEditUser}
+              className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
+            >
+              Enregistrer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
