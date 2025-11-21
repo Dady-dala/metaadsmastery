@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ThankYou = () => {
   const navigate = useNavigate();
-  const whatsappGroupUrl = "https://chat.whatsapp.com/YOUR_GROUP_LINK"; // À remplacer par le vrai lien
+  const whatsappGroupUrl = "https://chat.whatsapp.com/G9oQ3mJuK6U8kuJle3qsdt";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 px-4">
