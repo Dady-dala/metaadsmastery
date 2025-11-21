@@ -25,6 +25,7 @@ export type Database = {
           organization_name: string
           organization_subtitle: string
           primary_color: string
+          text_color: string
           trainer_name: string
           trainer_signature_url: string | null
           updated_at: string
@@ -39,6 +40,7 @@ export type Database = {
           organization_name?: string
           organization_subtitle?: string
           primary_color?: string
+          text_color?: string
           trainer_name?: string
           trainer_signature_url?: string | null
           updated_at?: string
@@ -53,6 +55,7 @@ export type Database = {
           organization_name?: string
           organization_subtitle?: string
           primary_color?: string
+          text_color?: string
           trainer_name?: string
           trainer_signature_url?: string | null
           updated_at?: string

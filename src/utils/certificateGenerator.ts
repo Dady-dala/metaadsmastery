@@ -11,6 +11,7 @@ interface CertificateSettings {
   primary_color: string;
   accent_color: string;
   background_color: string;
+  text_color: string;
   organization_name: string;
   organization_subtitle: string;
   trainer_name: string;
@@ -58,6 +59,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
       primary_color: '#6B21A8',
       accent_color: '#22C55E',
       background_color: '#1A0B2E',
+      text_color: '#FFFFFF',
       organization_name: 'Meta Ads Mastery',
       organization_subtitle: 'Formation professionnelle en publicité Meta',
       trainer_name: 'Formateur Expert',
@@ -79,6 +81,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   const primaryRgb = hexToRgb(settings.primary_color);
   const accentRgb = hexToRgb(settings.accent_color);
   const bgRgb = hexToRgb(settings.background_color);
+  const textRgb = hexToRgb(settings.text_color);
 
   // Fond
   doc.setFillColor(bgRgb.r, bgRgb.g, bgRgb.b);
@@ -105,7 +108,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   doc.line(60, 50, 237, 50);
 
   // Texte "Ceci certifie que"
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(textRgb.r, textRgb.g, textRgb.b);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'normal');
   doc.text('Ceci certifie que', 148.5, 70, { align: 'center' });
@@ -117,7 +120,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   doc.text(studentName, 148.5, 90, { align: 'center' });
 
   // Texte "a complété avec succès"
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(textRgb.r, textRgb.g, textRgb.b);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'normal');
   doc.text('a complété avec succès la formation', 148.5, 105, { align: 'center' });
@@ -129,7 +132,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   doc.text(data.courseName, 148.5, 120, { align: 'center' });
 
   // Date de complétion
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(textRgb.r, textRgb.g, textRgb.b);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
   doc.text(`Délivré le ${data.completionDate}`, 148.5, 140, { align: 'center' });
@@ -140,7 +143,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   doc.setFont('helvetica', 'bold');
   doc.text(settings.organization_name, 148.5, 165, { align: 'center' });
 
-  doc.setTextColor(255, 255, 255);
+  doc.setTextColor(textRgb.r, textRgb.g, textRgb.b);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'italic');
   doc.text(settings.organization_subtitle, 148.5, 172, { align: 'center' });
@@ -168,7 +171,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
       // Fallback sur le texte si l'image ne charge pas
       doc.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
       doc.line(110, 180, 187, 180);
-      doc.setTextColor(255, 255, 255);
+      doc.setTextColor(textRgb.r, textRgb.g, textRgb.b);
       doc.setFontSize(10);
       doc.text(settings.trainer_name, 148.5, 186, { align: 'center' });
     }
@@ -176,7 +179,7 @@ export const generateCertificate = async (data: CertificateData): Promise<string
     // Ligne de signature et texte
     doc.setDrawColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.line(110, 180, 187, 180);
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(textRgb.r, textRgb.g, textRgb.b);
     doc.setFontSize(10);
     doc.text(settings.trainer_name, 148.5, 186, { align: 'center' });
   }
