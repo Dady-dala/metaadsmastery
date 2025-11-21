@@ -35,6 +35,8 @@ interface User {
   created_at: string;
   roles: string[];
   is_active?: boolean;
+  first_name?: string | null;
+  last_name?: string | null;
 }
 
 interface Course {
@@ -354,6 +356,7 @@ export const UserManagement = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-white/10 hover:bg-white/5">
+              <TableHead className="text-gray-300">Nom complet</TableHead>
               <TableHead className="text-gray-300">Email</TableHead>
               <TableHead className="text-gray-300">Date d'inscription</TableHead>
               <TableHead className="text-gray-300">Rôles</TableHead>
@@ -364,13 +367,19 @@ export const UserManagement = () => {
           <TableBody>
             {users.length === 0 ? (
               <TableRow className="border-white/10">
-                <TableCell colSpan={5} className="text-center text-gray-400 py-8">
+                <TableCell colSpan={6} className="text-center text-gray-400 py-8">
                   Aucun utilisateur trouvé
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
                 <TableRow key={user.id} className="border-white/10 hover:bg-white/5">
+                  <TableCell className="text-white">
+                    {user.first_name && user.last_name 
+                      ? `${user.first_name} ${user.last_name}`
+                      : <span className="text-gray-400 italic">Non renseigné</span>
+                    }
+                  </TableCell>
                   <TableCell className="text-white">{user.email}</TableCell>
                   <TableCell className="text-gray-300">
                     {formatDate(user.created_at)}

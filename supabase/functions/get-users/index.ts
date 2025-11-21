@@ -72,18 +72,31 @@ Deno.serve(async (req) => {
       throw rolesError;
     }
 
-    // Combine users with their roles and active status
+    // Get all user profiles
+    const { data: userProfiles, error: profilesError } = await supabaseClient
+      .from('profiles')
+      .select('user_id, first_name, last_name');
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      throw profilesError;
+    }
+
+    // Combine users with their roles, active status, and profile information
     const usersWithRoles = users.map(user => {
       const userRoleRecords = userRoles?.filter(r => r.user_id === user.id) || [];
       const roles = userRoleRecords.map(r => r.role);
       const studentRole = userRoleRecords.find(r => r.role === 'student');
+      const profile = userProfiles?.find(p => p.user_id === user.id);
       
       return {
         id: user.id,
         email: user.email,
         created_at: user.created_at,
         roles: roles,
-        is_active: studentRole?.is_active !== undefined ? studentRole.is_active : true
+        is_active: studentRole?.is_active !== undefined ? studentRole.is_active : true,
+        first_name: profile?.first_name || null,
+        last_name: profile?.last_name || null
       };
     });
 
