@@ -29,6 +29,7 @@ interface CourseVideo {
 
 const EspaceFormation = () => {
   const [loading, setLoading] = useState(true);
+  const [wistiaLoaded, setWistiaLoaded] = useState(false);
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [courseVideos, setCourseVideos] = useState<CourseVideo[]>([]);
@@ -41,9 +42,24 @@ const EspaceFormation = () => {
     loadEnrolledCourses();
     
     // Load Wistia player script (web component standard method)
+    const existingScript = document.querySelector('script[src="https://fast.wistia.com/player.js"]');
+    
+    if (existingScript) {
+      setWistiaLoaded(true);
+      return;
+    }
+
     const script = document.createElement('script');
     script.src = 'https://fast.wistia.com/player.js';
     script.async = true;
+    script.onload = () => {
+      console.log('Wistia player script loaded successfully');
+      setWistiaLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load Wistia player script');
+      toast.error('Erreur de chargement du lecteur vidéo');
+    };
     document.head.appendChild(script);
 
     return () => {
@@ -281,12 +297,21 @@ const EspaceFormation = () => {
                           {selectedVideo && (
                             <CardContent>
                               <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
-                                <wistia-player 
-                                  media-id={selectedVideo.wistia_media_id}
-                                  seo="true"
-                                  aspect="1.7777777777777777"
-                                  className="w-full h-full"
-                                ></wistia-player>
+                                {!wistiaLoaded ? (
+                                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                                    <div className="text-center">
+                                      <PlayCircle className="w-16 h-16 text-muted-foreground mx-auto mb-2 animate-pulse" />
+                                      <p className="text-muted-foreground">Chargement du lecteur vidéo...</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <wistia-player 
+                                    media-id={selectedVideo.wistia_media_id}
+                                    seo="true"
+                                    aspect="1.7777777777777777"
+                                    className="w-full h-full"
+                                  ></wistia-player>
+                                )}
                               </div>
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
