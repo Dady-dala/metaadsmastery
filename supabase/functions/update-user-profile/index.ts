@@ -25,14 +25,17 @@ serve(async (req) => {
 
     console.log(`Updating profile for user ${userId}`)
 
-    // Update the user's profile
+    // Upsert the user's profile (create if doesn't exist, update if exists)
     const { data, error } = await supabaseClient
       .from('profiles')
-      .update({
+      .upsert({
+        user_id: userId,
         first_name: firstName,
         last_name: lastName,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'user_id'
       })
-      .eq('user_id', userId)
       .select()
       .single()
 
