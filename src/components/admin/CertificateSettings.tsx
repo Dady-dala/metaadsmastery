@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Award, Palette, FileText, User } from 'lucide-react';
+import { Award, Palette, FileText, User, Upload, Eye } from 'lucide-react';
+import { generateCertificate } from '@/utils/certificateGenerator';
 
 interface CertificateSettings {
   id: string;
@@ -22,6 +23,9 @@ interface CertificateSettings {
 export const CertificateSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<CertificateSettings>({
     id: '',
     primary_color: '#6B21A8',
@@ -55,6 +59,82 @@ export const CertificateSettings = () => {
       toast.error('Erreur lors du chargement des paramètres');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner une image');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('L\'image ne doit pas dépasser 2 MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('certificate-logos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('certificate-logos')
+        .getPublicUrl(filePath);
+
+      setSettings({ ...settings, logo_url: publicUrl });
+      toast.success('Logo uploadé avec succès');
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      toast.error(error.message || 'Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleGeneratePreview = async () => {
+    try {
+      // Sauvegarder temporairement les paramètres dans la base de données
+      await supabase
+        .from('certificate_settings')
+        .update({
+          primary_color: settings.primary_color,
+          accent_color: settings.accent_color,
+          background_color: settings.background_color,
+          organization_name: settings.organization_name,
+          organization_subtitle: settings.organization_subtitle,
+          trainer_name: settings.trainer_name,
+          certificate_title: settings.certificate_title,
+          logo_url: settings.logo_url,
+        })
+        .eq('id', settings.id);
+
+      // Générer un aperçu avec des données fictives
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not found');
+
+      const pdfDataUri = await generateCertificate({
+        studentId: user.id, // Admin ID pour l'aperçu
+        courseName: 'Exemple de Formation',
+        completionDate: new Date().toLocaleDateString('fr-FR')
+      });
+
+      setPreviewUrl(pdfDataUri);
+      toast.success('Aperçu généré avec succès');
+    } catch (error: any) {
+      console.error('Error generating preview:', error);
+      toast.error(error.message || 'Erreur lors de la génération de l\'aperçu');
     }
   };
 
@@ -96,6 +176,27 @@ export const CertificateSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Aperçu */}
+      {previewUrl && (
+        <Card className="bg-white/5 border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Aperçu du certificat
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative w-full aspect-[1.414/1] bg-black/20 rounded-lg overflow-hidden">
+              <iframe
+                src={previewUrl}
+                className="w-full h-full"
+                title="Aperçu du certificat"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Couleurs */}
       <Card className="bg-white/5 border-white/10">
         <CardHeader>
@@ -210,14 +311,32 @@ export const CertificateSettings = () => {
             />
           </div>
           <div>
-            <Label htmlFor="logo_url" className="text-gray-300">URL du logo (optionnel)</Label>
-            <Input
-              id="logo_url"
-              value={settings.logo_url || ''}
-              onChange={(e) => setSettings({ ...settings, logo_url: e.target.value || null })}
-              placeholder="https://..."
-              className="bg-white/5 border-white/10 text-white mt-2"
-            />
+            <Label htmlFor="logo_upload" className="text-gray-300">Logo (optionnel)</Label>
+            <div className="flex gap-2 items-center mt-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                variant="outline"
+                className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? 'Upload...' : 'Uploader un logo'}
+              </Button>
+              {settings.logo_url && (
+                <div className="flex items-center gap-2">
+                  <img src={settings.logo_url} alt="Logo" className="w-10 h-10 object-contain rounded border border-white/10" />
+                  <span className="text-sm text-gray-400">Logo actuel</span>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -247,13 +366,23 @@ export const CertificateSettings = () => {
         </CardContent>
       </Card>
 
-      <Button
-        onClick={handleSave}
-        disabled={saving}
-        className="bg-[#00ff87] text-black hover:bg-[#00cc6e] w-full"
-      >
-        {saving ? 'Enregistrement...' : 'Enregistrer les paramètres'}
-      </Button>
+      <div className="flex gap-4">
+        <Button
+          onClick={handleGeneratePreview}
+          variant="outline"
+          className="bg-white/5 border-white/10 text-white hover:bg-white/10 flex-1"
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Générer un aperçu
+        </Button>
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-[#00ff87] text-black hover:bg-[#00cc6e] flex-1"
+        >
+          {saving ? 'Enregistrement...' : 'Enregistrer les paramètres'}
+        </Button>
+      </div>
     </div>
   );
 };

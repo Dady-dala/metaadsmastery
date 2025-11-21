@@ -279,32 +279,24 @@ export const QuizTaking = ({ courseId, videoId }: { courseId: string; videoId?: 
         // Vérifier si le cours est certifiant
         if (!course || !course.is_certifying) return;
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('user_id', studentId)
-          .single();
+        const certificateUrl = await generateCertificate({
+          studentId: studentId,
+          courseName: course.title,
+          completionDate: new Date().toLocaleDateString('fr-FR')
+        });
 
-        if (course && profile) {
-          const certificateUrl = await generateCertificate({
-            studentName: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
-            courseName: course.title,
-            completionDate: new Date().toLocaleDateString('fr-FR')
+        await supabase
+          .from('certificates')
+          .insert({
+            student_id: studentId,
+            course_id: courseId,
+            certificate_url: certificateUrl
           });
 
-          await supabase
-            .from('certificates')
-            .insert({
-              student_id: studentId,
-              course_id: courseId,
-              certificate_url: certificateUrl
-            });
-
-          toast({
-            title: "🎉 Certificat généré !",
-            description: "Félicitations ! Vous avez terminé le cours à 100%",
-          });
-        }
+        toast({
+          title: "🎉 Certificat généré !",
+          description: "Félicitations ! Vous avez terminé le cours à 100%",
+        });
       }
     }
   };

@@ -140,18 +140,8 @@ export const StudentCertificates = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('user_id', session.user.id)
-        .single();
-
-      const studentName = profile 
-        ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Étudiant'
-        : 'Étudiant';
-
       const pdfDataUri = await generateCertificate({
-        studentName,
+        studentId: session.user.id,
         courseName: courseTitle,
         completionDate: new Date().toLocaleDateString('fr-FR')
       });
