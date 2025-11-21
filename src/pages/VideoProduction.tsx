@@ -160,7 +160,7 @@ const VideoProduction = () => {
           }}>
                 <div className="relative overflow-hidden rounded-3xl cinematic-card shadow-cinematic transition-all duration-700 group-hover:scale-[1.01]">
                   <div className="relative">
-                    <wistia-player media-id={video.mediaId} seo="false" aspect="1.7777777777777777" className="w-full rounded-t-3xl" />
+                    <wistia-player media-id={video.mediaId} seo={false} aspect={1.7777777777777777} className="w-full rounded-t-3xl" />
                   </div>
                   <div className="p-8">
                     <h3 className="text-xl font-bold text-white mb-3">{video.title}</h3>

@@ -92,7 +92,7 @@ const CaseStudyHero = ({ mainTestimonialVideo }: CaseStudyHeroProps) => {
               
               <DialogContent className="max-w-4xl w-full p-0 bg-black border-gray-800">
                 <div className="aspect-video">
-                  <wistia-player media-id="vq42y2aqto" aspect="1.7777777777777777" seo="false"></wistia-player>
+                  <wistia-player media-id="vq42y2aqto" aspect={1.7777777777777777} seo={false}></wistia-player>
                 </div>
               </DialogContent>
             </Dialog>

@@ -89,7 +89,7 @@ const Hero = () => {
           aspectRatio: '16/9',
           willChange: 'transform'
         }}>
-            <wistia-player media-id="wfrtok35jw" seo="false" aspect="1.7777777777777777"></wistia-player>
+            <wistia-player media-id="wfrtok35jw" seo={false} aspect={1.7777777777777777}></wistia-player>
           </div>
           
           {/* Cinematic light flares */}

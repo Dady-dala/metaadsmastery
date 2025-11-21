@@ -21,6 +21,7 @@ import {
   MessageSquare,
   UserCircle,
   LayoutDashboard,
+  Award,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +55,11 @@ const menuItems = [
     title: 'Analytics',
     icon: BarChart3,
     tab: 'analytics',
+  },
+  {
+    title: 'Certificats',
+    icon: Award,
+    tab: 'certificates',
   },
   {
     title: 'Inscriptions',

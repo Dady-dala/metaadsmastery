@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { User, Mail, Lock, Moon, Sun, Globe, Award, Download } from 'lucide-react';
+import { User, Mail, Lock, Moon, Sun, Globe, Award, Download, Calendar, Users } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -19,14 +19,28 @@ interface Certificate {
   };
 }
 
+interface Profile {
+  first_name: string;
+  last_name: string;
+  date_of_birth: string | null;
+  gender: string | null;
+}
+
 export const ProfileSettings = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const { theme, setTheme } = useTheme();
   const [language, setLanguage] = useState('fr');
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [profile, setProfile] = useState<Profile>({
+    first_name: '',
+    last_name: '',
+    date_of_birth: null,
+    gender: null,
+  });
 
   useEffect(() => {
     loadProfile();
@@ -37,6 +51,51 @@ export const ProfileSettings = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       setEmail(user.email || '');
+      
+      // Charger les données du profil
+      const { data: profileData, error } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, date_of_birth, gender')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error);
+      } else if (profileData) {
+        setProfile({
+          first_name: profileData.first_name || '',
+          last_name: profileData.last_name || '',
+          date_of_birth: profileData.date_of_birth || null,
+          gender: profileData.gender || null,
+        });
+      }
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          date_of_birth: profile.date_of_birth,
+          gender: profile.gender,
+        });
+
+      if (error) throw error;
+
+      toast.success('Profil mis à jour avec succès');
+    } catch (error: any) {
+      console.error('Error saving profile:', error);
+      toast.error(error.message || 'Erreur lors de la sauvegarde');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -116,7 +175,7 @@ export const ProfileSettings = () => {
             Profil
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Informations de votre compte
+            Complétez vos informations personnelles
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -133,6 +192,65 @@ export const ProfileSettings = () => {
               className="bg-muted border-border text-muted-foreground mt-2"
             />
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="first_name" className="text-foreground">Prénom</Label>
+              <Input
+                id="first_name"
+                value={profile.first_name}
+                onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                placeholder="Votre prénom"
+                className="bg-input border-border text-foreground mt-2"
+              />
+            </div>
+            <div>
+              <Label htmlFor="last_name" className="text-foreground">Nom</Label>
+              <Input
+                id="last_name"
+                value={profile.last_name}
+                onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
+                placeholder="Votre nom"
+                className="bg-input border-border text-foreground mt-2"
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="date_of_birth" className="text-foreground flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Date de naissance
+            </Label>
+            <Input
+              id="date_of_birth"
+              type="date"
+              value={profile.date_of_birth || ''}
+              onChange={(e) => setProfile({ ...profile, date_of_birth: e.target.value || null })}
+              className="bg-input border-border text-foreground mt-2"
+            />
+          </div>
+          <div>
+            <Label className="text-foreground flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4" />
+              Sexe
+            </Label>
+            <Select value={profile.gender || 'non-specifie'} onValueChange={(value) => setProfile({ ...profile, gender: value })}>
+              <SelectTrigger className="bg-input border-border text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="homme">Homme</SelectItem>
+                <SelectItem value="femme">Femme</SelectItem>
+                <SelectItem value="autre">Autre</SelectItem>
+                <SelectItem value="non-specifie">Non spécifié</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            onClick={handleSaveProfile}
+            disabled={saving}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
+          >
+            {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+          </Button>
         </CardContent>
       </Card>
 
