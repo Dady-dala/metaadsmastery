@@ -53,8 +53,11 @@ export const UserManagement = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [newUserFirstName, setNewUserFirstName] = useState("");
+  const [newUserLastName, setNewUserLastName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserRole, setNewUserRole] = useState<string>("");
   const [resetPassword, setResetPassword] = useState("");
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToResetPassword, setUserToResetPassword] = useState<User | null>(null);
@@ -116,73 +119,34 @@ export const UserManagement = () => {
     }
   };
 
-  const assignStudentRole = async (userId: string) => {
+  const assignRole = async (userId: string, role: 'admin' | 'student') => {
     try {
-      // Check if user already has student role
       const user = users.find(u => u.id === userId);
-      if (user?.roles.includes('student')) {
-        toast.info('Cet utilisateur est déjà étudiant');
-        return;
-      }
+      if (!user) return;
 
-      const { error } = await supabase
+      // Supprimer tous les rôles existants de l'utilisateur
+      const { error: deleteError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (deleteError) throw deleteError;
+
+      // Ajouter le nouveau rôle
+      const { error: insertError } = await supabase
         .from('user_roles')
         .insert({
           user_id: userId,
-          role: 'student'
+          role: role
         });
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
-      toast.success('Rôle étudiant attribué avec succès');
+      toast.success(`Rôle ${role === 'admin' ? 'administrateur' : 'étudiant'} attribué avec succès`);
       loadUsers();
     } catch (error) {
       console.error('Error assigning role:', error);
       toast.error('Erreur lors de l\'attribution du rôle');
-    }
-  };
-
-  const assignAdminRole = async (userId: string) => {
-    try {
-      // Check if user already has admin role
-      const user = users.find(u => u.id === userId);
-      if (user?.roles.includes('admin')) {
-        toast.info('Cet utilisateur est déjà administrateur');
-        return;
-      }
-
-      const { error } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: 'admin'
-        });
-
-      if (error) throw error;
-
-      toast.success('Rôle administrateur attribué avec succès');
-      loadUsers();
-    } catch (error) {
-      console.error('Error assigning admin role:', error);
-      toast.error('Erreur lors de l\'attribution du rôle admin');
-    }
-  };
-
-  const removeRole = async (userId: string, role: 'admin' | 'student' | 'user') => {
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId)
-        .eq('role', role);
-
-      if (error) throw error;
-
-      toast.success(`Rôle ${role} retiré avec succès`);
-      loadUsers();
-    } catch (error) {
-      console.error('Error removing role:', error);
-      toast.error('Erreur lors du retrait du rôle');
     }
   };
 
@@ -251,8 +215,8 @@ export const UserManagement = () => {
   };
 
   const handleCreateUser = async () => {
-    if (!newUserEmail || !newUserPassword) {
-      toast.error("Email et mot de passe requis");
+    if (!newUserFirstName || !newUserLastName || !newUserEmail || !newUserPassword || !newUserRole) {
+      toast.error("Tous les champs sont requis");
       return;
     }
 
@@ -265,15 +229,24 @@ export const UserManagement = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('create-user', {
-        body: { email: newUserEmail, password: newUserPassword }
+        body: { 
+          email: newUserEmail, 
+          password: newUserPassword,
+          firstName: newUserFirstName,
+          lastName: newUserLastName,
+          role: newUserRole
+        }
       });
 
       if (error) throw error;
 
       toast.success("Utilisateur créé avec succès");
       setShowCreateDialog(false);
+      setNewUserFirstName("");
+      setNewUserLastName("");
       setNewUserEmail("");
       setNewUserPassword("");
+      setNewUserRole("");
       loadUsers();
     } catch (error: any) {
       console.error('Error creating user:', error);
@@ -403,32 +376,31 @@ export const UserManagement = () => {
                     {formatDate(user.created_at)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-2 flex-wrap">
-                      {user.roles.length === 0 ? (
-                        <Badge variant="outline" className="text-gray-400 border-gray-600">
-                          Aucun rôle
-                        </Badge>
-                      ) : (
-                        user.roles.map((role) => (
-                          <div key={role} className="flex items-center gap-1">
+                    <Select 
+                      value={user.roles[0] || ''} 
+                      onValueChange={(value) => assignRole(user.id, value as 'admin' | 'student')}
+                    >
+                      <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white">
+                        <SelectValue placeholder="Sélectionner un rôle">
+                          {user.roles.length === 0 ? 'Aucun rôle' : (
                             <Badge 
-                              variant={role === 'admin' ? 'default' : 'secondary'}
-                              className={role === 'admin' ? 'bg-[#00ff87] text-black' : ''}
+                              variant={user.roles[0] === 'admin' ? 'default' : 'secondary'}
+                              className={user.roles[0] === 'admin' ? 'bg-[#00ff87] text-black' : ''}
                             >
-                              {role}
+                              {user.roles[0] === 'admin' ? 'Administrateur' : 'Étudiant'}
                             </Badge>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => removeRole(user.id, role as 'admin' | 'student' | 'user')}
-                              className="h-6 w-6 p-0 text-red-400 hover:text-red-500 hover:bg-red-500/10"
-                            >
-                              ×
-                            </Button>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                          )}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a0033] border-white/10">
+                        <SelectItem value="student" className="text-white hover:bg-white/10">
+                          Étudiant
+                        </SelectItem>
+                        <SelectItem value="admin" className="text-white hover:bg-white/10">
+                          Administrateur
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     {user.roles.includes('student') && (
@@ -442,27 +414,6 @@ export const UserManagement = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2 flex-wrap">
-                      {/* Boutons d'ajout de rôles */}
-                      {!user.roles.includes('student') && (
-                        <Button
-                          size="sm"
-                          onClick={() => assignStudentRole(user.id)}
-                          className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
-                        >
-                          <UserPlus className="w-4 h-4 mr-1" />
-                          Ajouter Étudiant
-                        </Button>
-                      )}
-                      {!user.roles.includes('admin') && (
-                        <Button
-                          size="sm"
-                          onClick={() => assignAdminRole(user.id)}
-                          className="bg-[#00ff87] text-black hover:bg-[#00cc6e]"
-                        >
-                          <UserPlus className="w-4 h-4 mr-1" />
-                          Ajouter Admin
-                        </Button>
-                      )}
                       {user.roles.includes('student') && (
                         <>
                           <Dialog>
@@ -577,6 +528,28 @@ export const UserManagement = () => {
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <Label htmlFor="firstName" className="text-gray-300">Prénom</Label>
+              <Input
+                id="firstName"
+                type="text"
+                value={newUserFirstName}
+                onChange={(e) => setNewUserFirstName(e.target.value)}
+                placeholder="Prénom"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName" className="text-gray-300">Nom</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={newUserLastName}
+                onChange={(e) => setNewUserLastName(e.target.value)}
+                placeholder="Nom"
+                className="bg-white/5 border-white/10 text-white"
+              />
+            </div>
+            <div>
               <Label htmlFor="email" className="text-gray-300">Email</Label>
               <Input
                 id="email"
@@ -597,6 +570,22 @@ export const UserManagement = () => {
                 placeholder="Minimum 6 caractères"
                 className="bg-white/5 border-white/10 text-white"
               />
+            </div>
+            <div>
+              <Label htmlFor="role" className="text-gray-300">Rôle</Label>
+              <Select value={newUserRole} onValueChange={setNewUserRole}>
+                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                  <SelectValue placeholder="Sélectionner un rôle" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a0033] border-white/10">
+                  <SelectItem value="student" className="text-white hover:bg-white/10">
+                    Étudiant
+                  </SelectItem>
+                  <SelectItem value="admin" className="text-white hover:bg-white/10">
+                    Administrateur
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

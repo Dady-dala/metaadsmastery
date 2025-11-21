@@ -49,11 +49,18 @@ serve(async (req) => {
       );
     }
 
-    const { email, password } = await req.json();
+    const { email, password, firstName, lastName, role } = await req.json();
 
-    if (!email || !password) {
+    if (!email || !password || !firstName || !lastName || !role) {
       return new Response(
-        JSON.stringify({ error: 'Email and password are required' }),
+        JSON.stringify({ error: 'Email, password, firstName, lastName, and role are required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    if (!['admin', 'student'].includes(role)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid role. Must be admin or student' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
@@ -69,6 +76,35 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: createError.message }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Create profile for the user
+    const { error: profileError } = await supabaseClient
+      .from('profiles')
+      .insert({
+        user_id: newUser.user.id,
+        first_name: firstName,
+        last_name: lastName,
+      });
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+    }
+
+    // Assign role to the user
+    const { error: roleError } = await supabaseClient
+      .from('user_roles')
+      .insert({
+        user_id: newUser.user.id,
+        role: role,
+      });
+
+    if (roleError) {
+      console.error('Error assigning role:', roleError);
+      return new Response(
+        JSON.stringify({ error: 'User created but role assignment failed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
