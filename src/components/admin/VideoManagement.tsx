@@ -31,6 +31,7 @@ export const VideoManagement = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<CourseVideo | null>(null);
+  const [previewWistiaId, setPreviewWistiaId] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -40,6 +41,18 @@ export const VideoManagement = () => {
 
   useEffect(() => {
     loadCourses();
+    
+    // Load Wistia player script for preview
+    const script = document.createElement('script');
+    script.src = 'https://fast.wistia.com/player.js';
+    script.async = true;
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -108,6 +121,19 @@ export const VideoManagement = () => {
     
     // If no pattern matches, return as-is and let validation handle it
     return trimmed;
+  };
+
+  // Handle Wistia ID input change with live preview
+  const handleWistiaIdChange = (value: string) => {
+    setFormData({ ...formData, wistia_media_id: value });
+    
+    // Extract and set preview ID
+    const extracted = extractWistiaId(value);
+    if (extracted && /^[a-z0-9]+$/i.test(extracted)) {
+      setPreviewWistiaId(extracted);
+    } else {
+      setPreviewWistiaId('');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,12 +225,14 @@ export const VideoManagement = () => {
       wistia_media_id: video.wistia_media_id,
       course_id: video.course_id,
     });
+    setPreviewWistiaId(video.wistia_media_id);
     setDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingVideo(null);
     setFormData({ title: '', description: '', wistia_media_id: '', course_id: selectedCourseId });
+    setPreviewWistiaId('');
     setDialogOpen(true);
   };
 
@@ -285,7 +313,7 @@ export const VideoManagement = () => {
                   <Textarea
                     id="wistia_media_id"
                     value={formData.wistia_media_id}
-                    onChange={(e) => setFormData({ ...formData, wistia_media_id: e.target.value })}
+                    onChange={(e) => handleWistiaIdChange(e.target.value)}
                     required
                     placeholder="Collez l'ID, l'URL complète ou le code embed Wistia"
                     className="bg-input border-border text-foreground font-mono text-sm"
@@ -295,6 +323,26 @@ export const VideoManagement = () => {
                     Formats acceptés: ID simple (jbs50a8vzd), URL (https://...wistia.com/medias/jbs50a8vzd) ou code embed complet
                   </p>
                 </div>
+
+                {/* Video Preview */}
+                {previewWistiaId && (
+                  <div>
+                    <Label className="text-foreground">Aperçu de la vidéo</Label>
+                    <div className="mt-2 rounded-lg overflow-hidden bg-black border border-border">
+                      <div className="aspect-video">
+                        <wistia-player 
+                          media-id={previewWistiaId}
+                          seo="false"
+                          aspect="1.7777777777777777"
+                          className="w-full h-full"
+                        ></wistia-player>
+                      </div>
+                    </div>
+                    <p className="text-xs text-success mt-1">
+                      ✓ ID détecté: {previewWistiaId}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="description" className="text-foreground">Description</Label>
                   <Textarea
