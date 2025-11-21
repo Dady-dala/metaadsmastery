@@ -47,7 +47,6 @@ const Admin = () => {
     totalVideos: 0,
     totalSubmissions: 0,
   });
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   
   const searchParams = new URLSearchParams(location.search);
@@ -136,18 +135,18 @@ const Admin = () => {
         title="Administration - Meta Ads Mastery"
         description="Espace d'administration Meta Ads Mastery"
       />
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <div className="min-h-screen flex w-full bg-background">
           <AdminSidebar />
-          <SidebarInset className="flex-1">
-            <AdminHeader onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <SidebarInset className="flex-1 flex flex-col">
+            <AdminHeader />
             
             <main className="flex-1 overflow-auto">
               {/* Stats Cards */}
               {activeTab === 'overview' && (
-                <div className="p-6 space-y-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">Vue d'ensemble</h2>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 md:p-6 space-y-4 md:space-y-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground mb-3 md:mb-4">Vue d'ensemble</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                     <Card className="bg-card border-border">
                       <CardHeader className="pb-2">
                         <CardDescription className="text-muted-foreground flex items-center gap-2">
@@ -196,20 +195,20 @@ const Admin = () => {
 
                   {/* Analytics */}
                   <div>
-                    <h3 className="text-xl font-bold text-foreground mb-4">Analytique</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-foreground mb-3 md:mb-4">Analytique</h3>
                     <AdvancedAnalytics />
                   </div>
 
                   {/* Student Progress */}
                   <div>
-                    <h3 className="text-xl font-bold text-foreground mb-4">Progression des Étudiants</h3>
+                    <h3 className="text-lg md:text-xl font-bold text-foreground mb-3 md:mb-4">Progression des Étudiants</h3>
                     <StudentProgressManagement />
                   </div>
                 </div>
               )}
 
               {/* Content based on active tab */}
-              <div className="p-6">
+              <div className="p-3 md:p-6">
                 {activeTab === 'users' && <UserManagement />}
                 {activeTab === 'courses' && <CourseManagement />}
                 {activeTab === 'videos' && <VideoManagement />}

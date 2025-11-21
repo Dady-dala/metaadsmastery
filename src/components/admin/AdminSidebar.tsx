@@ -92,15 +92,15 @@ export const AdminSidebar = () => {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
-      <SidebarHeader className="border-b border-border">
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+      <SidebarHeader className="border-b border-border p-2">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shrink-0">
             <LayoutDashboard className="h-4 w-4 text-primary-foreground" />
           </div>
           {state === 'expanded' && (
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-foreground">Dashboard</span>
-              <span className="text-xs text-muted-foreground">Administration</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-foreground truncate">Dashboard</span>
+              <span className="text-xs text-muted-foreground truncate">Administration</span>
             </div>
           )}
         </div>
