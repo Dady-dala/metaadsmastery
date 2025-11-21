@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CertificateData {
-  studentName: string;
+  studentId: string;
   courseName: string;
   completionDate: string;
 }
@@ -28,6 +28,20 @@ const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
 };
 
 export const generateCertificate = async (data: CertificateData): Promise<string> => {
+  // Charger le profil de l'étudiant pour obtenir son nom complet
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('user_id', data.studentId)
+    .single();
+
+  let studentName = 'Étudiant';
+  if (!profileError && profileData) {
+    const firstName = profileData.first_name || '';
+    const lastName = profileData.last_name || '';
+    studentName = `${firstName} ${lastName}`.trim() || 'Étudiant';
+  }
+
   // Charger les paramètres de certificat depuis la base de données
   const { data: settingsData, error } = await supabase
     .from('certificate_settings')
@@ -95,10 +109,10 @@ export const generateCertificate = async (data: CertificateData): Promise<string
   doc.text('Ceci certifie que', 148.5, 70, { align: 'center' });
 
   // Nom de l'étudiant
-  doc.setTextColor(34, 197, 94);
+  doc.setTextColor(accentRgb.r, accentRgb.g, accentRgb.b);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text(data.studentName || 'Étudiant', 148.5, 90, { align: 'center' });
+  doc.text(studentName, 148.5, 90, { align: 'center' });
 
   // Texte "a complété avec succès"
   doc.setTextColor(255, 255, 255);
