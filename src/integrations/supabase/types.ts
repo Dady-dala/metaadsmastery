@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      certificate_settings: {
+        Row: {
+          accent_color: string
+          background_color: string
+          certificate_title: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          organization_name: string
+          organization_subtitle: string
+          primary_color: string
+          trainer_name: string
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string
+          background_color?: string
+          certificate_title?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          organization_name?: string
+          organization_subtitle?: string
+          primary_color?: string
+          trainer_name?: string
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string
+          background_color?: string
+          certificate_title?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          organization_name?: string
+          organization_subtitle?: string
+          primary_color?: string
+          trainer_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           certificate_url: string | null
@@ -163,7 +205,9 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          date_of_birth: string | null
           first_name: string | null
+          gender: string | null
           id: string
           last_name: string | null
           updated_at: string
@@ -172,7 +216,9 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           last_name?: string | null
           updated_at?: string
@@ -181,7 +227,9 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           last_name?: string | null
           updated_at?: string

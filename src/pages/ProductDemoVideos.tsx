@@ -134,7 +134,7 @@ const CaseStudies = () => {
                           
                            {/* Video Player or Play Button */}
                            <div className="absolute inset-0 flex items-center justify-center">
-                             {story.hasVideo ? <wistia-player media-id={getVideoId(story.id)} aspect="1.7777777777777777" seo="false"></wistia-player> : <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-125 group-hover:bg-white transition-all duration-300 shadow-lg">
+                             {story.hasVideo ? <wistia-player media-id={getVideoId(story.id)} aspect={1.7777777777777777} seo={false}></wistia-player> : <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-125 group-hover:bg-white transition-all duration-300 shadow-lg">
                                  <Play className="h-10 w-10 text-gray-900 ml-1" fill="currentColor" />
                                </div>}
                            </div>
@@ -145,7 +145,7 @@ const CaseStudies = () => {
                   
                   <DialogContent className="max-w-4xl w-full p-0 cinematic-section border-white/20">
                     <div className="aspect-video">
-                      <wistia-player media-id={getVideoId(story.id)} aspect="1.7777777777777777" seo="false"></wistia-player>
+                      <wistia-player media-id={getVideoId(story.id)} aspect={1.7777777777777777} seo={false}></wistia-player>
                     </div>
                   </DialogContent>
                 </Dialog>)}

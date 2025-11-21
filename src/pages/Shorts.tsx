@@ -158,7 +158,7 @@ const Shorts = () => {
                   <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl mb-6">
                     <div className={`aspect-[9/16] ${video.thumbnail} flex items-center justify-center relative`}>
                       {video.hasVideo ? (
-                        <wistia-player media-id={video.mediaId} aspect="0.5625" seo="false"></wistia-player>
+                        <wistia-player media-id={video.mediaId} aspect={0.5625} seo={false}></wistia-player>
                       ) : (
                         <>
                           <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>

@@ -180,7 +180,7 @@ const BeforeAfterShowcase = ({
                   
                   {/* Video Player */}
                   <div className="relative overflow-hidden rounded-xl border border-border/50 shadow-2xl">
-                    <wistia-player media-id="r6efrnxmve" aspect="1.7777777777777777" seo="false" />
+                    <wistia-player media-id="r6efrnxmve" aspect={1.7777777777777777} seo={false} />
                   </div>
                 </div>}
               
@@ -207,7 +207,7 @@ const BeforeAfterShowcase = ({
                         <iframe src={`https://www.youtube.com/embed/${beforeAfterVideos[selectedComparison].before.replace('youtube:', '')}`} title="Before - Tutorial Process" className="w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
                       </div>
                     </div> : <div className="relative overflow-hidden rounded-xl border border-border/50 shadow-2xl">
-                      <wistia-player media-id="u4mm5490v8" aspect="1.7777777777777777" seo="false" />
+                      <wistia-player media-id="u4mm5490v8" aspect={1.7777777777777777} seo={false} />
                     </div>}
                 </div>}
               
@@ -235,7 +235,7 @@ const BeforeAfterShowcase = ({
                   
                   {/* Video Player for Vertical Ads */}
                   <div className="relative overflow-hidden rounded-xl border border-border/50 shadow-2xl max-w-sm mx-auto">
-                    <wistia-player media-id="f0xwww5mdf" aspect="0.5625" seo="false" />
+                    <wistia-player media-id="f0xwww5mdf" aspect={0.5625} seo={false} />
                   </div>
                 </div>}
             </GlowCard>
@@ -279,7 +279,7 @@ const BeforeAfterShowcase = ({
                   
                   {/* Video Player */}
                   <div className="relative overflow-hidden rounded-xl border border-border/50 shadow-2xl">
-                    <wistia-player media-id="zn6fa4f8jj" aspect="1.7777777777777777" seo="false" />
+                    <wistia-player media-id="zn6fa4f8jj" aspect={1.7777777777777777} seo={false} />
                   </div>
                 </div>}
               
@@ -304,7 +304,7 @@ const BeforeAfterShowcase = ({
                   
                   {/* Video Player for Tutorials */}
                   <div className="relative overflow-hidden rounded-xl border border-border/50 shadow-2xl">
-                    <wistia-player media-id="ys4rhzkf1q" aspect="1.7777777777777777" seo="false" />
+                    <wistia-player media-id="ys4rhzkf1q" aspect={1.7777777777777777} seo={false} />
                   </div>
                 </div>}
               
@@ -332,7 +332,7 @@ const BeforeAfterShowcase = ({
                   
                   {/* Video Player for Vertical Ads */}
                   <div className="relative overflow-hidden rounded-xl border border-border/50 shadow-2xl max-w-sm mx-auto">
-                    <wistia-player media-id="c5tw2tz3av" aspect="0.5625" seo="false" />
+                    <wistia-player media-id="c5tw2tz3av" aspect={0.5625} seo={false} />
                   </div>
                 </div>}
             </GlowCard>
