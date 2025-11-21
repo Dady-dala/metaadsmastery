@@ -86,8 +86,8 @@ const GifShowcase = ({ gif }: GifShowcaseProps) => {
             <div className="aspect-video bg-gradient-to-br from-yellow-400/20 to-yellow-400/5 flex items-center justify-center relative overflow-hidden border border-white/10">
               <wistia-player 
                 media-id="oln855rp82" 
-                seo="false" 
-                aspect="1.867704280155642"
+                seo={false} 
+                aspect={1.867704280155642}
                 className={`w-full h-full transition-all duration-500 ${
                   isHovered ? 'scale-105' : 'scale-100'
                 }`}
