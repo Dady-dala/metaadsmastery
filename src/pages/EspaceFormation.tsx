@@ -40,20 +40,16 @@ const EspaceFormation = () => {
   useEffect(() => {
     loadEnrolledCourses();
     
-    // Dynamically load Wistia scripts
-    const script1 = document.createElement('script');
-    script1.src = 'https://fast.wistia.com/assets/external/E-v1.js';
-    script1.async = true;
-    document.head.appendChild(script1);
-
-    const script2 = document.createElement('script');
-    script2.src = 'https://fast.wistia.com/embed/medias/wfrtok35jw.jsonp';
-    script2.async = true;
-    document.head.appendChild(script2);
+    // Load Wistia player script (web component standard method)
+    const script = document.createElement('script');
+    script.src = 'https://fast.wistia.com/player.js';
+    script.async = true;
+    document.head.appendChild(script);
 
     return () => {
-      document.head.removeChild(script1);
-      document.head.removeChild(script2);
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
     };
   }, []);
 
@@ -285,41 +281,12 @@ const EspaceFormation = () => {
                           {selectedVideo && (
                             <CardContent>
                               <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
-                                <div 
-                                  className="wistia_responsive_padding" 
-                                  style={{ padding: '56.25% 0 0 0', position: 'relative' }}
-                                >
-                                  <div 
-                                    className="wistia_responsive_wrapper" 
-                                    style={{ height: '100%', left: 0, position: 'absolute', top: 0, width: '100%' }}
-                                  >
-                                    <div 
-                                      className={`wistia_embed wistia_async_${selectedVideo.wistia_media_id} seo=true videoFoam=true`}
-                                      style={{ height: '100%', position: 'relative', width: '100%' }}
-                                    >
-                                      <div 
-                                        className="wistia_swatch" 
-                                        style={{ 
-                                          height: '100%', 
-                                          left: 0, 
-                                          opacity: 0, 
-                                          overflow: 'hidden', 
-                                          position: 'absolute', 
-                                          top: 0, 
-                                          transition: 'opacity 200ms', 
-                                          width: '100%' 
-                                        }}
-                                      >
-                                        <img 
-                                          src={`https://fast.wistia.com/embed/medias/${selectedVideo.wistia_media_id}/swatch`}
-                                          style={{ filter: 'blur(5px)', height: '100%', objectFit: 'contain', width: '100%' }}
-                                          alt=""
-                                          aria-hidden="true"
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                                <wistia-player 
+                                  media-id={selectedVideo.wistia_media_id}
+                                  seo="true"
+                                  aspect="1.7777777777777777"
+                                  className="w-full h-full"
+                                ></wistia-player>
                               </div>
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
