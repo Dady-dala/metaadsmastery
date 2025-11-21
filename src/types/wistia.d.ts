@@ -4,8 +4,8 @@ declare global {
     interface IntrinsicElements {
       'wistia-player': {
         'media-id': string;
-        seo: string;
-        aspect: string;
+        seo: boolean;
+        aspect: number;
         className?: string;
       };
     }
