@@ -3,5 +3,20 @@ project_id = "jdczbaswcxwemksfkiuf"
 [functions.get-users]
 verify_jwt = true
 
+[functions.create-user]
+verify_jwt = true
+
+[functions.delete-user]
+verify_jwt = true
+
+[functions.reset-user-password]
+verify_jwt = true
+
+[functions.update-user-profile]
+verify_jwt = true
+
+[functions.submit-contact]
+verify_jwt = false
+
 [functions.submit-contact-message]
 verify_jwt = false
