@@ -10,10 +10,8 @@ import { z } from 'zod';
 declare global {
   interface Window {
     grecaptcha: {
-      enterprise: {
-        ready: (callback: () => void) => void;
-        execute: (siteKey: string, options: { action: string }) => Promise<string>;
-      };
+      ready: (callback: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
     };
   }
 }
@@ -60,11 +58,11 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
         setErrors({});
 
         try {
-          // Obtenir le token reCAPTCHA Enterprise
+          // Obtenir le token reCAPTCHA v2
           const recaptchaToken = await new Promise<string>((resolve, reject) => {
-            window.grecaptcha.enterprise.ready(async () => {
+            window.grecaptcha.ready(async () => {
               try {
-                const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_FORM' });
+                const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_FORM' });
                 resolve(token);
               } catch (error) {
                 reject(error);
