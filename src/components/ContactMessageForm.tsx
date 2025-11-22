@@ -28,7 +28,7 @@ const contactMessageSchema = z.object({
 
 type ContactMessageForm = z.infer<typeof contactMessageSchema>;
 
-const RECAPTCHA_SITE_KEY = '6Ld4lRQsAAAAAHHd8bBpppCQfcUYzDlVSUpIw_MY';
+const RECAPTCHA_SITE_KEY = '6Lds3RQsAAAAAGGCQkvjMDo_HlBqhU_MKJPGRfBC';
 
 export const ContactMessageForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
