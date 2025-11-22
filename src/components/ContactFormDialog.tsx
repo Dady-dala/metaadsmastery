@@ -195,7 +195,14 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
         className="w-full cinematic-cta"
         disabled={isSubmitting || !consent}
       >
-        {isSubmitting ? 'Inscription en cours...' : 'Rejoindre la Formation'}
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            Validation en cours...
+          </span>
+        ) : (
+          'Rejoindre la Formation'
+        )}
       </Button>
     </form>
   );

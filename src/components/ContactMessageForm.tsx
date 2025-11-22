@@ -132,7 +132,14 @@ export const ContactMessageForm = () => {
         className="w-full cinematic-cta"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Envoi en cours..." : "Envoyer"}
+        {isSubmitting ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            Validation en cours...
+          </span>
+        ) : (
+          "Envoyer"
+        )}
       </Button>
     </form>
   );
