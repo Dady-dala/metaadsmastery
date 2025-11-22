@@ -39,7 +39,7 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
   const recaptchaRef = React.useRef<HTMLDivElement>(null);
   const recaptchaWidgetId = React.useRef<number | null>(null);
 
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const RECAPTCHA_SITE_KEY = '6LdQQBUsAAAAAFJLaQ-I1th5dvKgmEiLW9G53E-J';
 
   React.useEffect(() => {
     const loadRecaptcha = () => {
