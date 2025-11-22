@@ -26,6 +26,7 @@ import ThankYou from "./pages/ThankYou";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import EspaceFormation from "./pages/EspaceFormation";
+import DynamicPage from "./pages/DynamicPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -71,6 +72,8 @@ const App = () => (
               </ProtectedRoute>
             } 
           />
+          {/* Dynamic pages route - must be before 404 */}
+          <Route path="/:slug" element={<DynamicPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
