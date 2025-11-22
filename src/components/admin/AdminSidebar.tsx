@@ -39,6 +39,11 @@ const menuItems = [
     tab: 'pages',
   },
   {
+    title: 'Éditeur de Contenu',
+    icon: Layout,
+    tab: 'page-content',
+  },
+  {
     title: 'Page de Vente',
     icon: Layout,
     tab: 'landing-page',
