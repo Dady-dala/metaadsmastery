@@ -54,11 +54,14 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
       }
     };
 
-    if (isOpen) {
-      loadRecaptcha();
-    }
+    const timer = setTimeout(() => {
+      if (isOpen) {
+        loadRecaptcha();
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(timer);
       if (recaptchaWidgetId.current !== null) {
         window.grecaptcha?.reset(recaptchaWidgetId.current);
       }

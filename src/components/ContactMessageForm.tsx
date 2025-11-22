@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -32,8 +32,8 @@ const RECAPTCHA_SITE_KEY = '6Lds3RQsAAAAAGGCQkvjMDo_HlBqhU_MKJPGRfBC';
 
 export const ContactMessageForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const recaptchaRef = React.useRef<HTMLDivElement>(null);
-  const recaptchaWidgetId = React.useRef<number | null>(null);
+  const recaptchaRef = useRef<HTMLDivElement>(null);
+  const recaptchaWidgetId = useRef<number | null>(null);
 
   const {
     register,
@@ -44,7 +44,7 @@ export const ContactMessageForm = () => {
     resolver: zodResolver(contactMessageSchema),
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadRecaptcha = () => {
       if (window.grecaptcha && recaptchaRef.current && recaptchaWidgetId.current === null) {
         window.grecaptcha.ready(() => {
