@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -29,7 +28,6 @@ import {
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WidgetRenderer } from '@/components/landing/WidgetRenderer';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LandingSection {
   id: string;
@@ -253,17 +251,17 @@ const LandingPageEditor = () => {
   }
 
   return (
-    <div className="h-full flex">
+    <div className="h-[calc(100vh-4rem)] flex overflow-hidden">
       {/* Left Sidebar - Widget Palette */}
-      <div className="w-64 border-r border-border bg-card">
-        <div className="p-4 border-b border-border">
+      <div className="w-64 border-r border-border bg-card flex flex-col">
+        <div className="p-4 border-b border-border flex-shrink-0">
           <h3 className="font-semibold text-sm">Widgets</h3>
           <p className="text-xs text-muted-foreground mt-1">
             Cliquez pour ajouter
           </p>
         </div>
         
-        <ScrollArea className="h-[calc(100vh-12rem)]">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-4 space-y-2">
             {widgetTypes.map((widget) => {
               const Icon = widget.icon;
@@ -281,9 +279,9 @@ const LandingPageEditor = () => {
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
 
-        <div className="p-4 border-t border-border space-y-2">
+        <div className="p-4 border-t border-border space-y-2 flex-shrink-0">
           <Button variant="outline" size="sm" className="w-full" onClick={exportConfiguration}>
             <Download className="mr-2 h-4 w-4" />
             Exporter
@@ -303,8 +301,8 @@ const LandingPageEditor = () => {
       </div>
 
       {/* Right Side - Live Preview */}
-      <div className="flex-1 bg-muted/30">
-        <div className="p-4 border-b border-border bg-card flex justify-between items-center">
+      <div className="flex-1 bg-muted/30 flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-border bg-card flex-shrink-0">
           <div>
             <h3 className="font-semibold">Prévisualisation en direct</h3>
             <p className="text-xs text-muted-foreground mt-1">
@@ -313,13 +311,9 @@ const LandingPageEditor = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-[calc(100vh-10rem)]">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-6">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <p className="text-muted-foreground">Chargement...</p>
-              </div>
-            ) : sections.length === 0 ? (
+            {sections.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center">
                 <Layout className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <p className="text-muted-foreground font-medium">Aucun widget ajouté</p>
@@ -376,7 +370,7 @@ const LandingPageEditor = () => {
               </div>
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
