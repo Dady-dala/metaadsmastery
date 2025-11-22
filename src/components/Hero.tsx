@@ -51,7 +51,7 @@ const Hero = () => {
           textWrap: 'balance',
           lineHeight: '1.15'
         }}>
-            <span className="cinematic-gradient-text cinematic-text-shadow">Maîtrise Facebook & Instagram Ads et Transforme Ton Business en Machine à Ventes Automatique</span>
+            <span className="cinematic-gradient-text cinematic-text-shadow text-gray-50">Maîtrise Facebook & Instagram Ads et Transforme Ton Business en Machine à Ventes Automatique</span>
           </h1>
         </div>
 
