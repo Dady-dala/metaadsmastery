@@ -37,7 +37,7 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [consent, setConsent] = React.useState(false);
 
-  const RECAPTCHA_SITE_KEY = '6Ld4lRQsAAAAAHHd8bBpppCQfcUYzDlVSUpIw_MY';
+  const RECAPTCHA_SITE_KEY = '6Lds3RQsAAAAAGGCQkvjMDo_HlBqhU_MKJPGRfBC';
   
   const formContent = (
     <form 
