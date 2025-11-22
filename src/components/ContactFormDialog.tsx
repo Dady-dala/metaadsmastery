@@ -6,7 +6,17 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import React from 'react';
 import { z } from 'zod';
-import ReCAPTCHA from 'react-google-recaptcha';
+
+declare global {
+  interface Window {
+    grecaptcha: {
+      enterprise: {
+        ready: (callback: () => void) => void;
+        execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      };
+    };
+  }
+}
 
 interface ContactFormDialogProps {
   isOpen: boolean;
@@ -25,11 +35,9 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const [recaptchaToken, setRecaptchaToken] = React.useState<string | null>(null);
   const [consent, setConsent] = React.useState(false);
-  const recaptchaRef = React.useRef<ReCAPTCHA>(null);
 
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+  const RECAPTCHA_SITE_KEY = '6Ld4lRQsAAAAAHHd8bBpppCQfcUYzDlVSUpIw_MY';
   
   const formContent = (
     <form 
@@ -47,31 +55,33 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
           });
           return;
         }
-
-        // Vérifier le reCAPTCHA
-        if (!recaptchaToken) {
-          toast({
-            title: "Vérification requise",
-            description: "Veuillez valider le CAPTCHA.",
-            variant: "destructive",
-          });
-          return;
-        }
         
         setIsSubmitting(true);
         setErrors({});
-        
-        const form = e.target as HTMLFormElement;
-        const formData = new FormData(form);
-        
-        const data = {
-          firstName: formData.get('firstName') as string,
-          lastName: formData.get('lastName') as string,
-          email: formData.get('email') as string,
-          phoneNumber: formData.get('phoneNumber') as string,
-        };
-        
+
         try {
+          // Obtenir le token reCAPTCHA Enterprise
+          const recaptchaToken = await new Promise<string>((resolve, reject) => {
+            window.grecaptcha.enterprise.ready(async () => {
+              try {
+                const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_FORM' });
+                resolve(token);
+              } catch (error) {
+                reject(error);
+              }
+            });
+          });
+        
+          const form = e.target as HTMLFormElement;
+          const formData = new FormData(form);
+          
+          const data = {
+            firstName: formData.get('firstName') as string,
+            lastName: formData.get('lastName') as string,
+            email: formData.get('email') as string,
+            phoneNumber: formData.get('phoneNumber') as string,
+          };
+          
           // Validate data
           const validated = contactSchema.parse(data);
           
@@ -82,6 +92,7 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
               last_name: validated.lastName,
               email: validated.email,
               phone_number: validated.phoneNumber,
+              recaptchaToken: recaptchaToken,
             }
           });
           
@@ -115,9 +126,6 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
           }
         } finally {
           setIsSubmitting(false);
-          // Réinitialiser le reCAPTCHA
-          recaptchaRef.current?.reset();
-          setRecaptchaToken(null);
         }
       }}
     >
@@ -184,22 +192,10 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
         </label>
       </div>
 
-      {/* reCAPTCHA */}
-      {RECAPTCHA_SITE_KEY && (
-        <div className="flex justify-center">
-          <ReCAPTCHA
-            ref={recaptchaRef}
-            sitekey={RECAPTCHA_SITE_KEY}
-            onChange={(token) => setRecaptchaToken(token)}
-            onExpired={() => setRecaptchaToken(null)}
-          />
-        </div>
-      )}
-
       <Button 
         type="submit" 
         className="w-full cinematic-cta"
-        disabled={isSubmitting || !consent || (!recaptchaToken && !!RECAPTCHA_SITE_KEY)}
+        disabled={isSubmitting || !consent}
       >
         {isSubmitting ? 'Inscription en cours...' : 'Rejoindre la Formation'}
       </Button>

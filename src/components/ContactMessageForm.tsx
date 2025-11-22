@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -7,8 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import ReCAPTCHA from "react-google-recaptcha";
 import { toast } from "sonner";
+
+declare global {
+  interface Window {
+    grecaptcha: {
+      enterprise: {
+        ready: (callback: () => void) => void;
+        execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      };
+    };
+  }
+}
 
 const contactMessageSchema = z.object({
   name: z.string().trim().min(1, "Le nom est requis").max(100, "Maximum 100 caractères"),
@@ -18,10 +28,10 @@ const contactMessageSchema = z.object({
 
 type ContactMessageForm = z.infer<typeof contactMessageSchema>;
 
+const RECAPTCHA_SITE_KEY = '6Ld4lRQsAAAAAHHd8bBpppCQfcUYzDlVSUpIw_MY';
+
 export const ContactMessageForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const {
     register,
@@ -33,14 +43,21 @@ export const ContactMessageForm = () => {
   });
 
   const onSubmit = async (data: ContactMessageForm) => {
-    if (!recaptchaToken) {
-      toast.error("Veuillez valider le reCAPTCHA");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
+      // Obtenir le token reCAPTCHA Enterprise
+      const recaptchaToken = await new Promise<string>((resolve, reject) => {
+        window.grecaptcha.enterprise.ready(async () => {
+          try {
+            const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_MESSAGE' });
+            resolve(token);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+
       const { data: result, error } = await supabase.functions.invoke('submit-contact-message', {
         body: {
           name: data.name,
@@ -59,8 +76,6 @@ export const ContactMessageForm = () => {
 
       toast.success("Message envoyé avec succès !");
       reset();
-      setRecaptchaToken(null);
-      recaptchaRef.current?.reset();
     } catch (error) {
       console.error("Erreur lors de l'envoi:", error);
       toast.error("Une erreur est survenue. Veuillez réessayer.");
@@ -113,19 +128,11 @@ export const ContactMessageForm = () => {
         )}
       </div>
 
-      <div className="flex justify-center">
-        <ReCAPTCHA
-          ref={recaptchaRef}
-          sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
-          onChange={(token) => setRecaptchaToken(token)}
-        />
-      </div>
-
       <Button
         type="submit"
         size="lg"
         className="w-full cinematic-cta"
-        disabled={isSubmitting || !recaptchaToken}
+        disabled={isSubmitting}
       >
         {isSubmitting ? "Envoi en cours..." : "Envoyer"}
       </Button>
