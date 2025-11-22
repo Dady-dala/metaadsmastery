@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import App from "./App";
 import { queryClient } from "./lib/utils";
@@ -12,7 +11,6 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <BrowserRouter>
         <App />
-        <Toaster />
       </BrowserRouter>
     </ThemeProvider>
   </QueryClientProvider>
