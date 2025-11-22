@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import AboutUs from "./pages/AboutUs";
-import ProductDemoVideos from "./pages/ProductDemoVideos";
+import DynamicProductDemoVideos from "./pages/DynamicProductDemoVideos";
 import CaseStudies from "./pages/CaseStudies";
 import Shorts from "./pages/Shorts";
 import Pricing from "./pages/Pricing";
@@ -39,7 +39,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/case-studies" element={<CaseStudies />} />
-          <Route path="/product-demo-videos" element={<ProductDemoVideos />} />
+          <Route path="/product-demo-videos" element={<DynamicProductDemoVideos />} />
           <Route path="/shorts" element={<Shorts />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/career" element={<Career />} />
