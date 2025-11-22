@@ -9,8 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WidgetRenderer } from '@/components/landing/WidgetRenderer';
-import { Plus, Edit, Trash2, Eye, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, GripVertical } from 'lucide-react';
 import { toast } from 'sonner';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface Page {
   id: string;
@@ -143,29 +144,28 @@ const PageContentEditor = () => {
     }
   };
 
-  const handleMoveSection = async (sectionId: string, direction: 'up' | 'down') => {
-    const index = sections.findIndex(s => s.id === sectionId);
-    if (index === -1) return;
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === sections.length - 1) return;
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+    
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+    
+    if (sourceIndex === destinationIndex) return;
 
-    const newSections = [...sections];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    [newSections[index], newSections[targetIndex]] = [newSections[targetIndex], newSections[index]];
+    const newSections = Array.from(sections);
+    const [removed] = newSections.splice(sourceIndex, 1);
+    newSections.splice(destinationIndex, 0, removed);
 
-    // Update order_index for both sections
+    // Update order_index for all affected sections
     try {
-      await Promise.all([
-        supabase
-          .from('landing_page_sections')
-          .update({ order_index: targetIndex })
-          .eq('id', newSections[targetIndex].id),
+      const updates = newSections.map((section, index) => 
         supabase
           .from('landing_page_sections')
           .update({ order_index: index })
-          .eq('id', newSections[index].id),
-      ]);
+          .eq('id', section.id)
+      );
 
+      await Promise.all(updates);
       setSections(newSections);
       toast.success('Section déplacée');
     } catch (error) {
@@ -254,61 +254,81 @@ const PageContentEditor = () => {
                   Aucune section. Cliquez sur "Ajouter une section" pour commencer.
                 </p>
               ) : (
-                sections.map((section, index) => (
-                  <Card key={section.id} className="border-2">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3 flex-1">
-                          <GripVertical className="h-5 w-5 text-muted-foreground mt-1" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="inline-block px-2 py-1 text-xs rounded-md bg-primary/10 text-primary font-medium">
-                                {section.section_type}
-                              </span>
-                              <span className="text-sm text-muted-foreground">#{index + 1}</span>
-                            </div>
-                            <h4 className="font-medium truncate">{section.title || 'Sans titre'}</h4>
-                            {section.subtitle && (
-                              <p className="text-sm text-muted-foreground truncate mt-1">{section.subtitle}</p>
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="sections-list">
+                    {(provided) => (
+                      <div
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className="space-y-3"
+                      >
+                        {sections.map((section, index) => (
+                          <Draggable key={section.id} draggableId={section.id} index={index}>
+                            {(provided, snapshot) => (
+                              <Card
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`border-2 ${snapshot.isDragging ? 'shadow-lg' : ''}`}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-start gap-3 flex-1">
+                                      <div
+                                        {...provided.dragHandleProps}
+                                        className="cursor-grab active:cursor-grabbing"
+                                      >
+                                        <GripVertical className="h-5 w-5 text-muted-foreground mt-1" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="inline-block px-2 py-1 text-xs rounded-md bg-primary/10 text-primary font-medium">
+                                            {section.section_type}
+                                          </span>
+                                          <span className="text-sm text-muted-foreground">#{index + 1}</span>
+                                        </div>
+                                        <h4 className="font-medium truncate">{section.title || 'Sans titre'}</h4>
+                                        {section.subtitle && (
+                                          <p className="text-sm text-muted-foreground truncate mt-1">{section.subtitle}</p>
+                                        )}
+                                        {section.content && Object.keys(section.content as object).length > 0 && (
+                                          <div className="mt-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                                            <strong>Contenu:</strong> {JSON.stringify(section.content).substring(0, 100)}...
+                                          </div>
+                                        )}
+                                        {section.media_url && (
+                                          <div className="mt-2 text-xs text-muted-foreground">
+                                            <strong>Média:</strong> {section.media_url.substring(0, 50)}...
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => openEditDialog(section)}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleDeleteSection(section.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
                             )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleMoveSection(section.id, 'up')}
-                            disabled={index === 0}
-                          >
-                            <ArrowUp className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleMoveSection(section.id, 'down')}
-                            disabled={index === sections.length - 1}
-                          >
-                            <ArrowDown className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openEditDialog(section)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteSection(section.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
+                    )}
+                  </Droppable>
+                </DragDropContext>
               )}
             </CardContent>
           </Card>
