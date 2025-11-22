@@ -207,6 +207,51 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_page_sections: {
+        Row: {
+          content: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          media_url: string | null
+          order_index: number
+          section_key: string
+          section_type: string
+          styles: Json | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          media_url?: string | null
+          order_index?: number
+          section_key: string
+          section_type: string
+          styles?: Json | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          media_url?: string | null
+          order_index?: number
+          section_key?: string
+          section_type?: string
+          styles?: Json | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
