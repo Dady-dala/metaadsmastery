@@ -11,7 +11,9 @@ declare global {
   interface Window {
     grecaptcha: {
       ready: (callback: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      render: (container: string | HTMLElement, parameters: any) => number;
+      getResponse: (widgetId?: number) => string;
+      reset: (widgetId?: number) => void;
     };
   }
 }
@@ -34,8 +36,34 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [consent, setConsent] = React.useState(false);
+  const recaptchaRef = React.useRef<HTMLDivElement>(null);
+  const recaptchaWidgetId = React.useRef<number | null>(null);
 
   const RECAPTCHA_SITE_KEY = '6Lds3RQsAAAAAGGCQkvjMDo_HlBqhU_MKJPGRfBC';
+
+  React.useEffect(() => {
+    const loadRecaptcha = () => {
+      if (window.grecaptcha && recaptchaRef.current && recaptchaWidgetId.current === null) {
+        window.grecaptcha.ready(() => {
+          if (recaptchaRef.current) {
+            recaptchaWidgetId.current = window.grecaptcha.render(recaptchaRef.current, {
+              sitekey: RECAPTCHA_SITE_KEY,
+            });
+          }
+        });
+      }
+    };
+
+    if (isOpen) {
+      loadRecaptcha();
+    }
+
+    return () => {
+      if (recaptchaWidgetId.current !== null) {
+        window.grecaptcha?.reset(recaptchaWidgetId.current);
+      }
+    };
+  }, [isOpen]);
   
   const formContent = (
     <form 
@@ -59,16 +87,16 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
 
         try {
           // Obtenir le token reCAPTCHA v2
-          const recaptchaToken = await new Promise<string>((resolve, reject) => {
-            window.grecaptcha.ready(async () => {
-              try {
-                const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_FORM' });
-                resolve(token);
-              } catch (error) {
-                reject(error);
-              }
+          const recaptchaToken = window.grecaptcha.getResponse(recaptchaWidgetId.current ?? undefined);
+          
+          if (!recaptchaToken) {
+            toast({
+              title: "Vérification requise",
+              description: "Veuillez compléter la vérification reCAPTCHA.",
+              variant: "destructive",
             });
-          });
+            return;
+          }
         
           const form = e.target as HTMLFormElement;
           const formData = new FormData(form);
@@ -173,6 +201,9 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
           <p className="text-sm text-red-500 mt-1">{errors.phoneNumber}</p>
         )}
       </div>
+
+      {/* reCAPTCHA v2 Checkbox */}
+      <div ref={recaptchaRef} className="flex justify-center"></div>
 
       {/* Consent Checkbox */}
       <div className="flex items-start space-x-2">

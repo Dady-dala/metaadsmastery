@@ -13,7 +13,9 @@ declare global {
   interface Window {
     grecaptcha: {
       ready: (callback: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      render: (container: string | HTMLElement, parameters: any) => number;
+      getResponse: (widgetId?: number) => string;
+      reset: (widgetId?: number) => void;
     };
   }
 }
@@ -30,6 +32,8 @@ const RECAPTCHA_SITE_KEY = '6Lds3RQsAAAAAGGCQkvjMDo_HlBqhU_MKJPGRfBC';
 
 export const ContactMessageForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const recaptchaRef = React.useRef<HTMLDivElement>(null);
+  const recaptchaWidgetId = React.useRef<number | null>(null);
 
   const {
     register,
@@ -40,21 +44,39 @@ export const ContactMessageForm = () => {
     resolver: zodResolver(contactMessageSchema),
   });
 
+  React.useEffect(() => {
+    const loadRecaptcha = () => {
+      if (window.grecaptcha && recaptchaRef.current && recaptchaWidgetId.current === null) {
+        window.grecaptcha.ready(() => {
+          if (recaptchaRef.current) {
+            recaptchaWidgetId.current = window.grecaptcha.render(recaptchaRef.current, {
+              sitekey: RECAPTCHA_SITE_KEY,
+            });
+          }
+        });
+      }
+    };
+
+    loadRecaptcha();
+
+    return () => {
+      if (recaptchaWidgetId.current !== null) {
+        window.grecaptcha?.reset(recaptchaWidgetId.current);
+      }
+    };
+  }, []);
+
   const onSubmit = async (data: ContactMessageForm) => {
     setIsSubmitting(true);
 
     try {
       // Obtenir le token reCAPTCHA v2
-      const recaptchaToken = await new Promise<string>((resolve, reject) => {
-        window.grecaptcha.ready(async () => {
-          try {
-            const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_MESSAGE' });
-            resolve(token);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      });
+      const recaptchaToken = window.grecaptcha.getResponse(recaptchaWidgetId.current ?? undefined);
+      
+      if (!recaptchaToken) {
+        toast.error("Veuillez compléter la vérification reCAPTCHA.");
+        return;
+      }
 
       const { data: result, error } = await supabase.functions.invoke('submit-contact-message', {
         body: {
@@ -125,6 +147,9 @@ export const ContactMessageForm = () => {
           <p className="text-sm text-destructive">{errors.message.message}</p>
         )}
       </div>
+
+      {/* reCAPTCHA v2 Checkbox */}
+      <div ref={recaptchaRef} className="flex justify-center"></div>
 
       <Button
         type="submit"
