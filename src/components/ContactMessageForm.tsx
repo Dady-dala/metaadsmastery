@@ -12,10 +12,8 @@ import { toast } from "sonner";
 declare global {
   interface Window {
     grecaptcha: {
-      enterprise: {
-        ready: (callback: () => void) => void;
-        execute: (siteKey: string, options: { action: string }) => Promise<string>;
-      };
+      ready: (callback: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
     };
   }
 }
@@ -46,11 +44,11 @@ export const ContactMessageForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Obtenir le token reCAPTCHA Enterprise
+      // Obtenir le token reCAPTCHA v2
       const recaptchaToken = await new Promise<string>((resolve, reject) => {
-        window.grecaptcha.enterprise.ready(async () => {
+        window.grecaptcha.ready(async () => {
           try {
-            const token = await window.grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_MESSAGE' });
+            const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'CONTACT_MESSAGE' });
             resolve(token);
           } catch (error) {
             reject(error);
