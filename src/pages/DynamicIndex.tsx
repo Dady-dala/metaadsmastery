@@ -10,6 +10,7 @@ import { ContactMessageForm } from '@/components/ContactMessageForm';
 import { Button } from '@/components/ui/button';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
+import { WidgetRenderer } from '@/components/landing/WidgetRenderer';
 
 interface LandingSection {
   id: string;
@@ -51,66 +52,27 @@ const DynamicIndex = () => {
   };
 
   const renderSection = (section: LandingSection) => {
-    const sectionClasses = section.styles?.background || 'bg-background';
-    const textColor = section.styles?.text_color || 'text-foreground';
-
+    // Use existing components for legacy section types
     switch (section.section_type) {
       case 'hero':
         return <Hero key={section.id} />;
-
       case 'services':
         return <Services key={section.id} />;
-
       case 'testimonials':
         return <Testimonials key={section.id} />;
-
       case 'faq':
         return <FAQ key={section.id} />;
-
-      case 'cta':
-        return (
-          <section key={section.id} className={`py-20 ${sectionClasses}`}>
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-              <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${textColor}`}>
-                {section.title}
-              </h2>
-              {section.subtitle && (
-                <p className={`text-xl mb-8 ${textColor} opacity-90`}>
-                  {section.subtitle}
-                </p>
-              )}
-              {section.content?.price_original && (
-                <div className="flex items-center justify-center gap-4 mb-8">
-                  <span className="text-2xl text-muted-foreground line-through">
-                    ${section.content.price_original}
-                  </span>
-                  <span className="text-5xl font-bold text-primary">
-                    ${section.content.price_promo}
-                  </span>
-                </div>
-              )}
-              <Button
-                size="lg"
-                onClick={() => setIsInscriptionDialogOpen(true)}
-                className="cinematic-cta text-lg px-10 py-6"
-              >
-                {section.content?.cta_text || "Je M'Inscris Maintenant"}
-              </Button>
-            </div>
-          </section>
-        );
-
       case 'contact':
         return (
-          <section key={section.id} className={`py-20 ${sectionClasses}`}>
+          <section key={section.id} className={`py-20 ${section.styles?.background || 'bg-background'}`}>
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               {section.title && (
-                <h2 className={`text-3xl md:text-4xl font-bold mb-4 text-center ${textColor}`}>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">
                   {section.title}
                 </h2>
               )}
               {section.subtitle && (
-                <p className={`text-xl mb-8 text-center ${textColor} opacity-90`}>
+                <p className="text-xl mb-8 text-center opacity-90">
                   {section.subtitle}
                 </p>
               )}
@@ -118,50 +80,15 @@ const DynamicIndex = () => {
             </div>
           </section>
         );
-
-      case 'text':
-        return (
-          <section key={section.id} className={`py-20 ${sectionClasses}`}>
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-              {section.title && (
-                <h2 className={`text-3xl md:text-4xl font-bold mb-6 ${textColor}`}>
-                  {section.title}
-                </h2>
-              )}
-              {section.subtitle && (
-                <p className={`text-xl ${textColor} opacity-90`}>
-                  {section.subtitle}
-                </p>
-              )}
-            </div>
-          </section>
-        );
-
-      case 'video':
-        return (
-          <section key={section.id} className={`py-20 ${sectionClasses}`}>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-              {section.title && (
-                <h2 className={`text-3xl md:text-4xl font-bold mb-6 text-center ${textColor}`}>
-                  {section.title}
-                </h2>
-              )}
-              {section.media_url && (
-                <div className="aspect-video rounded-lg overflow-hidden">
-                  <iframe
-                    src={section.media_url}
-                    className="w-full h-full"
-                    allow="autoplay; fullscreen"
-                    allowFullScreen
-                  />
-                </div>
-              )}
-            </div>
-          </section>
-        );
-
       default:
-        return null;
+        // Use WidgetRenderer for new widget types
+        return (
+          <WidgetRenderer
+            key={section.id}
+            section={section}
+            onCtaClick={() => setIsInscriptionDialogOpen(true)}
+          />
+        );
     }
   };
 
