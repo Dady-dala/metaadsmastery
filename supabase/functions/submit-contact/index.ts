@@ -10,6 +10,7 @@ interface ContactSubmission {
   last_name: string;
   email: string;
   phone_number?: string;
+  recaptchaToken?: string;
 }
 
 // Simple in-memory rate limiting (resets on function restart)
@@ -52,6 +53,30 @@ function validatePhoneNumber(phone: string): boolean {
   return phone.length <= 20 && phoneRegex.test(phone);
 }
 
+async function verifyRecaptcha(token: string): Promise<boolean> {
+  const recaptchaSecret = Deno.env.get('RECAPTCHA_SECRET_KEY');
+  
+  // If no secret is configured, skip verification (log warning)
+  if (!recaptchaSecret) {
+    console.warn('RECAPTCHA_SECRET_KEY not configured - skipping reCAPTCHA verification');
+    return true;
+  }
+
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `secret=${recaptchaSecret}&response=${token}`
+    });
+
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('reCAPTCHA verification error:', error);
+    return false;
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -61,7 +86,21 @@ Deno.serve(async (req) => {
   try {
     // Parse request body
     const body: ContactSubmission = await req.json();
-    const { first_name, last_name, email, phone_number } = body;
+    const { first_name, last_name, email, phone_number, recaptchaToken } = body;
+
+    // Validate reCAPTCHA token
+    if (recaptchaToken) {
+      const isValidRecaptcha = await verifyRecaptcha(recaptchaToken);
+      if (!isValidRecaptcha) {
+        console.log('Invalid reCAPTCHA token');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Vérification reCAPTCHA échouée. Veuillez réessayer.' 
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     // Validation des données
     if (!validateName(first_name)) {
