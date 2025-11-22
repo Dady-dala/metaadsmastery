@@ -22,8 +22,6 @@ import {
   UserCircle,
   LayoutDashboard,
   Award,
-  Layout,
-  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,21 +30,6 @@ const menuItems = [
     title: 'Vue d\'ensemble',
     icon: LayoutDashboard,
     tab: 'overview',
-  },
-  {
-    title: 'Pages',
-    icon: FileText,
-    tab: 'pages',
-  },
-  {
-    title: 'Éditeur de Contenu',
-    icon: Layout,
-    tab: 'page-content',
-  },
-  {
-    title: 'Page de Vente',
-    icon: Layout,
-    tab: 'landing-page',
   },
   {
     title: 'Utilisateurs',
