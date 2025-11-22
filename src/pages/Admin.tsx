@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import SEO from '@/components/SEO';
-import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp, UserCircle, UserPlus, BarChart3, Award } from 'lucide-react';
+import { LogOut, Users, BookOpen, Video, Mail, MessageSquare, LayoutDashboard, TrendingUp, UserCircle, UserPlus, BarChart3, Award, Layout } from 'lucide-react';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CourseManagement } from '@/components/admin/CourseManagement';
 import { VideoManagement } from '@/components/admin/VideoManagement';
@@ -16,6 +16,7 @@ import { AdvancedAnalytics } from '@/components/admin/AdvancedAnalytics';
 import { CertificateSettings } from '@/components/admin/CertificateSettings';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import LandingPageEditor from '@/components/admin/LandingPageEditor';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -216,6 +217,7 @@ const Admin = () => {
                 {activeTab === 'analytics' && <AdvancedAnalytics />}
                 {activeTab === 'certificates' && <CertificateSettings />}
                 {activeTab === 'profile' && <AdminProfileSettings />}
+                {activeTab === 'landing-page' && <LandingPageEditor />}
                 
                 {activeTab === 'submissions' && (
                   <Card className="bg-card border-border">
