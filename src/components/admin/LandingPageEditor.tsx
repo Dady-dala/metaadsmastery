@@ -4,11 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { GripVertical, Edit, Trash2, Plus, Eye, EyeOff, Save, Download, Upload, Monitor } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { 
+  Layout, 
+  Type, 
+  Video, 
+  MousePointerClick, 
+  Image as ImageIcon, 
+  BarChart3, 
+  Gift, 
+  Edit, 
+  Trash2, 
+  Download, 
+  Upload,
+  Save
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -16,16 +27,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { WidgetRenderer } from '@/components/landing/WidgetRenderer';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LandingSection {
   id: string;
@@ -45,19 +49,17 @@ const LandingPageEditor = () => {
   const [loading, setLoading] = useState(true);
   const [editingSection, setEditingSection] = useState<LandingSection | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isAddingWidget, setIsAddingWidget] = useState(false);
-  const [newWidgetType, setNewWidgetType] = useState('text');
+  const [hoveredSection, setHoveredSection] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const widgetTypes = [
-    { value: 'hero', label: 'Hero' },
-    { value: 'text', label: 'Texte' },
-    { value: 'video', label: 'Vidéo' },
-    { value: 'cta', label: 'Appel à l\'action' },
-    { value: 'carousel', label: 'Carrousel d\'images' },
-    { value: 'stats_counter', label: 'Compteur de statistiques' },
-    { value: 'benefits', label: 'Section bénéfices' },
+    { value: 'hero', label: 'Hero', icon: Layout },
+    { value: 'text', label: 'Texte', icon: Type },
+    { value: 'video', label: 'Vidéo', icon: Video },
+    { value: 'cta', label: 'CTA', icon: MousePointerClick },
+    { value: 'carousel', label: 'Carrousel', icon: ImageIcon },
+    { value: 'stats_counter', label: 'Statistiques', icon: BarChart3 },
+    { value: 'benefits', label: 'Bénéfices', icon: Gift },
   ];
 
   useEffect(() => {
@@ -81,55 +83,6 @@ const LandingPageEditor = () => {
     }
   };
 
-  const handleDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
-
-    const items = Array.from(sections);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update order_index for all items
-    const updatedItems = items.map((item, index) => ({
-      ...item,
-      order_index: index + 1,
-    }));
-
-    setSections(updatedItems);
-
-    try {
-      // Update order in database
-      for (const item of updatedItems) {
-        await supabase
-          .from('landing_page_sections')
-          .update({ order_index: item.order_index })
-          .eq('id', item.id);
-      }
-      toast.success('Ordre des sections mis à jour');
-    } catch (error) {
-      console.error('Error updating order:', error);
-      toast.error('Erreur lors de la mise à jour');
-      fetchSections(); // Revert on error
-    }
-  };
-
-  const toggleSectionActive = async (id: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('landing_page_sections')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      setSections(sections.map(s => 
-        s.id === id ? { ...s, is_active: !currentStatus } : s
-      ));
-      toast.success(currentStatus ? 'Section désactivée' : 'Section activée');
-    } catch (error) {
-      console.error('Error toggling section:', error);
-      toast.error('Erreur lors de la mise à jour');
-    }
-  };
 
   const openEditDialog = (section: LandingSection) => {
     setEditingSection(section);
@@ -183,14 +136,14 @@ const LandingPageEditor = () => {
     }
   };
 
-  const addNewWidget = async () => {
+  const addNewWidget = async (widgetType: string) => {
     try {
       const newSection = {
-        section_type: newWidgetType,
-        section_key: `${newWidgetType}_${Date.now()}`,
+        section_type: widgetType,
+        section_key: `${widgetType}_${Date.now()}`,
         title: 'Nouveau widget',
         subtitle: 'Cliquez pour éditer',
-        content: getDefaultContent(newWidgetType),
+        content: getDefaultContent(widgetType),
         styles: { background: 'bg-background', text_color: 'text-foreground' },
         order_index: sections.length + 1,
         is_active: true,
@@ -205,7 +158,6 @@ const LandingPageEditor = () => {
       if (error) throw error;
 
       setSections([...sections, data]);
-      setIsAddingWidget(false);
       toast.success('Widget ajouté');
     } catch (error) {
       console.error('Error adding widget:', error);
@@ -301,20 +253,38 @@ const LandingPageEditor = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold">Éditeur de Page de Vente</h2>
-          <p className="text-muted-foreground mt-2">
-            Gérez les sections de votre page de vente avec drag & drop
+    <div className="h-full flex">
+      {/* Left Sidebar - Widget Palette */}
+      <div className="w-64 border-r border-border bg-card">
+        <div className="p-4 border-b border-border">
+          <h3 className="font-semibold text-sm">Widgets</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Cliquez pour ajouter
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setIsPreviewOpen(true)}>
-            <Monitor className="mr-2 h-4 w-4" />
-            Prévisualiser
-          </Button>
-          <Button variant="outline" onClick={exportConfiguration}>
+        
+        <ScrollArea className="h-[calc(100vh-12rem)]">
+          <div className="p-4 space-y-2">
+            {widgetTypes.map((widget) => {
+              const Icon = widget.icon;
+              return (
+                <button
+                  key={widget.value}
+                  onClick={() => addNewWidget(widget.value)}
+                  className="w-full p-3 rounded-lg border border-border bg-background hover:bg-accent hover:border-primary transition-all flex items-center gap-3 group"
+                >
+                  <div className="p-2 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">{widget.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </ScrollArea>
+
+        <div className="p-4 border-t border-border space-y-2">
+          <Button variant="outline" size="sm" className="w-full" onClick={exportConfiguration}>
             <Download className="mr-2 h-4 w-4" />
             Exporter
           </Button>
@@ -325,101 +295,89 @@ const LandingPageEditor = () => {
             className="hidden"
             onChange={importConfiguration}
           />
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+          <Button variant="outline" size="sm" className="w-full" onClick={() => fileInputRef.current?.click()}>
             <Upload className="mr-2 h-4 w-4" />
             Importer
-          </Button>
-          <Button onClick={() => setIsAddingWidget(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter Widget
           </Button>
         </div>
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="sections">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-3"
-            >
-              {sections.map((section, index) => (
-                <Draggable
-                  key={section.id}
-                  draggableId={section.id}
-                  index={index}
-                >
-                  {(provided, snapshot) => (
-                    <Card
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      className={`p-4 ${
-                        snapshot.isDragging ? 'shadow-lg ring-2 ring-primary' : ''
-                      } ${!section.is_active ? 'opacity-50' : ''}`}
+      {/* Right Side - Live Preview */}
+      <div className="flex-1 bg-muted/30">
+        <div className="p-4 border-b border-border bg-card flex justify-between items-center">
+          <div>
+            <h3 className="font-semibold">Prévisualisation en direct</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Survolez pour éditer ou supprimer
+            </p>
+          </div>
+        </div>
+
+        <ScrollArea className="h-[calc(100vh-10rem)]">
+          <div className="p-6">
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-muted-foreground">Chargement...</p>
+              </div>
+            ) : sections.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-center">
+                <Layout className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground font-medium">Aucun widget ajouté</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Cliquez sur un widget à gauche pour commencer
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {sections
+                  .filter((s) => s.is_active)
+                  .sort((a, b) => a.order_index - b.order_index)
+                  .map((section) => (
+                    <div
+                      key={section.id}
+                      className="relative group"
+                      onMouseEnter={() => setHoveredSection(section.id)}
+                      onMouseLeave={() => setHoveredSection(null)}
                     >
-                      <div className="flex items-center gap-4">
-                        <div
-                          {...provided.dragHandleProps}
-                          className="cursor-grab active:cursor-grabbing"
-                        >
-                          <GripVertical className="h-5 w-5 text-muted-foreground" />
-                        </div>
-
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono bg-muted px-2 py-1 rounded">
-                              {section.section_type}
-                            </span>
-                            {!section.is_active && (
-                              <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">
-                                Désactivée
-                              </span>
-                            )}
-                          </div>
-                          <h3 className="font-semibold mt-1">{section.title || 'Sans titre'}</h3>
-                          {section.subtitle && (
-                            <p className="text-sm text-muted-foreground">{section.subtitle}</p>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2">
+                      {/* Section Controls Overlay */}
+                      {hoveredSection === section.id && (
+                        <div className="absolute top-2 right-2 z-10 flex gap-2">
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleSectionActive(section.id, section.is_active)}
-                          >
-                            {section.is_active ? (
-                              <Eye className="h-4 w-4" />
-                            ) : (
-                              <EyeOff className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
+                            size="sm"
+                            variant="secondary"
                             onClick={() => openEditDialog(section)}
+                            className="shadow-lg"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3 w-3 mr-1" />
+                            Éditer
                           </Button>
                           <Button
-                            variant="ghost"
-                            size="icon"
+                            size="sm"
+                            variant="destructive"
                             onClick={() => deleteSection(section.id)}
+                            className="shadow-lg"
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            Supprimer
                           </Button>
                         </div>
+                      )}
+                      
+                      {/* Widget Preview with hover effect */}
+                      <div className={`rounded-lg border-2 transition-all ${
+                        hoveredSection === section.id 
+                          ? 'border-primary shadow-lg' 
+                          : 'border-transparent'
+                      }`}>
+                        <WidgetRenderer section={section} />
                       </div>
-                    </Card>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -528,60 +486,6 @@ const LandingPageEditor = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Widget Dialog */}
-      <Dialog open={isAddingWidget} onOpenChange={setIsAddingWidget}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ajouter un Widget</DialogTitle>
-            <DialogDescription>
-              Choisissez le type de widget à ajouter à votre page
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Type de Widget</Label>
-              <Select value={newWidgetType} onValueChange={setNewWidgetType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {widgetTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setIsAddingWidget(false)}>
-              Annuler
-            </Button>
-            <Button onClick={addNewWidget}>
-              <Plus className="mr-2 h-4 w-4" />
-              Ajouter
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Preview Sheet */}
-      <Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Prévisualisation de la Page</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            {sections
-              .filter((s) => s.is_active)
-              .sort((a, b) => a.order_index - b.order_index)
-              .map((section) => (
-                <WidgetRenderer key={section.id} section={section} />
-              ))}
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   );
 };
