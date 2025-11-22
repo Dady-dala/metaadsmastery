@@ -28,7 +28,7 @@ const contactMessageSchema = z.object({
 
 type ContactMessageForm = z.infer<typeof contactMessageSchema>;
 
-const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const RECAPTCHA_SITE_KEY = '6LdQQBUsAAAAAFJLaQ-I1th5dvKgmEiLW9G53E-J';
 
 export const ContactMessageForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
