@@ -17,6 +17,7 @@ import { CertificateSettings } from '@/components/admin/CertificateSettings';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import LandingPageEditor from '@/components/admin/LandingPageEditor';
+import PageManagement from '@/components/admin/PageManagement';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -210,6 +211,7 @@ const Admin = () => {
 
               {/* Content based on active tab */}
               <div className="p-3 md:p-6">
+                {activeTab === 'pages' && <PageManagement />}
                 {activeTab === 'users' && <UserManagement />}
                 {activeTab === 'courses' && <CourseManagement />}
                 {activeTab === 'videos' && <VideoManagement />}

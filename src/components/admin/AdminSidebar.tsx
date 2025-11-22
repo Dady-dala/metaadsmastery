@@ -23,6 +23,7 @@ import {
   LayoutDashboard,
   Award,
   Layout,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +32,11 @@ const menuItems = [
     title: 'Vue d\'ensemble',
     icon: LayoutDashboard,
     tab: 'overview',
+  },
+  {
+    title: 'Pages',
+    icon: FileText,
+    tab: 'pages',
   },
   {
     title: 'Page de Vente',
