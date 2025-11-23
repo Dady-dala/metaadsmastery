@@ -13,6 +13,9 @@ import { EnhancedCourseProgress } from '@/components/student/EnhancedCourseProgr
 import { QuizTaking } from '@/components/student/QuizTaking';
 import { StudentCertificates } from '@/components/student/StudentCertificates';
 import { VideoNotes } from '@/components/student/VideoNotes';
+import { BadgesList } from '@/components/student/BadgesList';
+import { NotificationsList } from '@/components/student/NotificationsList';
+import { checkAndAwardBadges } from '@/utils/badgeChecker';
 
 interface Course {
   id: string;
@@ -62,7 +65,18 @@ const EspaceFormation = () => {
 
   useEffect(() => {
     loadEnrolledCourses();
+    checkUserBadges();
   }, []);
+
+  const checkUserBadges = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      await checkAndAwardBadges(session.user.id);
+    } catch (error) {
+      console.error('Error checking badges:', error);
+    }
+  };
 
   useEffect(() => {
     if (selectedCourse) {
@@ -121,6 +135,9 @@ const EspaceFormation = () => {
       if (selectedCourse) {
         loadVideoProgress(selectedCourse.id);
       }
+
+      // Check for new badges
+      await checkUserBadges();
     } catch (error) {
       console.error('Error marking video as completed:', error);
       toast.error('Erreur lors de la mise à jour');
@@ -226,17 +243,21 @@ const EspaceFormation = () => {
           </div>
 
           <Tabs defaultValue="courses" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-card border-border mb-6">
+            <TabsList className="grid w-full grid-cols-5 bg-card border-border mb-6">
               <TabsTrigger value="courses" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BookOpen className="w-4 h-4 mr-2" />
-                Mes Cours
+                Cours
               </TabsTrigger>
               <TabsTrigger value="progress" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Progression
               </TabsTrigger>
-              <TabsTrigger value="certificates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="badges" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Award className="w-4 h-4 mr-2" />
+                Badges
+              </TabsTrigger>
+              <TabsTrigger value="certificates" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <CheckCircle2 className="w-4 h-4 mr-2" />
                 Certificats
               </TabsTrigger>
               <TabsTrigger value="settings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -390,7 +411,15 @@ const EspaceFormation = () => {
 
             {/* Onglet Progression */}
             <TabsContent value="progress">
-              <EnhancedCourseProgress />
+              <div className="space-y-6">
+                <NotificationsList />
+                <EnhancedCourseProgress />
+              </div>
+            </TabsContent>
+
+            {/* Onglet Badges */}
+            <TabsContent value="badges">
+              <BadgesList />
             </TabsContent>
 
             {/* Onglet Certificats */}
