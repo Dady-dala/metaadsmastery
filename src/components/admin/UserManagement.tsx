@@ -315,7 +315,30 @@ export const UserManagement = () => {
 
       if (error) throw error;
 
-      toast.success("Utilisateur créé avec succès");
+      // Envoyer l'email de bienvenue avec le lien magique pour les étudiants
+      if (newUserRole === 'student' && data?.user?.user?.id) {
+        const userId = data.user.user.id;
+        
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-student-course-assignment`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              studentEmail: newUserEmail,
+              studentName: `${newUserFirstName} ${newUserLastName}`,
+              courseName: 'Meta Ads Mastery',
+              courseDescription: 'Bienvenue dans votre espace de formation Meta Ads Mastery. Utilisez le lien ci-dessous pour accéder à votre compte.',
+              userId: userId,
+            }),
+          }
+        ).catch(error => console.error('Error sending welcome email:', error));
+      }
+
+      toast.success("Utilisateur créé avec succès. Un email de bienvenue a été envoyé.");
       setShowCreateDialog(false);
       setNewUserFirstName("");
       setNewUserLastName("");
