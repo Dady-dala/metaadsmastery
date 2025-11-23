@@ -461,6 +461,43 @@
   left: 0;
 }
 
+/* reCAPTCHA Mobile Fix */
+.g-recaptcha {
+  transform: scale(1);
+  transform-origin: 0 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure reCAPTCHA modal appears above everything on mobile */
+iframe[src*="google.com/recaptcha"] {
+  position: relative !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
+
+/* Ensure reCAPTCHA challenge modal is accessible */
+body > div[style*="z-index"] {
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+
+/* Override any dialog z-index when reCAPTCHA is present */
+[data-radix-dialog-overlay],
+[data-radix-dialog-content] {
+  z-index: 50 !important;
+}
+
+/* Ensure recaptcha container is properly clickable on mobile */
+@media (max-width: 640px) {
+  .g-recaptcha {
+    transform: scale(0.9);
+    transform-origin: center;
+    margin: 0 auto;
+  }
+}
+
 /* Cinematic Styling */
 .cinematic-section {
   background: #000;
