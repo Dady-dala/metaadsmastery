@@ -26,6 +26,8 @@ interface EmailTemplate {
   id: string;
   template_key: string;
   subject: string;
+  preview_text: string | null;
+  html_body: string | null;
   content: any;
   variables: any;
   is_active: boolean;
@@ -78,7 +80,8 @@ export const EmailTemplateSettings = () => {
         .from("email_templates")
         .update({
           subject: selectedTemplate.subject,
-          content: selectedTemplate.content,
+          preview_text: selectedTemplate.preview_text,
+          html_body: selectedTemplate.html_body,
         })
         .eq("id", selectedTemplate.id);
 
@@ -97,7 +100,7 @@ export const EmailTemplateSettings = () => {
   const generatePreview = (template: EmailTemplate) => {
     const logo = "https://jdczbaswcxwemksfkiuf.supabase.co/storage/v1/object/public/certificate-logos/meta-ads-mastery-logo.png";
     
-    let html = `
+    const html = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -108,8 +111,14 @@ export const EmailTemplateSettings = () => {
             .logo { text-align: center; padding: 20px; background: white; }
             .logo img { max-width: 200px; height: auto; }
             .header { background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: white; padding: 30px; text-align: center; }
+            .header h1 { margin: 0; font-size: 28px; }
+            .header p { margin: 10px 0 0; font-size: 16px; }
             .content { padding: 30px; }
+            .content h3 { color: #22C55E; }
+            .content ul { margin: 16px 0; padding-left: 20px; }
+            .content li { margin: 8px 0; }
             .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+            a { color: white; text-decoration: none; }
           </style>
         </head>
         <body>
@@ -117,39 +126,7 @@ export const EmailTemplateSettings = () => {
             <div class="logo">
               <img src="${logo}" alt="Meta Ads Mastery" />
             </div>
-    `;
-
-    if (template.template_key === "confirmation_email") {
-      html += `
-            <div class="header">
-              <h1>🎉 ${template.content.header_title}</h1>
-              <p>${template.content.header_subtitle}</p>
-            </div>
-            <div class="content">
-              <p>${template.content.greeting}</p>
-              <h3>${template.content.promise_title}</h3>
-              <ul>
-                ${template.content.promise_items.map((item: string) => `<li>${item}</li>`).join("")}
-              </ul>
-            </div>
-      `;
-    } else if (template.template_key === "course_assignment") {
-      html += `
-            <div class="header">
-              <h1>${template.content.header_title}</h1>
-              <p>${template.content.header_subtitle}</p>
-            </div>
-            <div class="content">
-              <p>${template.content.intro}</p>
-              <h3>${template.content.tips_title}</h3>
-              <ul>
-                ${template.content.tips_items.map((item: string) => `<li>${item}</li>`).join("")}
-              </ul>
-            </div>
-      `;
-    }
-
-    html += `
+            ${template.html_body || '<div class="content"><p>Aucun contenu</p></div>'}
             <div class="footer">
               <p>© ${new Date().getFullYear()} Meta Ads Mastery - Tous droits réservés</p>
               <p>Formation professionnelle en publicité Meta pour entrepreneurs africains</p>
@@ -210,11 +187,12 @@ export const EmailTemplateSettings = () => {
                   Variables disponibles: {template.variables.join(", ")}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="subject">Sujet de l'email</Label>
+                  <Label htmlFor="subject">Sujet de l'email (Objectif)</Label>
                   <Input
                     id="subject"
+                    placeholder="Ex: Bienvenue chez Meta Ads Mastery !"
                     value={selectedTemplate?.subject || ""}
                     onChange={(e) =>
                       selectedTemplate &&
@@ -226,76 +204,49 @@ export const EmailTemplateSettings = () => {
                   />
                 </div>
 
-                <div className="space-y-4">
-                  {Object.entries(selectedTemplate?.content || {}).map(([key, value]) => {
-                    if (Array.isArray(value)) {
-                      return (
-                        <div key={key} className="space-y-2">
-                          <Label>{key.replace(/_/g, " ").toUpperCase()}</Label>
-                          {value.map((item, index) => (
-                            <Input
-                              key={index}
-                              value={item}
-                              onChange={(e) => {
-                                if (!selectedTemplate) return;
-                                const newContent = { ...selectedTemplate.content };
-                                newContent[key][index] = e.target.value;
-                                setSelectedTemplate({
-                                  ...selectedTemplate,
-                                  content: newContent,
-                                });
-                              }}
-                            />
-                          ))}
-                        </div>
-                      );
+                <div className="space-y-2">
+                  <Label htmlFor="preview_text">Texte d'aperçu</Label>
+                  <Input
+                    id="preview_text"
+                    placeholder="Ex: Votre message important de Meta Ads Mastery"
+                    value={selectedTemplate?.preview_text || ""}
+                    onChange={(e) =>
+                      selectedTemplate &&
+                      setSelectedTemplate({
+                        ...selectedTemplate,
+                        preview_text: e.target.value,
+                      })
                     }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Ce texte apparaît dans l'aperçu de l'email avant ouverture
+                  </p>
+                </div>
 
-                    if (typeof value === "string") {
-                      const isLongText = value.length > 100;
-                      return (
-                        <div key={key} className="space-y-2">
-                          <Label htmlFor={key}>
-                            {key.replace(/_/g, " ").toUpperCase()}
-                          </Label>
-                          {isLongText ? (
-                            <Textarea
-                              id={key}
-                              value={value}
-                              rows={4}
-                              onChange={(e) => {
-                                if (!selectedTemplate) return;
-                                setSelectedTemplate({
-                                  ...selectedTemplate,
-                                  content: {
-                                    ...selectedTemplate.content,
-                                    [key]: e.target.value,
-                                  },
-                                });
-                              }}
-                            />
-                          ) : (
-                            <Input
-                              id={key}
-                              value={value}
-                              onChange={(e) => {
-                                if (!selectedTemplate) return;
-                                setSelectedTemplate({
-                                  ...selectedTemplate,
-                                  content: {
-                                    ...selectedTemplate.content,
-                                    [key]: e.target.value,
-                                  },
-                                });
-                              }}
-                            />
-                          )}
-                        </div>
-                      );
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="html_body">Corps du mail</Label>
+                    <span className="text-xs text-muted-foreground">
+                      Variables: {template.variables.join(", ")}
+                    </span>
+                  </div>
+                  <Textarea
+                    id="html_body"
+                    placeholder="Écrivez le contenu de votre email en HTML..."
+                    value={selectedTemplate?.html_body || ""}
+                    onChange={(e) =>
+                      selectedTemplate &&
+                      setSelectedTemplate({
+                        ...selectedTemplate,
+                        html_body: e.target.value,
+                      })
                     }
-
-                    return null;
-                  })}
+                    rows={20}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Utilisez du HTML pour formater votre email. Les variables entre accolades {"{}"} seront remplacées automatiquement.
+                  </p>
                 </div>
 
                 <div className="flex gap-2 pt-4">

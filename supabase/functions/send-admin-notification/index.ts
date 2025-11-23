@@ -56,10 +56,24 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Template not found");
     }
 
-    const content = template.content as any;
     const logo = "https://jdczbaswcxwemksfkiuf.supabase.co/storage/v1/object/public/certificate-logos/meta-ads-mastery-logo.png";
+    
+    // Replace variables in HTML body
+    let htmlBody = template.html_body || '';
+    
+    if (type === "contact_submission") {
+      htmlBody = htmlBody.replace(/{first_name}/g, data.firstName || '');
+      htmlBody = htmlBody.replace(/{last_name}/g, data.lastName || '');
+      htmlBody = htmlBody.replace(/{email}/g, data.email);
+      htmlBody = htmlBody.replace(/{phone_number}/g, data.phoneNumber || "Non fourni");
+      htmlBody = htmlBody.replace(/{created_at}/g, new Date().toLocaleString("fr-FR"));
+    } else {
+      htmlBody = htmlBody.replace(/{name}/g, data.name || '');
+      htmlBody = htmlBody.replace(/{email}/g, data.email);
+      htmlBody = htmlBody.replace(/{message}/g, data.message || '');
+    }
 
-    let htmlContent = `
+    const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -70,11 +84,13 @@ const handler = async (req: Request): Promise<Response> => {
             .logo { text-align: center; padding: 20px; background: white; }
             .logo img { max-width: 200px; height: auto; }
             .header { background: #1f2937; color: white; padding: 20px; text-align: center; }
+            .header h1 { margin: 0; font-size: 24px; }
+            .header p { margin: 10px 0 0; }
             .content { background: #ffffff; padding: 30px; }
-            .field { margin: 15px 0; padding: 10px; background: #f9fafb; border-left: 3px solid #22C55E; }
-            .label { font-weight: bold; color: #374151; }
-            .value { color: #1f2937; margin-top: 5px; }
-            .message-box { background: #f0fdf4; padding: 15px; border-radius: 8px; margin-top: 15px; }
+            .content ul { margin: 16px 0; padding-left: 20px; }
+            .content li { margin: 8px 0; }
+            .content strong { color: #22C55E; }
+            .content blockquote { border-left: 4px solid #22C55E; padding-left: 16px; margin: 16px 0; color: #555; font-style: italic; }
             .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
           </style>
         </head>
@@ -83,59 +99,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="logo">
               <img src="${logo}" alt="Meta Ads Mastery" />
             </div>
-            <div class="header">
-              <h2>${content.title}</h2>
-            </div>
-            
-            <div class="content">
-              <p>${content.intro}</p>
-    `;
-
-    if (type === "contact_submission") {
-      htmlContent += `
-              <div class="field">
-                <div class="label">Nom complet :</div>
-                <div class="value">${data.firstName} ${data.lastName}</div>
-              </div>
-              
-              <div class="field">
-                <div class="label">Email :</div>
-                <div class="value">${data.email}</div>
-              </div>
-              
-              <div class="field">
-                <div class="label">Téléphone :</div>
-                <div class="value">${data.phoneNumber || "Non fourni"}</div>
-              </div>
-      `;
-    } else {
-      htmlContent += `
-              <div class="field">
-                <div class="label">Nom :</div>
-                <div class="value">${data.name}</div>
-              </div>
-              
-              <div class="field">
-                <div class="label">Email :</div>
-                <div class="value">${data.email}</div>
-              </div>
-              
-              <div class="message-box">
-                <div class="label">Message :</div>
-                <div class="value">${data.message}</div>
-              </div>
-      `;
-    }
-
-    htmlContent += `
-              <div class="field">
-                <div class="label">Date :</div>
-                <div class="value">${new Date().toLocaleString("fr-FR")}</div>
-              </div>
-              
-              <p style="margin-top: 20px;"><strong>Action requise :</strong> ${content.action_required}</p>
-            </div>
-            
+            ${htmlBody}
             <div class="footer">
               <p>© ${new Date().getFullYear()} Meta Ads Mastery - Tous droits réservés</p>
             </div>

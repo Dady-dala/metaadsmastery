@@ -211,8 +211,10 @@ export type Database = {
         Row: {
           content: Json
           created_at: string | null
+          html_body: string | null
           id: string
           is_active: boolean | null
+          preview_text: string | null
           subject: string
           template_key: string
           updated_at: string | null
@@ -221,8 +223,10 @@ export type Database = {
         Insert: {
           content: Json
           created_at?: string | null
+          html_body?: string | null
           id?: string
           is_active?: boolean | null
+          preview_text?: string | null
           subject: string
           template_key: string
           updated_at?: string | null
@@ -231,8 +235,10 @@ export type Database = {
         Update: {
           content?: Json
           created_at?: string | null
+          html_body?: string | null
           id?: string
           is_active?: boolean | null
+          preview_text?: string | null
           subject?: string
           template_key?: string
           updated_at?: string | null
