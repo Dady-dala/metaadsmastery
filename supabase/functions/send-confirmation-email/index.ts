@@ -41,8 +41,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Template not found");
     }
 
-    const content = template.content as any;
     const logo = "https://jdczbaswcxwemksfkiuf.supabase.co/storage/v1/object/public/certificate-logos/meta-ads-mastery-logo.png";
+    
+    // Replace variables in HTML body
+    let htmlBody = template.html_body || '';
+    htmlBody = htmlBody.replace(/{first_name}/g, firstName);
+    htmlBody = htmlBody.replace(/{last_name}/g, lastName);
+    htmlBody = htmlBody.replace(/{email}/g, email);
+    htmlBody = htmlBody.replace(/{whatsapp_link}/g, "https://chat.whatsapp.com/G9oQ3mJuK6U8kuJle3qsdt");
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -55,10 +61,16 @@ const handler = async (req: Request): Promise<Response> => {
             .logo { text-align: center; padding: 20px; background: white; }
             .logo img { max-width: 200px; height: auto; }
             .header { background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: white; padding: 30px; text-align: center; }
+            .header h1 { margin: 0; font-size: 28px; }
+            .header p { margin: 10px 0 0; font-size: 16px; }
             .content { background: #ffffff; padding: 30px; }
+            .content h3 { color: #22C55E; }
+            .content ul { margin: 16px 0; padding-left: 20px; }
+            .content li { margin: 8px 0; }
             .cta-button { display: inline-block; background: #22C55E; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
             .cta-button:hover { background: #16A34A; }
             .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
+            a { color: white; text-decoration: none; }
           </style>
         </head>
         <body>
@@ -66,43 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
             <div class="logo">
               <img src="${logo}" alt="Meta Ads Mastery" />
             </div>
-            <div class="header">
-              <h1>🎉 ${content.header_title} ${firstName} !</h1>
-              <p>${content.header_subtitle}</p>
-            </div>
-            
-            <div class="content">
-              <h2>Bienvenue dans Meta Ads Mastery !</h2>
-              
-              <p>Bonjour <strong>${firstName} ${lastName}</strong>,</p>
-              
-              <p>${content.greeting}</p>
-              
-              <h3>🎯 ${content.promise_title}</h3>
-              <p>À la fin de cette formation, vous serez capable de :</p>
-              <ul>
-                ${content.promise_items.map((item: string) => `<li>${item}</li>`).join("")}
-              </ul>
-              
-              <h3>📱 ${content.next_step_title}</h3>
-              <p>${content.next_step_text}</p>
-              
-              <div style="text-align: center;">
-                <a href="https://chat.whatsapp.com/G9oQ3mJuK6U8kuJle3qsdt" class="cta-button">
-                  ${content.cta_text}
-                </a>
-              </div>
-              
-              <p><strong>Avez-vous rejoint le groupe ?</strong> Si vous rencontrez des difficultés, cliquez sur le bouton ci-dessus ou contactez-nous directement.</p>
-              
-              <h3>💡 ${content.waiting_title}</h3>
-              <p>${content.waiting_text}</p>
-              
-              <p>À très bientôt dans la formation !</p>
-              
-              <p><strong>L'équipe Meta Ads Mastery</strong></p>
-            </div>
-            
+            ${htmlBody}
             <div class="footer">
               <p>© ${new Date().getFullYear()} Meta Ads Mastery - Tous droits réservés</p>
               <p>Formation professionnelle en publicité Meta pour entrepreneurs africains</p>
