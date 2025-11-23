@@ -543,6 +543,44 @@ export type Database = {
         }
         Relationships: []
       }
+      video_notes: {
+        Row: {
+          created_at: string
+          id: string
+          note_content: string
+          student_id: string
+          timestamp_seconds: number | null
+          updated_at: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note_content: string
+          student_id: string
+          timestamp_seconds?: number | null
+          updated_at?: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note_content?: string
+          student_id?: string
+          timestamp_seconds?: number | null
+          updated_at?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_notes_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "course_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_progress: {
         Row: {
           completed: boolean

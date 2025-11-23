@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { ProfileSettings } from '@/components/student/ProfileSettings';
 import { EnhancedCourseProgress } from '@/components/student/EnhancedCourseProgress';
 import { QuizTaking } from '@/components/student/QuizTaking';
 import { StudentCertificates } from '@/components/student/StudentCertificates';
+import { VideoNotes } from '@/components/student/VideoNotes';
 
 interface Course {
   id: string;
@@ -36,7 +37,28 @@ const EspaceFormation = () => {
   const [selectedVideo, setSelectedVideo] = useState<CourseVideo | null>(null);
   const [videoProgress, setVideoProgress] = useState<Record<string, boolean>>({});
   const [activeTab, setActiveTab] = useState<'videos' | 'quiz'>('videos');
+  const [currentTime, setCurrentTime] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!selectedVideo) return;
+
+    const interval = setInterval(() => {
+      const wistiaApi = (window as any)._wq;
+      if (wistiaApi) {
+        wistiaApi.push({
+          id: selectedVideo.wistia_media_id,
+          onReady: (video: any) => {
+            video.bind('timechange', (t: number) => {
+              setCurrentTime(t);
+            });
+          },
+        });
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [selectedVideo]);
 
   useEffect(() => {
     loadEnrolledCourses();
@@ -157,6 +179,15 @@ const EspaceFormation = () => {
     }
   };
 
+  const handleSeekTo = (time: number) => {
+    const video = (window as any)._wq?.find((item: any) => 
+      item.id === selectedVideo?.wistia_media_id
+    );
+    if (video?.hasData?.()) {
+      video.time(time);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success('Déconnexion réussie');
@@ -269,33 +300,44 @@ const EspaceFormation = () => {
                           </CardHeader>
                           {selectedVideo && (
                             <CardContent>
-                              <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
-                                <WistiaPlayer
-                                  mediaId={selectedVideo.wistia_media_id}
-                                  aspect={1.7777777777777777}
-                                  seo={true}
-                                  className="w-full h-full"
-                                />
-                              </div>
-                              <div className="flex items-start justify-between gap-4">
-                                <div className="flex-1">
-                                  <h3 className="text-xl font-semibold text-foreground mb-2">
-                                    {selectedVideo.title}
-                                  </h3>
-                                  {selectedVideo.description && (
-                                    <p className="text-muted-foreground">{selectedVideo.description}</p>
-                                  )}
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="lg:col-span-2">
+                                  <div className="aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                                    <WistiaPlayer
+                                      mediaId={selectedVideo.wistia_media_id}
+                                      aspect={1.7777777777777777}
+                                      seo={true}
+                                      className="w-full h-full"
+                                    />
+                                  </div>
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                      <h3 className="text-xl font-semibold text-foreground mb-2">
+                                        {selectedVideo.title}
+                                      </h3>
+                                      {selectedVideo.description && (
+                                        <p className="text-muted-foreground">{selectedVideo.description}</p>
+                                      )}
+                                    </div>
+                                    {!videoProgress[selectedVideo.id] && (
+                                      <Button
+                                        onClick={() => markVideoAsCompleted(selectedVideo.id)}
+                                        variant="outline"
+                                        className="border-success text-success hover:bg-success hover:text-success-foreground shrink-0"
+                                      >
+                                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                                        Terminé
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
-                                {!videoProgress[selectedVideo.id] && (
-                                  <Button
-                                    onClick={() => markVideoAsCompleted(selectedVideo.id)}
-                                    variant="outline"
-                                    className="border-success text-success hover:bg-success hover:text-success-foreground shrink-0"
-                                  >
-                                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                                    Terminé
-                                  </Button>
-                                )}
+                                <div className="lg:col-span-1">
+                                  <VideoNotes
+                                    videoId={selectedVideo.id}
+                                    currentTime={currentTime}
+                                    onSeekTo={handleSeekTo}
+                                  />
+                                </div>
                               </div>
                             </CardContent>
                           )}
