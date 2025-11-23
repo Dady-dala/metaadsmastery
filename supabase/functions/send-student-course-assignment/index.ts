@@ -13,6 +13,7 @@ interface CourseAssignmentRequest {
   studentName: string;
   courseName: string;
   courseDescription?: string;
+  userId?: string; // ID de l'utilisateur pour générer le magic link
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,7 +22,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { studentEmail, studentName, courseName, courseDescription }: CourseAssignmentRequest = await req.json();
+    const { studentEmail, studentName, courseName, courseDescription, userId }: CourseAssignmentRequest = await req.json();
 
     console.log("Sending course assignment email to:", studentEmail);
 
@@ -42,6 +43,27 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Template not found");
     }
 
+    // Générer un lien magique pour connexion automatique
+    let magicLink = "https://metaadsmastery.dalaconcept.com/espace-formation";
+    
+    if (userId) {
+      console.log("Generating magic link for user:", userId);
+      const { data: magicLinkData, error: magicLinkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: studentEmail,
+        options: {
+          redirectTo: "https://metaadsmastery.dalaconcept.com/espace-formation"
+        }
+      });
+
+      if (magicLinkError) {
+        console.error("Error generating magic link:", magicLinkError);
+      } else if (magicLinkData?.properties?.action_link) {
+        magicLink = magicLinkData.properties.action_link;
+        console.log("Magic link generated successfully");
+      }
+    }
+
     const logo = "https://jdczbaswcxwemksfkiuf.supabase.co/storage/v1/object/public/certificate-logos/meta-ads-mastery-logo.png";
     
     // Replace variables in HTML body
@@ -49,7 +71,7 @@ const handler = async (req: Request): Promise<Response> => {
     htmlBody = htmlBody.replace(/{student_name}/g, studentName);
     htmlBody = htmlBody.replace(/{course_title}/g, courseName);
     htmlBody = htmlBody.replace(/{course_description}/g, courseDescription || '');
-    htmlBody = htmlBody.replace(/{login_url}/g, "https://metaadsmastery.dalaconcept.com/espace-formation");
+    htmlBody = htmlBody.replace(/{login_url}/g, magicLink);
 
     const htmlContent = `
       <!DOCTYPE html>

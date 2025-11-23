@@ -214,6 +214,7 @@ export const UserManagement = () => {
               studentName: studentName,
               courseName: course.title,
               courseDescription: course.description,
+              userId: selectedUserId, // Ajouter l'ID pour générer le magic link
             }),
           }
         ).catch(error => console.error('Error sending course assignment email:', error));
