@@ -178,6 +178,26 @@ Deno.serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
+    // Send admin notification (background task - don't await)
+    fetch(
+      `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-admin-notification`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+        },
+        body: JSON.stringify({
+          type: 'contact_message',
+          data: {
+            name: sanitizeInput(name),
+            email: email,
+            message: sanitizeInput(message),
+          },
+        }),
+      }
+    ).catch(error => console.error('Error sending admin notification:', error));
+
     return new Response(
       JSON.stringify({ 
         success: true,
