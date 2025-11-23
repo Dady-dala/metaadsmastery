@@ -1,6 +1,5 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import AboutUs from "./pages/AboutUs";
@@ -30,7 +29,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => (
-  <TooltipProvider>
+  <>
     <Toaster />
     <ScrollToTop />
     <Routes>
@@ -74,7 +73,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-  </TooltipProvider>
+  </>
 );
 
 export default App;
