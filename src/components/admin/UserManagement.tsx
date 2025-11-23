@@ -184,6 +184,41 @@ export const UserManagement = () => {
 
       if (error) throw error;
 
+      // Get student and course information for email
+      const student = users.find(u => u.id === selectedUserId);
+      const course = courses.find(c => c.id === selectedCourseId);
+
+      if (student && course && student.email) {
+        // Get student profile for full name
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('user_id', selectedUserId)
+          .single();
+
+        const studentName = profileData?.first_name && profileData?.last_name
+          ? `${profileData.first_name} ${profileData.last_name}`
+          : student.email;
+
+        // Send course assignment email (background task - don't await)
+        fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-student-course-assignment`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({
+              studentEmail: student.email,
+              studentName: studentName,
+              courseName: course.title,
+              courseDescription: course.description,
+            }),
+          }
+        ).catch(error => console.error('Error sending course assignment email:', error));
+      }
+
       toast.success('Étudiant assigné au cours avec succès');
       setSelectedUserId(null);
       setSelectedCourseId('');

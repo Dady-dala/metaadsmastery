@@ -22,6 +22,7 @@ import {
   UserCircle,
   LayoutDashboard,
   Award,
+  MailOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -60,6 +61,11 @@ const menuItems = [
     title: 'Certificats',
     icon: Award,
     tab: 'certificates',
+  },
+  {
+    title: 'Templates Email',
+    icon: MailOpen,
+    tab: 'email-templates',
   },
   {
     title: 'Inscriptions',
