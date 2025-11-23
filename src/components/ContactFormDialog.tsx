@@ -206,7 +206,7 @@ const ContactFormDialog = ({ isOpen, onOpenChange, inlineForm = false }: Contact
       </div>
 
       {/* reCAPTCHA v2 Checkbox */}
-      <div ref={recaptchaRef} className="flex justify-center"></div>
+      <div ref={recaptchaRef} className="flex justify-center my-4" style={{ position: 'relative', zIndex: 1 }}></div>
 
       {/* Consent Checkbox */}
       <div className="flex items-start space-x-2">
