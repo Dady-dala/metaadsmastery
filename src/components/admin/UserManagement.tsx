@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit, Search, AlertCircle } from 'lucide-react';
+import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit, Search, AlertCircle, Mail, Phone } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Dialog,
   DialogContent,
@@ -45,9 +46,19 @@ interface Course {
   description: string;
 }
 
+interface ContactSubmission {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  created_at: string;
+}
+
 export const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [prospects, setProspects] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
@@ -68,10 +79,12 @@ export const UserManagement = () => {
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("users");
 
   useEffect(() => {
     loadUsers();
     loadCourses();
+    loadProspects();
   }, []);
 
   const loadUsers = async () => {
@@ -123,6 +136,29 @@ export const UserManagement = () => {
       console.error('Error loading courses:', error);
       toast.error('Erreur lors du chargement des cours');
     }
+  };
+
+  const loadProspects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProspects(data || []);
+    } catch (error) {
+      console.error('Error loading prospects:', error);
+      toast.error('Erreur lors du chargement des prospects');
+    }
+  };
+
+  const createAccountFromProspect = (prospect: ContactSubmission) => {
+    setNewUserFirstName(prospect.first_name);
+    setNewUserLastName(prospect.last_name);
+    setNewUserEmail(prospect.email);
+    setNewUserRole("student");
+    setShowCreateDialog(true);
   };
 
   const assignRole = async (userId: string, role: 'admin' | 'student') => {
@@ -423,7 +459,7 @@ export const UserManagement = () => {
                 Gestion des Utilisateurs
               </CardTitle>
               <CardDescription className="text-xs md:text-sm text-muted-foreground">
-                Gérez les rôles, les accès aux formations et le statut des étudiants
+                Gérez les utilisateurs et créez des comptes depuis les pré-inscriptions
               </CardDescription>
             </div>
             <Button 
@@ -438,26 +474,41 @@ export const UserManagement = () => {
         </CardHeader>
       </Card>
 
-      {/* Search Bar Card */}
-      <Card className="bg-card border-border shadow-md">
-        <CardContent className="p-4 md:pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Rechercher par nom, prénom ou email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-background border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 bg-muted">
+          <TabsTrigger value="users" className="data-[state=active]:bg-background">
+            <Users className="w-4 h-4 mr-2" />
+            Utilisateurs ({users.length})
+          </TabsTrigger>
+          <TabsTrigger value="prospects" className="data-[state=active]:bg-background">
+            <Mail className="w-4 h-4 mr-2" />
+            Prospects ({prospects.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Users Table Card */}
-      <Card className="bg-card border-border shadow-lg">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table className="min-w-[800px]">
+        {/* Users Tab */}
+        <TabsContent value="users" className="space-y-4">
+          {/* Search Bar Card */}
+          <Card className="bg-card border-border shadow-md">
+            <CardContent className="p-4 md:pt-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Rechercher par nom, prénom ou email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background border-border text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Users Table Card */}
+          <Card className="bg-card border-border shadow-lg">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow className="border-border bg-muted/50">
                   <TableHead className="text-foreground font-semibold">Nom complet</TableHead>
@@ -657,6 +708,83 @@ export const UserManagement = () => {
           </div>
         </CardContent>
       </Card>
+    </TabsContent>
+
+    {/* Prospects Tab */}
+    <TabsContent value="prospects" className="space-y-4">
+      <Card className="bg-card border-border shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-foreground flex items-center gap-2">
+            <Mail className="w-5 h-5 text-primary" />
+            Pré-inscriptions
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Prospects ayant soumis le formulaire d'inscription
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[800px]">
+              <TableHeader>
+                <TableRow className="border-border bg-muted/50">
+                  <TableHead className="text-foreground font-semibold">Nom complet</TableHead>
+                  <TableHead className="text-foreground font-semibold">Email</TableHead>
+                  <TableHead className="text-foreground font-semibold">Téléphone</TableHead>
+                  <TableHead className="text-foreground font-semibold">Date d'inscription</TableHead>
+                  <TableHead className="text-foreground font-semibold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {prospects.length === 0 ? (
+                  <TableRow className="border-border">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <Mail className="w-12 h-12 text-muted-foreground/50" />
+                        <p className="text-lg font-medium">Aucune pré-inscription trouvée</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  prospects.map((prospect) => (
+                    <TableRow key={prospect.id} className="border-border hover:bg-muted/30 transition-colors">
+                      <TableCell className="text-foreground font-medium">
+                        {prospect.first_name} {prospect.last_name}
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                          {prospect.email}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-foreground">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          {prospect.phone_number || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {formatDate(prospect.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          onClick={() => createAccountFromProspect(prospect)}
+                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                        >
+                          <UserPlus className="w-3 h-3 mr-1" />
+                          Créer compte
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </TabsContent>
+  </Tabs>
 
       {/* Create User Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
