@@ -14,6 +14,7 @@ import { AdminProfileSettings } from '@/components/admin/AdminProfileSettings';
 import { QuizManagement } from '@/components/admin/QuizManagement';
 import { AdvancedAnalytics } from '@/components/admin/AdvancedAnalytics';
 import { CertificateSettings } from '@/components/admin/CertificateSettings';
+import { EmailTemplateSettings } from '@/components/admin/EmailTemplateSettings';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -215,6 +216,7 @@ const Admin = () => {
                 {activeTab === 'progress' && <StudentProgressManagement />}
                 {activeTab === 'analytics' && <AdvancedAnalytics />}
                 {activeTab === 'certificates' && <CertificateSettings />}
+                {activeTab === 'email-templates' && <EmailTemplateSettings />}
                 {activeTab === 'profile' && <AdminProfileSettings />}
                 
                 {activeTab === 'submissions' && (
