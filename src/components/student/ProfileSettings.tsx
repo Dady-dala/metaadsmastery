@@ -86,6 +86,9 @@ export const ProfileSettings = () => {
           last_name: profile.last_name,
           date_of_birth: profile.date_of_birth,
           gender: profile.gender,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;

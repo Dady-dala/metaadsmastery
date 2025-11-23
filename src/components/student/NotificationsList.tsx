@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, CheckCheck, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export const NotificationsList = () => {
   const navigate = useNavigate();
@@ -45,6 +45,10 @@ export const NotificationsList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Notification marquée comme lue");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour");
     },
   });
 
@@ -60,7 +64,10 @@ export const NotificationsList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      toast({ description: "Toutes les notifications ont été marquées comme lues" });
+      toast.success("Toutes les notifications ont été marquées comme lues");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la mise à jour");
     },
   });
 
