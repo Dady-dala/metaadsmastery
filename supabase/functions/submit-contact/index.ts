@@ -186,6 +186,44 @@ Deno.serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
+    // Send confirmation email to prospect (background task - don't await)
+    fetch(
+      `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-confirmation-email`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+        },
+        body: JSON.stringify({
+          firstName: first_name,
+          lastName: last_name,
+          email: email,
+        }),
+      }
+    ).catch(error => console.error('Error sending confirmation email:', error));
+
+    // Send admin notification (background task - don't await)
+    fetch(
+      `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-admin-notification`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+        },
+        body: JSON.stringify({
+          type: 'contact_submission',
+          data: {
+            firstName: first_name,
+            lastName: last_name,
+            email: email,
+            phoneNumber: phone_number,
+          },
+        }),
+      }
+    ).catch(error => console.error('Error sending admin notification:', error));
+
     return new Response(
       JSON.stringify({ 
         success: true,
