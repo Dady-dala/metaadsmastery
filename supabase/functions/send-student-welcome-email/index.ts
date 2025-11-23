@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     // Générer un lien magique pour connexion automatique
-    let magicLink = "https://metaadsmastery.dalaconcept.com/espace-formation";
+    let magicLink = "https://metaadsmastery.lovable.app/espace-formation";
     
     if (userId) {
       console.log("Generating magic link for user:", userId);
@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
         type: 'magiclink',
         email: studentEmail,
         options: {
-          redirectTo: "https://metaadsmastery.dalaconcept.com/espace-formation"
+          redirectTo: "https://metaadsmastery.lovable.app/espace-formation"
         }
       });
 
