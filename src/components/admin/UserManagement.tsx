@@ -315,12 +315,12 @@ export const UserManagement = () => {
 
       if (error) throw error;
 
-      // Envoyer l'email de bienvenue avec le lien magique pour les étudiants
+      // Envoyer l'email de bienvenue pour les étudiants
       if (newUserRole === 'student' && data?.user?.user?.id) {
         const userId = data.user.user.id;
         
         fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-student-course-assignment`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-student-welcome-email`,
           {
             method: 'POST',
             headers: {
@@ -330,8 +330,6 @@ export const UserManagement = () => {
             body: JSON.stringify({
               studentEmail: newUserEmail,
               studentName: `${newUserFirstName} ${newUserLastName}`,
-              courseName: 'Meta Ads Mastery',
-              courseDescription: 'Bienvenue dans votre espace de formation Meta Ads Mastery. Utilisez le lien ci-dessous pour accéder à votre compte.',
               userId: userId,
             }),
           }
