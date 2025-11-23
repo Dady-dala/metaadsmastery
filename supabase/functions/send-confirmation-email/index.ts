@@ -41,8 +41,6 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Template not found");
     }
 
-    const logo = "https://jdczbaswcxwemksfkiuf.supabase.co/storage/v1/object/public/certificate-logos/meta-ads-mastery-logo.png";
-    
     // Replace variables in HTML body
     let htmlBody = template.html_body || '';
     htmlBody = htmlBody.replace(/{first_name}/g, firstName);
@@ -50,49 +48,56 @@ const handler = async (req: Request): Promise<Response> => {
     htmlBody = htmlBody.replace(/{email}/g, email);
     htmlBody = htmlBody.replace(/{whatsapp_link}/g, "https://chat.whatsapp.com/G9oQ3mJuK6U8kuJle3qsdt");
 
+    // Simple, transactional HTML format to avoid promotional tab
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="utf-8">
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background: #f3f4f6; }
-            .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
-            .logo { text-align: center; padding: 20px; background: white; }
-            .logo img { max-width: 200px; height: auto; }
-            .header { background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%); color: white; padding: 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 28px; }
-            .header p { margin: 10px 0 0; font-size: 16px; }
-            .content { background: #ffffff; padding: 30px; }
-            .content h3 { color: #22C55E; }
-            .content ul { margin: 16px 0; padding-left: 20px; }
-            .content li { margin: 8px 0; }
-            .cta-button { display: inline-block; background: #22C55E; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-            .cta-button:hover { background: #16A34A; }
-            .footer { background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; }
-            a { color: white; text-decoration: none; }
-          </style>
         </head>
-        <body>
-          <div class="container">
-            <div class="logo">
-              <img src="${logo}" alt="Meta Ads Mastery" />
-            </div>
-            ${htmlBody}
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} Meta Ads Mastery - Tous droits réservés</p>
-              <p>Formation professionnelle en publicité Meta pour entrepreneurs africains</p>
-            </div>
-          </div>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          ${htmlBody}
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          <p style="font-size: 12px; color: #6b7280; text-align: center;">
+            © ${new Date().getFullYear()} Meta Ads Mastery<br>
+            Cet email concerne votre inscription à notre formation.
+          </p>
         </body>
       </html>
     `;
 
+    // Plain text version for better deliverability
+    const textBody = `
+Bonjour ${firstName},
+
+Nous avons bien reçu votre inscription à Meta Ads Mastery.
+
+Prochaines étapes :
+- Rejoignez notre groupe WhatsApp pour finaliser votre inscription
+- Accédez à la formation complète
+- Bénéficiez de notre accompagnement personnalisé
+
+Lien WhatsApp : https://chat.whatsapp.com/G9oQ3mJuK6U8kuJle3qsdt
+
+Si vous avez des questions, répondez simplement à cet email.
+
+Cordialement,
+L'équipe Meta Ads Mastery
+
+---
+© ${new Date().getFullYear()} Meta Ads Mastery
+    `.trim();
+
     const emailResponse = await resend.emails.send({
-      from: "Meta Ads Mastery <onboarding@metaadsmastery.dalaconcept.com>",
+      from: "Meta Ads Mastery <contact@metaadsmastery.dalaconcept.com>",
       to: [email],
+      reply_to: "contact@metaadsmastery.dalaconcept.com",
       subject: template.subject,
       html: htmlContent,
+      text: textBody,
+      headers: {
+        'X-Entity-Ref-ID': `contact-${Date.now()}`,
+      },
     });
 
     console.log("Confirmation email sent successfully:", emailResponse);
