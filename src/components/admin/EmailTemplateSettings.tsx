@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Mail, Save, Eye } from "lucide-react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import {
   Tabs,
   TabsContent,
@@ -46,6 +47,7 @@ export const EmailTemplateSettings = () => {
   const [saving, setSaving] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [previewHtml, setPreviewHtml] = useState("");
+  const quillRef = useRef<ReactQuill>(null);
 
   useEffect(() => {
     fetchTemplates();
@@ -145,6 +147,25 @@ export const EmailTemplateSettings = () => {
     setPreviewHtml(html);
   };
 
+  const insertVariable = (variable: string) => {
+    if (!quillRef.current) return;
+    const editor = quillRef.current.getEditor();
+    const cursorPosition = editor.getSelection()?.index || 0;
+    editor.insertText(cursorPosition, `{${variable}}`);
+  };
+
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link'],
+      ['clean']
+    ],
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -224,28 +245,40 @@ export const EmailTemplateSettings = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-2">
                     <Label htmlFor="html_body">Corps du mail</Label>
-                    <span className="text-xs text-muted-foreground">
-                      Variables: {template.variables.join(", ")}
-                    </span>
+                    <div className="flex gap-1 flex-wrap">
+                      {template.variables.map((variable: string) => (
+                        <Button
+                          key={variable}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => insertVariable(variable)}
+                          className="text-xs"
+                        >
+                          +{variable}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                  <Textarea
-                    id="html_body"
-                    placeholder="Écrivez le contenu de votre email en HTML..."
+                  <ReactQuill
+                    ref={quillRef}
+                    theme="snow"
                     value={selectedTemplate?.html_body || ""}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       selectedTemplate &&
                       setSelectedTemplate({
                         ...selectedTemplate,
-                        html_body: e.target.value,
+                        html_body: value,
                       })
                     }
-                    rows={20}
-                    className="font-mono text-sm"
+                    modules={modules}
+                    className="bg-background"
+                    style={{ height: "400px", marginBottom: "50px" }}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Utilisez du HTML pour formater votre email. Les variables entre accolades {"{}"} seront remplacées automatiquement.
+                  <p className="text-xs text-muted-foreground mt-12">
+                    Utilisez les boutons de formatage pour styliser votre email. Cliquez sur les variables ci-dessus pour les insérer.
                   </p>
                 </div>
 
