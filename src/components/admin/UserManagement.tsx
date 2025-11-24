@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit, Search, AlertCircle, Mail, Phone } from 'lucide-react';
+import { UserPlus, Users, BookOpen, Ban, CheckCircle, Edit, Search, AlertCircle, Mail, Phone, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Dialog,
@@ -80,6 +80,8 @@ export const UserManagement = () => {
   const [editLastName, setEditLastName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("users");
+  const [showDeleteProspectDialog, setShowDeleteProspectDialog] = useState(false);
+  const [prospectToDelete, setProspectToDelete] = useState<ContactSubmission | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -450,6 +452,29 @@ export const UserManagement = () => {
     return fullName.includes(query) || email.includes(query);
   });
 
+  const handleDeleteProspect = async () => {
+    if (!prospectToDelete) return;
+
+    try {
+      // Supprimer le prospect de la liste des pré-inscriptions
+      const { error } = await supabase
+        .from('contact_submissions')
+        .delete()
+        .eq('id', prospectToDelete.id);
+
+      if (error) throw error;
+
+      toast.success("Prospect retiré de la liste. Si un compte étudiant existe pour cet email, il reste actif.");
+      
+      setShowDeleteProspectDialog(false);
+      setProspectToDelete(null);
+      loadProspects();
+    } catch (error: any) {
+      console.error('Error deleting prospect:', error);
+      toast.error(error.message || "Erreur lors de la suppression");
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
@@ -787,14 +812,27 @@ export const UserManagement = () => {
                         {formatDate(prospect.created_at)}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => createAccountFromProspect(prospect)}
-                          className="bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                          <UserPlus className="w-3 h-3 mr-1" />
-                          Créer compte
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => createAccountFromProspect(prospect)}
+                            className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          >
+                            <UserPlus className="w-3 h-3 mr-1" />
+                            Créer compte
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setProspectToDelete(prospect);
+                              setShowDeleteProspectDialog(true);
+                            }}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -1022,6 +1060,37 @@ export const UserManagement = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Prospect Dialog */}
+      <AlertDialog open={showDeleteProspectDialog} onOpenChange={setShowDeleteProspectDialog}>
+        <AlertDialogContent className="bg-popover border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Êtes-vous sûr de vouloir retirer{" "}
+              <strong className="text-foreground">{prospectToDelete?.first_name} {prospectToDelete?.last_name}</strong>{" "}
+              de la liste des prospects ? Si un compte étudiant existe, il sera conservé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowDeleteProspectDialog(false);
+                setProspectToDelete(null);
+              }}
+              className="border-border text-foreground hover:bg-accent"
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProspect}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
