@@ -38,6 +38,7 @@ interface User {
   is_active?: boolean;
   first_name?: string | null;
   last_name?: string | null;
+  enrollments?: { course_id: string; course_title: string }[];
 }
 
 interface Course {
@@ -116,7 +117,36 @@ export const UserManagement = () => {
         throw error;
       }
       
-      setUsers(data.users || []);
+      const users = data.users || [];
+
+      // Charger les enrollments pour chaque utilisateur étudiant
+      const usersWithEnrollments = await Promise.all(
+        users.map(async (user: User) => {
+          if (user.roles.includes('student')) {
+            const { data: enrollments } = await supabase
+              .from('student_enrollments')
+              .select(`
+                course_id,
+                courses (
+                  id,
+                  title
+                )
+              `)
+              .eq('student_id', user.id);
+
+            return {
+              ...user,
+              enrollments: enrollments?.map(e => ({
+                course_id: e.course_id,
+                course_title: (e.courses as any)?.title || 'Cours inconnu'
+              })) || []
+            };
+          }
+          return user;
+        })
+      );
+
+      setUsers(usersWithEnrollments);
     } catch (error) {
       console.error('Error loading users:', error);
       toast.error('Erreur lors du chargement des utilisateurs');
@@ -561,6 +591,7 @@ export const UserManagement = () => {
                   <TableHead className="text-foreground font-semibold">Email</TableHead>
                   <TableHead className="text-foreground font-semibold">Date d'inscription</TableHead>
                   <TableHead className="text-foreground font-semibold">Rôles</TableHead>
+                  <TableHead className="text-foreground font-semibold">Formations</TableHead>
                   <TableHead className="text-foreground font-semibold">Statut</TableHead>
                   <TableHead className="text-foreground font-semibold">Actions</TableHead>
                 </TableRow>
@@ -568,7 +599,7 @@ export const UserManagement = () => {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow className="border-border">
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
                       <div className="flex flex-col items-center gap-2">
                         <Users className="w-12 h-12 text-muted-foreground/50" />
                         <p className="text-lg font-medium">
@@ -624,6 +655,28 @@ export const UserManagement = () => {
                             </SelectItem>
                           </SelectContent>
                         </Select>
+                      </TableCell>
+                      <TableCell>
+                        {user.roles.includes('student') && (
+                          <div className="flex flex-wrap gap-1 max-w-xs">
+                            {user.enrollments && user.enrollments.length > 0 ? (
+                              user.enrollments.map((enrollment) => (
+                                <Badge 
+                                  key={enrollment.course_id}
+                                  variant="outline" 
+                                  className="border-primary/50 text-primary text-xs"
+                                >
+                                  <BookOpen className="w-3 h-3 mr-1" />
+                                  {enrollment.course_title}
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground text-sm italic">
+                                Aucune formation
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         {user.roles.includes('student') && (
