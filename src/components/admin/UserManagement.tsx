@@ -83,6 +83,7 @@ export const UserManagement = () => {
   const [activeTab, setActiveTab] = useState("users");
   const [showDeleteProspectDialog, setShowDeleteProspectDialog] = useState(false);
   const [prospectToDelete, setProspectToDelete] = useState<ContactSubmission | null>(null);
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>("all");
 
   useEffect(() => {
     loadUsers();
@@ -479,7 +480,17 @@ export const UserManagement = () => {
     const fullName = `${user.first_name || ''} ${user.last_name || ''}`.toLowerCase();
     const email = user.email.toLowerCase();
     const query = searchQuery.toLowerCase();
-    return fullName.includes(query) || email.includes(query);
+    const matchesSearch = fullName.includes(query) || email.includes(query);
+    
+    // Filtre par formation
+    if (selectedCourseFilter !== "all") {
+      const isEnrolledInCourse = user.enrollments?.some(
+        enrollment => enrollment.course_id === selectedCourseFilter
+      );
+      return matchesSearch && isEnrolledInCourse;
+    }
+    
+    return matchesSearch;
   });
 
   const handleDeleteProspect = async () => {
@@ -565,18 +576,57 @@ export const UserManagement = () => {
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-4">
-          {/* Search Bar Card */}
+          {/* Search and Filter Bar Card */}
           <Card className="bg-card border-border shadow-md">
             <CardContent className="p-4 md:pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Rechercher par nom, prénom ou email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-background border-border text-foreground placeholder:text-muted-foreground"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Rechercher par nom, prénom ou email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 bg-background border-border text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <Select value={selectedCourseFilter} onValueChange={setSelectedCourseFilter}>
+                    <SelectTrigger className="bg-background border-border text-foreground">
+                      <SelectValue placeholder="Filtrer par formation" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border">
+                      <SelectItem value="all" className="text-foreground hover:bg-accent">
+                        Toutes les formations
+                      </SelectItem>
+                      {courses.map((course) => (
+                        <SelectItem 
+                          key={course.id} 
+                          value={course.id}
+                          className="text-foreground hover:bg-accent"
+                        >
+                          {course.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {selectedCourseFilter !== "all" && (
+                <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Badge variant="outline" className="border-primary text-primary">
+                    {filteredUsers.length} étudiant{filteredUsers.length > 1 ? 's' : ''} dans cette formation
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedCourseFilter("all")}
+                    className="h-6 px-2 text-xs hover:bg-accent"
+                  >
+                    Réinitialiser
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
