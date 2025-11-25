@@ -18,6 +18,7 @@ import { EmailTemplateSettings } from '@/components/admin/EmailTemplateSettings'
 import { EmailMarketingManagement } from '@/components/admin/EmailMarketingManagement';
 import { EmailInbox } from '@/components/admin/EmailInbox';
 import { FormManagement } from '@/components/admin/FormManagement';
+import { ContactManagement } from '@/components/admin/ContactManagement';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -222,6 +223,7 @@ const Admin = () => {
                 {activeTab === 'email-templates' && <EmailTemplateSettings />}
                 {activeTab === 'email-marketing' && <EmailMarketingManagement />}
                 {activeTab === 'email-inbox' && <EmailInbox />}
+                {activeTab === 'contacts' && <ContactManagement />}
                 {activeTab === 'forms' && <FormManagement />}
                 {activeTab === 'profile' && <AdminProfileSettings />}
                 

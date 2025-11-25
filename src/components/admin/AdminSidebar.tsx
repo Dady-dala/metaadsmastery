@@ -25,6 +25,7 @@ import {
   MailOpen,
   FileText,
   Inbox,
+  ContactRound,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -78,6 +79,11 @@ const menuItems = [
     title: 'Boîte de réception',
     icon: Inbox,
     tab: 'email-inbox',
+  },
+  {
+    title: 'Contacts',
+    icon: ContactRound,
+    tab: 'contacts',
   },
   {
     title: 'Formulaires',
