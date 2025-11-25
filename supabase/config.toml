@@ -39,5 +39,11 @@ verify_jwt = false
 [functions.receive-email]
 verify_jwt = false
 
+[functions.process-workflows]
+verify_jwt = true
+
+[functions.execute-workflow]
+verify_jwt = false
+
 [functions.process-email-campaigns]
 verify_jwt = true
