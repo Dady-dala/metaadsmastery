@@ -356,6 +356,65 @@ export type Database = {
         }
         Relationships: []
       }
+      emails: {
+        Row: {
+          created_by: string | null
+          from_email: string
+          from_name: string | null
+          html_body: string
+          id: string
+          metadata: Json | null
+          read_at: string | null
+          reply_to_id: string | null
+          sent_at: string
+          status: string
+          subject: string
+          text_body: string | null
+          to_email: string
+          to_name: string | null
+        }
+        Insert: {
+          created_by?: string | null
+          from_email: string
+          from_name?: string | null
+          html_body: string
+          id?: string
+          metadata?: Json | null
+          read_at?: string | null
+          reply_to_id?: string | null
+          sent_at?: string
+          status?: string
+          subject: string
+          text_body?: string | null
+          to_email: string
+          to_name?: string | null
+        }
+        Update: {
+          created_by?: string | null
+          from_email?: string
+          from_name?: string | null
+          html_body?: string
+          id?: string
+          metadata?: Json | null
+          read_at?: string | null
+          reply_to_id?: string | null
+          sent_at?: string
+          status?: string
+          subject?: string
+          text_body?: string | null
+          to_email?: string
+          to_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submissions: {
         Row: {
           data: Json

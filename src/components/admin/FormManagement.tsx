@@ -6,7 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormEditor } from "./FormEditor";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Eye, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Plus, Eye, Edit, Trash2, Power, PowerOff, Share2, Code } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Form {
   id: string;
@@ -22,6 +24,9 @@ export function FormManagement() {
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+  const [shareForm, setShareForm] = useState<Form | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -118,6 +123,32 @@ export function FormManagement() {
     loadForms();
   };
 
+  const handleShare = (form: Form) => {
+    setShareForm(form);
+    setShareDialogOpen(true);
+  };
+
+  const handleEmbed = (form: Form) => {
+    setShareForm(form);
+    setEmbedDialogOpen(true);
+  };
+
+  const getShareLink = (formId: string) => {
+    return `${window.location.origin}/formulaire/${formId}`;
+  };
+
+  const getEmbedCode = (formId: string) => {
+    return `<iframe src="${getShareLink(formId)}" width="100%" height="600" frameborder="0"></iframe>`;
+  };
+
+  const copyToClipboard = (text: string, message: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copié",
+      description: message,
+    });
+  };
+
   if (loading) {
     return <div className="text-center py-8">Chargement...</div>;
   }
@@ -158,7 +189,23 @@ export function FormManagement() {
                 <p className="text-sm text-muted-foreground">
                   {Array.isArray(form.fields) ? form.fields.length : 0} champs
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleShare(form)}
+                  >
+                    <Share2 className="mr-2 h-3 w-3" />
+                    Partager
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEmbed(form)}
+                  >
+                    <Code className="mr-2 h-3 w-3" />
+                    Intégrer
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -213,6 +260,67 @@ export function FormManagement() {
               setSelectedForm(null);
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Partager le formulaire</DialogTitle>
+          </DialogHeader>
+          {shareForm && (
+            <div className="space-y-4">
+              <div>
+                <Label>Lien public</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    value={getShareLink(shareForm.id)}
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    onClick={() => copyToClipboard(getShareLink(shareForm.id), "Lien copié dans le presse-papier")}
+                  >
+                    Copier
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Partagez ce lien pour permettre aux utilisateurs de remplir votre formulaire.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={embedDialogOpen} onOpenChange={setEmbedDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Intégrer le formulaire</DialogTitle>
+          </DialogHeader>
+          {shareForm && (
+            <div className="space-y-4">
+              <div>
+                <Label>Code d'intégration (iframe)</Label>
+                <div className="mt-2">
+                  <textarea
+                    value={getEmbedCode(shareForm.id)}
+                    readOnly
+                    className="w-full h-24 font-mono text-sm p-3 border rounded-md bg-muted"
+                  />
+                  <Button
+                    className="mt-2"
+                    onClick={() => copyToClipboard(getEmbedCode(shareForm.id), "Code d'intégration copié")}
+                  >
+                    Copier le code
+                  </Button>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Copiez ce code et collez-le dans votre site web pour intégrer le formulaire.
+              </p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
