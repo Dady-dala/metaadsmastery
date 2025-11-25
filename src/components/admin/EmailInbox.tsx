@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EmailComposer } from "./EmailComposer";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Mail, Inbox, Send, Reply, Plus, Eye } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,7 +32,6 @@ export function EmailInbox() {
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [replyToEmail, setReplyToEmail] = useState<Email | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadEmails();
@@ -50,10 +49,8 @@ export function EmailInbox() {
       setEmails(data || []);
     } catch (error: any) {
       console.error('Error loading emails:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de charger les emails",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

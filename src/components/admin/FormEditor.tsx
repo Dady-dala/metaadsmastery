@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -37,7 +37,6 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
     ]
   );
   const [saving, setSaving] = useState(false);
-  const { toast } = useToast();
 
   const handleAddField = () => {
     setFields([
@@ -61,19 +60,15 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
 
   const handleSave = async () => {
     if (!title) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Le titre est obligatoire",
-        variant: "destructive",
       });
       return;
     }
 
     if (fields.length === 0) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Ajoutez au moins un champ",
-        variant: "destructive",
       });
       return;
     }
@@ -102,18 +97,15 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
         if (error) throw error;
       }
 
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: form ? "Formulaire mis à jour" : "Formulaire créé",
       });
 
       onSave();
     } catch (error: any) {
       console.error('Error saving form:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de sauvegarder le formulaire",
-        variant: "destructive",
       });
     } finally {
       setSaving(false);

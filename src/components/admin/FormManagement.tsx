@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormEditor } from "./FormEditor";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Plus, Eye, Edit, Trash2, Power, PowerOff, Share2, Code } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +27,6 @@ export function FormManagement() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [shareForm, setShareForm] = useState<Form | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadForms();
@@ -45,10 +44,8 @@ export function FormManagement() {
       setForms(data || []);
     } catch (error: any) {
       console.error('Error loading forms:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de charger les formulaires",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -64,18 +61,15 @@ export function FormManagement() {
 
       if (error) throw error;
 
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: !currentStatus ? "Formulaire activé" : "Formulaire désactivé",
       });
 
       loadForms();
     } catch (error: any) {
       console.error('Error toggling form status:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de changer le statut",
-        variant: "destructive",
       });
     }
   };
@@ -91,18 +85,15 @@ export function FormManagement() {
 
       if (error) throw error;
 
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: "Formulaire supprimé",
       });
 
       loadForms();
     } catch (error: any) {
       console.error('Error deleting form:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de supprimer le formulaire",
-        variant: "destructive",
       });
     }
   };
@@ -143,8 +134,7 @@ export function FormManagement() {
 
   const copyToClipboard = (text: string, message: string) => {
     navigator.clipboard.writeText(text);
-    toast({
-      title: "Copié",
+    toast.success("Copié", {
       description: message,
     });
   };
