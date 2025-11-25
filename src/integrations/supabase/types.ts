@@ -570,6 +570,7 @@ export type Database = {
           mapping_config: Json | null
           public_description: string | null
           public_title: string | null
+          target_list_id: string | null
           title: string
           updated_at: string
         }
@@ -584,6 +585,7 @@ export type Database = {
           mapping_config?: Json | null
           public_description?: string | null
           public_title?: string | null
+          target_list_id?: string | null
           title: string
           updated_at?: string
         }
@@ -598,10 +600,19 @@ export type Database = {
           mapping_config?: Json | null
           public_description?: string | null
           public_title?: string | null
+          target_list_id?: string | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "forms_target_list_id_fkey"
+            columns: ["target_list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       landing_page_sections: {
         Row: {

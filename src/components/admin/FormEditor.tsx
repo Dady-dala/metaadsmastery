@@ -29,6 +29,7 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
   const [publicTitle, setPublicTitle] = useState(form?.public_title || '');
   const [publicDescription, setPublicDescription] = useState(form?.public_description || '');
   const [actionType, setActionType] = useState(form?.action_type || 'submission');
+  const [targetListId, setTargetListId] = useState<string>(form?.target_list_id || '');
   const [mappingConfig, setMappingConfig] = useState<Record<string, string>>(form?.mapping_config || {});
   const [fields, setFields] = useState<FormField[]>(
     form?.fields || [
@@ -41,6 +42,19 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
     ]
   );
   const [saving, setSaving] = useState(false);
+  const [contactLists, setContactLists] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadContactLists();
+  }, []);
+
+  const loadContactLists = async () => {
+    const { data } = await supabase
+      .from('contact_lists')
+      .select('id, name')
+      .order('name');
+    setContactLists(data || []);
+  };
 
   // Options de mapping disponibles pour les contacts
   const contactFields = [
@@ -105,6 +119,7 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
         fields: fields as any, // Cast to Json type for Supabase
         action_type: actionType,
         mapping_config: cleanedMappingConfig,
+        target_list_id: targetListId || null,
       };
 
       if (form) {
@@ -208,37 +223,63 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
         </div>
 
         {(actionType === 'contact' || actionType === 'both') && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-3">
-                <Label>Mapping des champs vers le CRM</Label>
-                <p className="text-sm text-muted-foreground">
-                  Associez les champs de votre formulaire aux colonnes de votre base de contacts
-                </p>
-                {fields.map((field) => (
-                  <div key={field.id} className="grid grid-cols-2 gap-3 items-center">
-                    <div className="text-sm font-medium">{field.label}</div>
-                    <Select
-                      value={mappingConfig[field.id] || 'none'}
-                      onValueChange={(value) => setMappingConfig({ ...mappingConfig, [field.id]: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Ne pas mapper" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Ne pas mapper</SelectItem>
-                        {contactFields.map((cf) => (
-                          <SelectItem key={cf.value} value={cf.value}>
-                            {cf.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  <Label>Liste de destination (optionnelle)</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Choisissez une liste à laquelle ajouter automatiquement les nouveaux contacts
+                  </p>
+                  <Select value={targetListId} onValueChange={setTargetListId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Aucune liste (contacts uniquement)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Aucune liste</SelectItem>
+                      {contactLists.map((list) => (
+                        <SelectItem key={list.id} value={list.id}>
+                          {list.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-3">
+                  <Label>Mapping des champs vers le CRM</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Associez les champs de votre formulaire aux colonnes de votre base de contacts
+                  </p>
+                  {fields.map((field) => (
+                    <div key={field.id} className="grid grid-cols-2 gap-3 items-center">
+                      <div className="text-sm font-medium">{field.label}</div>
+                      <Select
+                        value={mappingConfig[field.id] || 'none'}
+                        onValueChange={(value) => setMappingConfig({ ...mappingConfig, [field.id]: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ne pas mapper" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Ne pas mapper</SelectItem>
+                          {contactFields.map((cf) => (
+                            <SelectItem key={cf.value} value={cf.value}>
+                              {cf.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
 
         <div className="space-y-4">
