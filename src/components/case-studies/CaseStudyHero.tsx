@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { ArrowLeft, Play } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Link } from 'react-router-dom';
 
 interface CaseStudyHeroProps {
   mainTestimonialVideo: string;
@@ -44,10 +43,10 @@ const CaseStudyHero = ({ mainTestimonialVideo }: CaseStudyHeroProps) => {
     <section className="py-16 cinematic-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 mb-12 animate-fade-in">
-          <Link to="/" className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors">
+          <a href="/" className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to Home
-          </Link>
+          </a>
         </div>
         
         <div className="max-w-4xl mx-auto text-center">
