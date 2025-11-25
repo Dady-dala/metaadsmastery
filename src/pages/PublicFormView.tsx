@@ -9,11 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Loader2, CheckCircle } from "lucide-react";
 import SEO from "@/components/SEO";
+import { PhoneInput } from "@/components/PhoneInput";
 
 interface FormField {
   id: string;
   label: string;
-  type: 'text' | 'email' | 'textarea' | 'select' | 'checkbox';
+  type: 'text' | 'email' | 'textarea' | 'select' | 'checkbox' | 'phone';
   required: boolean;
   options?: string[];
 }
@@ -22,6 +23,8 @@ interface Form {
   id: string;
   title: string;
   description: string | null;
+  public_title: string | null;
+  public_description: string | null;
   fields: FormField[];
   is_active: boolean;
 }
@@ -162,7 +165,10 @@ export default function PublicFormView() {
   if (submitted) {
     return (
       <>
-        <SEO title={form.title} description={form.description || ''} />
+        <SEO 
+          title={form.public_title || form.title} 
+          description={form.public_description || form.description || ''} 
+        />
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <Card className="max-w-md w-full">
             <CardContent className="pt-6 text-center space-y-4">
@@ -180,14 +186,17 @@ export default function PublicFormView() {
 
   return (
     <>
-      <SEO title={form.title} description={form.description || ''} />
+      <SEO 
+        title={form.public_title || form.title} 
+        description={form.public_description || form.description || ''} 
+      />
       <div className="min-h-screen bg-background p-4 py-12">
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle>{form.title}</CardTitle>
-              {form.description && (
-                <CardDescription>{form.description}</CardDescription>
+              <CardTitle>{form.public_title || form.title}</CardTitle>
+              {(form.public_description || form.description) && (
+                <CardDescription>{form.public_description || form.description}</CardDescription>
               )}
             </CardHeader>
             <CardContent>
@@ -217,6 +226,15 @@ export default function PublicFormView() {
                         onChange={(e) => handleFieldChange(field.id, e.target.value)}
                         required={field.required}
                         className="mt-2"
+                      />
+                    )}
+
+                    {field.type === 'phone' && (
+                      <PhoneInput
+                        id={field.id}
+                        value={formData[field.id] || ''}
+                        onChange={(value) => handleFieldChange(field.id, value)}
+                        required={field.required}
                       />
                     )}
 

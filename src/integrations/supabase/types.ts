@@ -568,6 +568,8 @@ export type Database = {
           id: string
           is_active: boolean
           mapping_config: Json | null
+          public_description: string | null
+          public_title: string | null
           title: string
           updated_at: string
         }
@@ -580,6 +582,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           mapping_config?: Json | null
+          public_description?: string | null
+          public_title?: string | null
           title: string
           updated_at?: string
         }
@@ -592,6 +596,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           mapping_config?: Json | null
+          public_description?: string | null
+          public_title?: string | null
           title?: string
           updated_at?: string
         }

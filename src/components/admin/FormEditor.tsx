@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface FormField {
   id: string;
   label: string;
-  type: 'text' | 'email' | 'textarea' | 'select' | 'checkbox';
+  type: 'text' | 'email' | 'textarea' | 'select' | 'checkbox' | 'phone';
   required: boolean;
   options?: string[];
 }
@@ -26,6 +26,8 @@ interface FormEditorProps {
 export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
   const [title, setTitle] = useState(form?.title || '');
   const [description, setDescription] = useState(form?.description || '');
+  const [publicTitle, setPublicTitle] = useState(form?.public_title || '');
+  const [publicDescription, setPublicDescription] = useState(form?.public_description || '');
   const [actionType, setActionType] = useState(form?.action_type || 'submission');
   const [mappingConfig, setMappingConfig] = useState<Record<string, string>>(form?.mapping_config || {});
   const [fields, setFields] = useState<FormField[]>(
@@ -98,6 +100,8 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
       const formData = {
         title,
         description,
+        public_title: publicTitle,
+        public_description: publicDescription,
         fields: fields as any, // Cast to Json type for Supabase
         action_type: actionType,
         mapping_config: cleanedMappingConfig,
@@ -137,22 +141,49 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
     <div className="space-y-6">
       <div className="space-y-4">
         <div>
-          <Label htmlFor="title">Titre du formulaire</Label>
+          <Label htmlFor="title">Nom interne (admin uniquement)</Label>
           <Input
             id="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ex: Formulaire d'inscription newsletter"
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Ce nom est visible uniquement dans l'administration
+          </p>
         </div>
 
         <div>
-          <Label htmlFor="description">Description (optionnelle)</Label>
+          <Label htmlFor="description">Description interne (optionnelle)</Label>
           <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Décrivez le but de ce formulaire"
+            placeholder="Notes pour l'équipe"
+            rows={2}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="publicTitle">Titre visible par les utilisateurs</Label>
+          <Input
+            id="publicTitle"
+            value={publicTitle}
+            onChange={(e) => setPublicTitle(e.target.value)}
+            placeholder="Ex: Rejoignez notre newsletter"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Ce titre sera affiché aux utilisateurs qui remplissent le formulaire
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="publicDescription">Description visible (optionnelle)</Label>
+          <Textarea
+            id="publicDescription"
+            value={publicDescription}
+            onChange={(e) => setPublicDescription(e.target.value)}
+            placeholder="Décrivez le formulaire pour vos utilisateurs"
             rows={3}
           />
         </div>
@@ -260,6 +291,7 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
                         <SelectContent>
                           <SelectItem value="text">Texte</SelectItem>
                           <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="phone">Téléphone</SelectItem>
                           <SelectItem value="textarea">Zone de texte</SelectItem>
                           <SelectItem value="select">Liste déroulante</SelectItem>
                           <SelectItem value="checkbox">Case à cocher</SelectItem>
