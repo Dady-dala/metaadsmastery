@@ -26,6 +26,8 @@ interface FormEditorProps {
 export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
   const [title, setTitle] = useState(form?.title || '');
   const [description, setDescription] = useState(form?.description || '');
+  const [actionType, setActionType] = useState(form?.action_type || 'submission');
+  const [mappingConfig, setMappingConfig] = useState<Record<string, string>>(form?.mapping_config || {});
   const [fields, setFields] = useState<FormField[]>(
     form?.fields || [
       {
@@ -37,6 +39,15 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
     ]
   );
   const [saving, setSaving] = useState(false);
+
+  // Options de mapping disponibles pour les contacts
+  const contactFields = [
+    { value: 'email', label: 'Email' },
+    { value: 'first_name', label: 'Prénom' },
+    { value: 'last_name', label: 'Nom' },
+    { value: 'phone', label: 'Téléphone' },
+    { value: 'notes', label: 'Notes' },
+  ];
 
   const handleAddField = () => {
     setFields([
@@ -80,6 +91,8 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
         title,
         description,
         fields: fields as any, // Cast to Json type for Supabase
+        action_type: actionType,
+        mapping_config: mappingConfig,
       };
 
       if (form) {
@@ -135,6 +148,59 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
             rows={3}
           />
         </div>
+
+        <div>
+          <Label htmlFor="actionType">Action après soumission</Label>
+          <Select value={actionType} onValueChange={setActionType}>
+            <SelectTrigger id="actionType">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="submission">Soumission seulement</SelectItem>
+              <SelectItem value="contact">Créer un contact</SelectItem>
+              <SelectItem value="both">Soumission + Contact</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            {actionType === 'submission' && 'Les données seront stockées comme soumissions de formulaire'}
+            {actionType === 'contact' && 'Un nouveau contact sera créé dans votre CRM'}
+            {actionType === 'both' && 'Créera à la fois une soumission et un contact'}
+          </p>
+        </div>
+
+        {(actionType === 'contact' || actionType === 'both') && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-3">
+                <Label>Mapping des champs vers le CRM</Label>
+                <p className="text-sm text-muted-foreground">
+                  Associez les champs de votre formulaire aux colonnes de votre base de contacts
+                </p>
+                {fields.map((field) => (
+                  <div key={field.id} className="grid grid-cols-2 gap-3 items-center">
+                    <div className="text-sm font-medium">{field.label}</div>
+                    <Select
+                      value={mappingConfig[field.id] || ''}
+                      onValueChange={(value) => setMappingConfig({ ...mappingConfig, [field.id]: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Ne pas mapper" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Ne pas mapper</SelectItem>
+                        {contactFields.map((cf) => (
+                          <SelectItem key={cf.value} value={cf.value}>
+                            {cf.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
