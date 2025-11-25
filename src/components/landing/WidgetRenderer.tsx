@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Check, TrendingUp, Users, Star, Award, Play, Zap, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 interface LandingSection {
   id: string;
@@ -47,12 +48,12 @@ export const WidgetRenderer = ({ section, onCtaClick }: WidgetRendererProps) => 
           <section className={`py-20 relative overflow-hidden ${sectionClasses}`}>
             <div className="absolute inset-0 cinematic-grain opacity-20"></div>
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center gap-4 mb-12">
-                <a href="/" className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Home
-                </a>
-              </div>
+            <div className="flex items-center gap-4 mb-12">
+              <Link to="/" className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Link>
+            </div>
               
               <div className="text-center">
                 <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight cinematic-text-shadow">

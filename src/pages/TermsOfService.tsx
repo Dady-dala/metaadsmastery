@@ -1,6 +1,7 @@
 
 import ModernHeader from '@/components/ModernHeader';
 import Footer from '@/components/Footer';
+import { Link } from 'react-router-dom';
 
 const TermsOfService = () => {
   return (
@@ -20,7 +21,7 @@ const TermsOfService = () => {
               <h2 className="text-2xl font-semibold text-yellow-400 mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-300">
                 By using ContentFarm.club, you agree to these Terms and our{' '}
-                <a href="/privacy-policy" className="text-yellow-400 hover:underline">Privacy Policy</a>. 
+                <Link to="/privacy-policy" className="text-yellow-400 hover:underline">Privacy Policy</Link>. 
                 If you do not agree, please do not use the Site.
               </p>
             </section>
