@@ -31,12 +31,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending transactional email to:", toEmail);
 
-    // Send email via Resend
+    // Send email via Resend with reply-to configured
     const emailResponse = await resend.emails.send({
-      from: "Meta Ads Mastery <onboarding@metaadsmastery.dalaconcept.com>",
+      from: "Meta Ads Mastery <metamastery@aldiacoruu.resend.app>",
       to: [toEmail],
+      reply_to: "metamastery@aldiacoruu.resend.app",
       subject: subject,
       html: htmlBody,
+      headers: {
+        'X-Entity-Ref-ID': crypto.randomUUID(),
+      },
     });
 
     console.log("Email sent successfully:", emailResponse);
@@ -54,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: dbError } = await supabase
       .from('emails')
       .insert([{
-        from_email: 'onboarding@metaadsmastery.dalaconcept.com',
+        from_email: 'metamastery@aldiacoruu.resend.app',
         from_name: 'Meta Ads Mastery',
         to_email: toEmail,
         to_name: toName || null,

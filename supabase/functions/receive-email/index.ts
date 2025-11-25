@@ -97,6 +97,25 @@ Deno.serve(async (req) => {
 
     console.log('Email stored successfully:', insertedEmail);
 
+    // Create notification for admin about new received email
+    const { data: adminUsers } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin')
+      .eq('is_active', true);
+
+    if (adminUsers && adminUsers.length > 0) {
+      const notifications = adminUsers.map(admin => ({
+        user_id: admin.user_id,
+        title: 'Nouvel email reçu',
+        message: `De: ${from} - Sujet: ${subject}`,
+        type: 'email',
+        link: '/admin?tab=email-inbox',
+      }));
+
+      await supabase.from('notifications').insert(notifications);
+    }
+
     return new Response(
       JSON.stringify({ success: true, email_id: data.id }),
       { 
