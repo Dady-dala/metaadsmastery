@@ -186,12 +186,11 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
 
         <div>
           <Label htmlFor="course">Cibler une formation spécifique (optionnel)</Label>
-          <Select value={targetCourseId} onValueChange={setTargetCourseId}>
+          <Select value={targetCourseId || undefined} onValueChange={setTargetCourseId}>
             <SelectTrigger>
               <SelectValue placeholder="Toutes les formations" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les formations</SelectItem>
               {courses.map((course) => (
                 <SelectItem key={course.id} value={course.id}>
                   {course.title}
