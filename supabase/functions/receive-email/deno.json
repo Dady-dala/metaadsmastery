@@ -1,3 +1,4 @@
 {
-  "importMap": "../deno.json"
+  "importMap": "../deno.json",
+  "nodeModulesDir": "auto"
 }
