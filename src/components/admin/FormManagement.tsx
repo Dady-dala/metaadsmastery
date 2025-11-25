@@ -125,7 +125,9 @@ export function FormManagement() {
   };
 
   const getShareLink = (formId: string) => {
-    return `${window.location.origin}/formulaire/${formId}`;
+    // Use the deployed app URL instead of the Lovable preview URL
+    const baseUrl = import.meta.env.VITE_APP_URL || 'https://metaadsmastery.lovable.app';
+    return `${baseUrl}/formulaire/${formId}`;
   };
 
   const getEmbedCode = (formId: string) => {
