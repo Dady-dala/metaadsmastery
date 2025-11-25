@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +12,11 @@ import {
   SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Users,
   BookOpen,
@@ -29,8 +35,11 @@ import {
   Workflow,
   Settings,
   ListChecks,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const menuSections = [
   {
@@ -153,6 +162,31 @@ export const AdminSidebar = () => {
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get('tab') || 'overview';
 
+  // État pour gérer les sections ouvertes/fermées
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('admin-sidebar-sections');
+    return saved ? JSON.parse(saved) : {
+      'Vue d\'ensemble': true,
+      'Formation': false,
+      'Gestion': false,
+      'Marketing & CRM': false,
+      'Automatisation': false,
+      'Paramètres': false,
+    };
+  });
+
+  // Sauvegarder l'état dans localStorage
+  useEffect(() => {
+    localStorage.setItem('admin-sidebar-sections', JSON.stringify(openSections));
+  }, [openSections]);
+
+  const toggleSection = (label: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [label]: !prev[label]
+    }));
+  };
+
   const handleTabChange = (tab: string) => {
     navigate(`/admin?tab=${tab}`);
   };
@@ -174,29 +208,52 @@ export const AdminSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         {menuSections.map((section) => (
-          <SidebarGroup key={section.label}>
-            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {section.items.map((item) => (
-                  <SidebarMenuItem key={item.tab}>
-                    <SidebarMenuButton
-                      onClick={() => handleTabChange(item.tab)}
-                      isActive={currentTab === item.tab}
-                      tooltip={item.title}
-                      className={cn(
-                        'w-full justify-start',
-                        currentTab === item.tab && 'bg-accent text-accent-foreground font-medium'
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <Collapsible
+            key={section.label}
+            open={openSections[section.label]}
+            onOpenChange={() => toggleSection(section.label)}
+          >
+            <SidebarGroup>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-between px-2 py-1 h-8 hover:bg-accent/50"
+                >
+                  <SidebarGroupLabel className="flex-1 text-left cursor-pointer">
+                    {section.label}
+                  </SidebarGroupLabel>
+                  {openSections[section.label] ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.tab}>
+                        <SidebarMenuButton
+                          onClick={() => handleTabChange(item.tab)}
+                          isActive={currentTab === item.tab}
+                          tooltip={item.title}
+                          className={cn(
+                            'w-full justify-start',
+                            currentTab === item.tab && 'bg-accent text-accent-foreground font-medium'
+                          )}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
         ))}
       </SidebarContent>
     </Sidebar>
