@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Mail, Inbox, Send, Reply, Plus, Eye } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearchParams } from "react-router-dom";
 
 interface Email {
   id: string;
@@ -27,6 +28,7 @@ interface Email {
 }
 
 export function EmailInbox() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [emails, setEmails] = useState<Email[]>([]);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
@@ -36,6 +38,20 @@ export function EmailInbox() {
   useEffect(() => {
     loadEmails();
   }, []);
+
+  useEffect(() => {
+    // Check if there's an email_id in the URL params
+    const emailId = searchParams.get('email_id');
+    if (emailId && emails.length > 0) {
+      const email = emails.find(e => e.id === emailId);
+      if (email) {
+        handleViewEmail(email);
+        // Remove the email_id param after opening
+        searchParams.delete('email_id');
+        setSearchParams(searchParams);
+      }
+    }
+  }, [searchParams, emails]);
 
   const loadEmails = async () => {
     try {

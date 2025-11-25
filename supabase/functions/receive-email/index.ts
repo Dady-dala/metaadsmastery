@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
         title: 'Nouvel email reçu',
         message: `De: ${from} - Sujet: ${subject}`,
         type: 'email',
-        link: '/admin?tab=email-inbox',
+        link: `/admin?tab=email-inbox&email_id=${insertedEmail.id}`,
       }));
 
       console.log('Attempting to insert notifications:', notifications);
