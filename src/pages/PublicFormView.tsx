@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2, CheckCircle } from "lucide-react";
 import SEO from "@/components/SEO";
 
@@ -33,7 +33,6 @@ export default function PublicFormView() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     loadForm();
@@ -52,10 +51,8 @@ export default function PublicFormView() {
       if (error) throw error;
       
       if (!data) {
-        toast({
-          title: "Erreur",
+        toast.error("Erreur", {
           description: "Formulaire introuvable ou inactif",
-          variant: "destructive",
         });
         return;
       }
@@ -79,10 +76,8 @@ export default function PublicFormView() {
       setFormData(initialData);
     } catch (error: any) {
       console.error('Error loading form:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de charger le formulaire",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -99,10 +94,8 @@ export default function PublicFormView() {
     const requiredFields = fields.filter(f => f.required);
     for (const field of requiredFields) {
       if (!formData[field.id] || formData[field.id] === '') {
-        toast({
-          title: "Erreur",
+        toast.error("Erreur", {
           description: `Le champ "${field.label}" est obligatoire`,
-          variant: "destructive",
         });
         return;
       }
@@ -127,16 +120,13 @@ export default function PublicFormView() {
       if (error) throw error;
 
       setSubmitted(true);
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: "Formulaire soumis avec succès",
       });
     } catch (error: any) {
       console.error('Error submitting form:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible de soumettre le formulaire",
-        variant: "destructive",
       });
     } finally {
       setSubmitting(false);

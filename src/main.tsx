@@ -12,8 +12,8 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <BrowserRouter>
         <App />
+        <Toaster />
       </BrowserRouter>
-      <Toaster />
     </ThemeProvider>
   </QueryClientProvider>
 );

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -19,7 +19,6 @@ export function EmailComposer({ replyTo, onSent, onCancel }: EmailComposerProps)
   const [subject, setSubject] = useState(replyTo ? `Re: ${replyTo.subject}` : '');
   const [htmlBody, setHtmlBody] = useState('');
   const [sending, setSending] = useState(false);
-  const { toast } = useToast();
 
   const modules = {
     toolbar: [
@@ -34,10 +33,8 @@ export function EmailComposer({ replyTo, onSent, onCancel }: EmailComposerProps)
 
   const handleSend = async () => {
     if (!toEmail || !subject || !htmlBody) {
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Veuillez remplir tous les champs",
-        variant: "destructive",
       });
       return;
     }
@@ -58,18 +55,15 @@ export function EmailComposer({ replyTo, onSent, onCancel }: EmailComposerProps)
 
       if (error) throw error;
 
-      toast({
-        title: "Succès",
+      toast.success("Succès", {
         description: "Email envoyé avec succès",
       });
 
       onSent();
     } catch (error: any) {
       console.error('Error sending email:', error);
-      toast({
-        title: "Erreur",
+      toast.error("Erreur", {
         description: "Impossible d'envoyer l'email",
-        variant: "destructive",
       });
     } finally {
       setSending(false);
