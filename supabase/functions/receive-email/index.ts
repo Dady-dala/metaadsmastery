@@ -98,11 +98,13 @@ Deno.serve(async (req) => {
     console.log('Email stored successfully:', insertedEmail);
 
     // Create notification for admin about new received email
-    const { data: adminUsers } = await supabase
+    const { data: adminUsers, error: adminError } = await supabase
       .from('user_roles')
       .select('user_id')
       .eq('role', 'admin')
       .eq('is_active', true);
+
+    console.log('Admin users found:', adminUsers?.length || 0, 'Error:', adminError);
 
     if (adminUsers && adminUsers.length > 0) {
       const notifications = adminUsers.map(admin => ({
@@ -113,7 +115,15 @@ Deno.serve(async (req) => {
         link: '/admin?tab=email-inbox',
       }));
 
-      await supabase.from('notifications').insert(notifications);
+      console.log('Attempting to insert notifications:', notifications);
+
+      const { error: notifError } = await supabase.from('notifications').insert(notifications);
+      
+      if (notifError) {
+        console.error('Error inserting notifications:', notifError);
+      } else {
+        console.log('Notifications created successfully');
+      }
     }
 
     return new Response(

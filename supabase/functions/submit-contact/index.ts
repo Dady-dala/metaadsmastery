@@ -187,11 +187,13 @@ Deno.serve(async (req) => {
     });
 
     // Create notification for admins about new contact submission
-    const { data: adminUsers } = await supabaseAdmin
+    const { data: adminUsers, error: adminError } = await supabaseAdmin
       .from('user_roles')
       .select('user_id')
       .eq('role', 'admin')
       .eq('is_active', true);
+
+    console.log('Admin users found for contact submission:', adminUsers?.length || 0);
 
     if (adminUsers && adminUsers.length > 0) {
       const notifications = adminUsers.map(admin => ({
@@ -202,7 +204,13 @@ Deno.serve(async (req) => {
         link: '/admin?tab=prospects',
       }));
 
-      await supabaseAdmin.from('notifications').insert(notifications);
+      const { error: notifError } = await supabaseAdmin.from('notifications').insert(notifications);
+      
+      if (notifError) {
+        console.error('Error inserting contact notifications:', notifError);
+      } else {
+        console.log('Contact notifications created successfully');
+      }
     }
 
     // Send confirmation email to prospect (background task - don't await)
