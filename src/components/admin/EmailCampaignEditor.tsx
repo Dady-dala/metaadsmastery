@@ -21,16 +21,19 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
   const [triggerType, setTriggerType] = useState(campaign?.trigger_type || 'manual');
   const [targetCourseId, setTargetCourseId] = useState(campaign?.target_audience?.course_id || '');
   const [targetFormId, setTargetFormId] = useState(campaign?.target_audience?.form_id || '');
+  const [selectedContactLists, setSelectedContactLists] = useState<string[]>(campaign?.target_audience?.contact_lists || []);
   const [inactivityDays, setInactivityDays] = useState(campaign?.trigger_config?.days || '7');
   const [progressPercentage, setProgressPercentage] = useState(campaign?.trigger_config?.percentage || '50');
   const [courses, setCourses] = useState<any[]>([]);
   const [forms, setForms] = useState<any[]>([]);
+  const [contactLists, setContactLists] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCourses();
     loadForms();
+    loadContactLists();
   }, []);
 
   const loadCourses = async () => {
@@ -50,6 +53,15 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
       .order('title');
     
     setForms(data || []);
+  };
+
+  const loadContactLists = async () => {
+    const { data } = await supabase
+      .from('contact_lists')
+      .select('id, name, description')
+      .order('name');
+    
+    setContactLists(data || []);
   };
 
   const handleSave = async () => {
@@ -78,6 +90,9 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
       }
       if (targetFormId) {
         targetAudience.form_id = targetFormId;
+      }
+      if (selectedContactLists.length > 0) {
+        targetAudience.contact_lists = selectedContactLists;
       }
 
       const campaignData = {
@@ -233,6 +248,44 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        <div>
+          <Label>Listes de contacts CRM (optionnel)</Label>
+          <div className="mt-2 space-y-2 border rounded-md p-3 max-h-48 overflow-y-auto">
+            {contactLists.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Aucune liste de contacts disponible</p>
+            ) : (
+              contactLists.map((list) => (
+                <div key={list.id} className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    id={`list-${list.id}`}
+                    checked={selectedContactLists.includes(list.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedContactLists([...selectedContactLists, list.id]);
+                      } else {
+                        setSelectedContactLists(selectedContactLists.filter(id => id !== list.id));
+                      }
+                    }}
+                    className="mt-1 rounded"
+                  />
+                  <div className="flex-1">
+                    <Label htmlFor={`list-${list.id}`} className="cursor-pointer font-medium">
+                      {list.name}
+                    </Label>
+                    {list.description && (
+                      <p className="text-xs text-muted-foreground">{list.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            Sélectionnez les listes de contacts qui recevront cet email
+          </p>
         </div>
 
         <div>

@@ -26,84 +26,122 @@ import {
   FileText,
   Inbox,
   ContactRound,
+  Workflow,
+  Settings,
+  ListChecks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const menuItems = [
+const menuSections = [
   {
-    title: 'Vue d\'ensemble',
-    icon: LayoutDashboard,
-    tab: 'overview',
+    label: 'Vue d\'ensemble',
+    items: [
+      {
+        title: 'Dashboard',
+        icon: LayoutDashboard,
+        tab: 'overview',
+      },
+    ],
   },
   {
-    title: 'Utilisateurs',
-    icon: Users,
-    tab: 'users',
+    label: 'Formation',
+    items: [
+      {
+        title: 'Formations',
+        icon: BookOpen,
+        tab: 'courses',
+      },
+      {
+        title: 'Vidéos',
+        icon: Video,
+        tab: 'videos',
+      },
+      {
+        title: 'Progression',
+        icon: TrendingUp,
+        tab: 'progress',
+      },
+      {
+        title: 'Analytics',
+        icon: BarChart3,
+        tab: 'analytics',
+      },
+      {
+        title: 'Certificats',
+        icon: Award,
+        tab: 'certificates',
+      },
+    ],
   },
   {
-    title: 'Formations',
-    icon: BookOpen,
-    tab: 'courses',
+    label: 'Gestion',
+    items: [
+      {
+        title: 'Utilisateurs',
+        icon: Users,
+        tab: 'users',
+      },
+      {
+        title: 'Inscriptions',
+        icon: ListChecks,
+        tab: 'submissions',
+      },
+      {
+        title: 'Messages',
+        icon: MessageSquare,
+        tab: 'messages',
+      },
+    ],
   },
   {
-    title: 'Vidéos',
-    icon: Video,
-    tab: 'videos',
+    label: 'Marketing & CRM',
+    items: [
+      {
+        title: 'Contacts',
+        icon: ContactRound,
+        tab: 'contacts',
+      },
+      {
+        title: 'Templates Email',
+        icon: MailOpen,
+        tab: 'email-templates',
+      },
+      {
+        title: 'Campagnes Email',
+        icon: Mail,
+        tab: 'email-marketing',
+      },
+      {
+        title: 'Boîte de réception',
+        icon: Inbox,
+        tab: 'email-inbox',
+      },
+      {
+        title: 'Formulaires',
+        icon: FileText,
+        tab: 'forms',
+      },
+    ],
   },
   {
-    title: 'Progression',
-    icon: TrendingUp,
-    tab: 'progress',
+    label: 'Automatisation',
+    items: [
+      {
+        title: 'Workflows',
+        icon: Workflow,
+        tab: 'workflows',
+      },
+    ],
   },
   {
-    title: 'Analytics',
-    icon: BarChart3,
-    tab: 'analytics',
-  },
-  {
-    title: 'Certificats',
-    icon: Award,
-    tab: 'certificates',
-  },
-  {
-    title: 'Templates Email',
-    icon: MailOpen,
-    tab: 'email-templates',
-  },
-  {
-    title: 'Marketing Email',
-    icon: Mail,
-    tab: 'email-marketing',
-  },
-  {
-    title: 'Boîte de réception',
-    icon: Inbox,
-    tab: 'email-inbox',
-  },
-  {
-    title: 'Contacts',
-    icon: ContactRound,
-    tab: 'contacts',
-  },
-  {
-    title: 'Formulaires',
-    icon: FileText,
-    tab: 'forms',
-  },
-  {
-    title: 'Inscriptions',
-    icon: Mail,
-    tab: 'submissions',
-  },
-  {
-    title: 'Messages',
-    icon: MessageSquare,
-    tab: 'messages',
-  },
-  {
-    title: 'Mon Profil',
-    icon: UserCircle,
-    tab: 'profile',
+    label: 'Paramètres',
+    items: [
+      {
+        title: 'Mon Profil',
+        icon: UserCircle,
+        tab: 'profile',
+      },
+    ],
   },
 ];
 
@@ -135,29 +173,31 @@ export const AdminSidebar = () => {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.tab}>
-                  <SidebarMenuButton
-                    onClick={() => handleTabChange(item.tab)}
-                    isActive={currentTab === item.tab}
-                    tooltip={item.title}
-                    className={cn(
-                      'w-full justify-start',
-                      currentTab === item.tab && 'bg-accent text-accent-foreground font-medium'
-                    )}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {menuSections.map((section) => (
+          <SidebarGroup key={section.label}>
+            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {section.items.map((item) => (
+                  <SidebarMenuItem key={item.tab}>
+                    <SidebarMenuButton
+                      onClick={() => handleTabChange(item.tab)}
+                      isActive={currentTab === item.tab}
+                      tooltip={item.title}
+                      className={cn(
+                        'w-full justify-start',
+                        currentTab === item.tab && 'bg-accent text-accent-foreground font-medium'
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );
