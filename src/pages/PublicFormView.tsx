@@ -46,7 +46,7 @@ export default function PublicFormView() {
         .select('*')
         .eq('id', formId)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
