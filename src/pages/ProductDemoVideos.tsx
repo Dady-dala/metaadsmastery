@@ -3,6 +3,7 @@ import Footer from '@/components/Footer';
 import { ArrowLeft, Play, TrendingUp, Users, Zap } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const CaseStudies = () => {
   useEffect(() => {
@@ -92,10 +93,10 @@ const CaseStudies = () => {
           <div className="absolute inset-0 cinematic-grain opacity-20"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-4 mb-12">
-              <a href="/" className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors">
+              <Link to="/" className="flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors">
                 <ArrowLeft className="h-4 w-4" />
                 Back to Home
-              </a>
+              </Link>
             </div>
             
             {/* Sales-focused Header */}

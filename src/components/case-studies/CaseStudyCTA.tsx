@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import ContactFormDialog from '@/components/ContactFormDialog';
+import { Link } from 'react-router-dom';
 
 const CaseStudyCTA = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -34,9 +35,9 @@ const CaseStudyCTA = () => {
             Get Your Free Video Growth Plan →
           </Button>
           <ContactFormDialog isOpen={isDialogOpen} onOpenChange={setIsDialogOpen} />
-          <a href="/pricing" className="inline-block border-2 border-yellow-400 text-yellow-400 font-bold text-lg px-8 py-4 rounded-full hover:bg-yellow-400 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-2xl">
+          <Link to="/pricing" className="inline-block border-2 border-yellow-400 text-yellow-400 font-bold text-lg px-8 py-4 rounded-full hover:bg-yellow-400 hover:text-black transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-2xl">
             View Pricing
-          </a>
+          </Link>
         </div>
         
         <div className="mt-8 animate-fade-in" style={{
