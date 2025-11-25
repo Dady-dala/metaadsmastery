@@ -3,21 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Play, Pause, Trash2, Zap, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Play, Pause, Trash2, Zap, ArrowRight, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import { WorkflowBuilder } from "./WorkflowBuilder";
 
 interface Workflow {
   id: string;
   name: string;
   description: string;
-  trigger: {
-    type: string;
-    config: any;
-  };
-  actions: Array<{
-    type: string;
-    config: any;
-  }>;
+  trigger_type: string;
+  trigger_config: any;
+  actions: any[];
   status: 'active' | 'paused' | 'draft';
   created_at: string;
 }
@@ -25,6 +22,10 @@ interface Workflow {
 export function WorkflowManagement() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [statsDialogOpen, setStatsDialogOpen] = useState(false);
+  const [selectedWorkflowStats, setSelectedWorkflowStats] = useState<any>(null);
 
   useEffect(() => {
     loadWorkflows();
@@ -33,54 +34,80 @@ export function WorkflowManagement() {
   const loadWorkflows = async () => {
     try {
       setLoading(true);
-      // Pour l'instant, on utilise des données de démonstration
-      // À terme, il faudra créer une table workflows dans la base de données
-      const demoWorkflows: Workflow[] = [
-        {
-          id: '1',
-          name: 'Bienvenue nouveau prospect',
-          description: 'Envoie un email de bienvenue lorsqu\'un prospect s\'inscrit',
-          trigger: {
-            type: 'form_submission',
-            config: { form_id: 'registration' }
-          },
-          actions: [
-            {
-              type: 'send_email',
-              config: { template_id: 'welcome' }
-            },
-            {
-              type: 'add_to_list',
-              config: { list_name: 'Nouveaux prospects' }
-            }
-          ],
-          status: 'active',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: 'Relance inactifs',
-          description: 'Relance les contacts inactifs après 7 jours',
-          trigger: {
-            type: 'inactivity',
-            config: { days: 7 }
-          },
-          actions: [
-            {
-              type: 'send_email',
-              config: { template_id: 'reactivation' }
-            }
-          ],
-          status: 'draft',
-          created_at: new Date().toISOString()
-        }
-      ];
-      setWorkflows(demoWorkflows);
+      const { data, error } = await supabase
+        .from('workflows')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setWorkflows((data as any) || []);
     } catch (error: any) {
       console.error('Error loading workflows:', error);
       toast.error('Erreur lors du chargement des workflows');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (workflowId: string, newStatus: 'active' | 'paused') => {
+    try {
+      const { error } = await supabase
+        .from('workflows')
+        .update({ status: newStatus })
+        .eq('id', workflowId);
+
+      if (error) throw error;
+
+      toast.success(`Workflow ${newStatus === 'active' ? 'activé' : 'mis en pause'}`);
+      loadWorkflows();
+    } catch (error: any) {
+      console.error('Error updating workflow status:', error);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleDelete = async (workflowId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce workflow ?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('workflows')
+        .delete()
+        .eq('id', workflowId);
+
+      if (error) throw error;
+
+      toast.success('Workflow supprimé');
+      loadWorkflows();
+    } catch (error: any) {
+      console.error('Error deleting workflow:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleViewStats = async (workflow: Workflow) => {
+    try {
+      const { data, error } = await supabase
+        .from('workflow_executions')
+        .select('*')
+        .eq('workflow_id', workflow.id)
+        .order('started_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      const stats = {
+        total: data.length,
+        completed: data.filter(e => e.status === 'completed').length,
+        failed: data.filter(e => e.status === 'failed').length,
+        pending: data.filter(e => e.status === 'pending').length,
+      };
+
+      setSelectedWorkflowStats(stats);
+      setStatsDialogOpen(true);
+    } catch (error: any) {
+      console.error('Error loading stats:', error);
+      toast.error('Erreur lors du chargement des statistiques');
     }
   };
 
@@ -146,7 +173,10 @@ export function WorkflowManagement() {
             Automatisez vos actions marketing et gagnez du temps
           </p>
         </div>
-        <Button>
+        <Button onClick={() => {
+          setSelectedWorkflow(null);
+          setBuilderOpen(true);
+        }}>
           <Plus className="mr-2 h-4 w-4" />
           Créer un workflow
         </Button>
@@ -174,7 +204,7 @@ export function WorkflowManagement() {
                 <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
                   <div className="flex-1">
                     <div className="text-sm font-medium">
-                      {getTriggerLabel(workflow.trigger.type)}
+                      {getTriggerLabel(workflow.trigger_type)}
                     </div>
                   </div>
                 </div>
@@ -205,7 +235,12 @@ export function WorkflowManagement() {
 
               {/* Actions du workflow */}
               <div className="flex gap-2 pt-2 border-t">
-                <Button variant="outline" size="sm" className="flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => handleStatusChange(workflow.id, workflow.status === 'active' ? 'paused' : 'active')}
+                >
                   {workflow.status === 'active' ? (
                     <>
                       <Pause className="mr-2 h-3 w-3" />
@@ -218,10 +253,28 @@ export function WorkflowManagement() {
                     </>
                   )}
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedWorkflow(workflow);
+                    setBuilderOpen(true);
+                  }}
+                >
                   Modifier
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleViewStats(workflow)}
+                >
+                  <BarChart3 className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(workflow.id)}
+                >
                   <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
@@ -245,6 +298,68 @@ export function WorkflowManagement() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Workflow Builder Dialog */}
+      <Dialog open={builderOpen} onOpenChange={setBuilderOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedWorkflow ? 'Modifier le workflow' : 'Créer un workflow'}
+            </DialogTitle>
+          </DialogHeader>
+          <WorkflowBuilder
+            workflow={selectedWorkflow}
+            onSave={() => {
+              setBuilderOpen(false);
+              setSelectedWorkflow(null);
+              loadWorkflows();
+            }}
+            onCancel={() => {
+              setBuilderOpen(false);
+              setSelectedWorkflow(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Stats Dialog */}
+      <Dialog open={statsDialogOpen} onOpenChange={setStatsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Statistiques du workflow</DialogTitle>
+          </DialogHeader>
+          {selectedWorkflowStats && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">{selectedWorkflowStats.total}</div>
+                    <div className="text-sm text-muted-foreground">Exécutions totales</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold text-green-600">{selectedWorkflowStats.completed}</div>
+                    <div className="text-sm text-muted-foreground">Complétées</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold text-red-600">{selectedWorkflowStats.failed}</div>
+                    <div className="text-sm text-muted-foreground">Échouées</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold text-yellow-600">{selectedWorkflowStats.pending}</div>
+                    <div className="text-sm text-muted-foreground">En attente</div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
