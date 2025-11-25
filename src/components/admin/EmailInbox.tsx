@@ -242,7 +242,13 @@ export function EmailInbox() {
                 <p><strong>Date:</strong> {formatDate(selectedEmail.sent_at)}</p>
               </div>
               <ScrollArea className="h-[400px] border rounded-lg p-4">
-                <div dangerouslySetInnerHTML={{ __html: selectedEmail.html_body }} />
+                {selectedEmail.html_body && selectedEmail.html_body.trim() ? (
+                  <div dangerouslySetInnerHTML={{ __html: selectedEmail.html_body }} />
+                ) : (
+                  <div className="whitespace-pre-wrap">
+                    {selectedEmail.text_body || '(Aucun contenu)'}
+                  </div>
+                )}
               </ScrollArea>
               <div className="flex justify-end">
                 <Button onClick={() => handleReply(selectedEmail)}>
