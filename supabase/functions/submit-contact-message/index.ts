@@ -178,6 +178,25 @@ Deno.serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
+    // Create notification for admins about new contact message
+    const { data: adminUsers } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin')
+      .eq('is_active', true);
+
+    if (adminUsers && adminUsers.length > 0) {
+      const notifications = adminUsers.map(admin => ({
+        user_id: admin.user_id,
+        title: 'Nouveau message de contact',
+        message: `${sanitizeInput(name)} - ${sanitizeInput(message).substring(0, 50)}...`,
+        type: 'form',
+        link: '/admin?tab=messages',
+      }));
+
+      await supabaseAdmin.from('notifications').insert(notifications);
+    }
+
     // Send admin notification (background task - don't await)
     fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-admin-notification`,

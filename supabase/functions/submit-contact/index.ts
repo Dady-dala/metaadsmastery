@@ -186,6 +186,25 @@ Deno.serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
+    // Create notification for admins about new contact submission
+    const { data: adminUsers } = await supabaseAdmin
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin')
+      .eq('is_active', true);
+
+    if (adminUsers && adminUsers.length > 0) {
+      const notifications = adminUsers.map(admin => ({
+        user_id: admin.user_id,
+        title: 'Nouveau prospect inscrit',
+        message: `${first_name} ${last_name} - ${email}`,
+        type: 'form',
+        link: '/admin?tab=prospects',
+      }));
+
+      await supabaseAdmin.from('notifications').insert(notifications);
+    }
+
     // Send confirmation email to prospect (background task - don't await)
     fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-confirmation-email`,
