@@ -87,12 +87,20 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
     try {
       setSaving(true);
 
+      // Nettoyer le mappingConfig pour ne pas stocker les valeurs "none"
+      const cleanedMappingConfig: Record<string, string> = {};
+      Object.entries(mappingConfig).forEach(([fieldId, value]) => {
+        if (value && value !== 'none') {
+          cleanedMappingConfig[fieldId] = value;
+        }
+      });
+
       const formData = {
         title,
         description,
         fields: fields as any, // Cast to Json type for Supabase
         action_type: actionType,
-        mapping_config: mappingConfig,
+        mapping_config: cleanedMappingConfig,
       };
 
       if (form) {
@@ -180,14 +188,14 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
                   <div key={field.id} className="grid grid-cols-2 gap-3 items-center">
                     <div className="text-sm font-medium">{field.label}</div>
                     <Select
-                      value={mappingConfig[field.id] || ''}
+                      value={mappingConfig[field.id] || 'none'}
                       onValueChange={(value) => setMappingConfig({ ...mappingConfig, [field.id]: value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Ne pas mapper" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Ne pas mapper</SelectItem>
+                        <SelectItem value="none">Ne pas mapper</SelectItem>
                         {contactFields.map((cf) => (
                           <SelectItem key={cf.value} value={cf.value}>
                             {cf.label}
