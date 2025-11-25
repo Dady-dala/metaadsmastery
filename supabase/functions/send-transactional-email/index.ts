@@ -37,9 +37,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email via Resend with reply-to configured
     console.log("Calling Resend API...");
     const emailResponse = await resend.emails.send({
-      from: "Meta Ads Mastery <metamastery@aldiacoruu.resend.app>",
+      from: "Meta Ads Mastery <onboarding@resend.dev>", // Using sandbox domain temporarily
       to: [toEmail],
-      reply_to: "metamastery@aldiacoruu.resend.app",
+      reply_to: "onboarding@resend.dev",
       subject: subject,
       html: htmlBody,
       headers: {
@@ -75,7 +75,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: insertedEmail, error: dbError } = await supabase
       .from('emails')
       .insert([{
-        from_email: 'metamastery@aldiacoruu.resend.app',
+        from_email: 'onboarding@resend.dev', // Using sandbox domain temporarily
         from_name: 'Meta Ads Mastery',
         to_email: toEmail,
         to_name: toName || null,
