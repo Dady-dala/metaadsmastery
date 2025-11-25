@@ -104,20 +104,19 @@ export default function PublicFormView() {
     try {
       setSubmitting(true);
 
-      // Extract email if present
-      const fields = form.fields as any as FormField[];
-      const emailField = fields.find(f => f.type === 'email');
-      const email = emailField ? formData[emailField.id] : null;
-
-      const { error } = await supabase
-        .from('form_submissions')
-        .insert([{
-          form_id: form.id,
+      // Call the Edge Function to handle form submission
+      const { data: result, error } = await supabase.functions.invoke('submit-form', {
+        body: {
+          formId: form.id,
           data: formData,
-          email: email,
-        }]);
+        },
+      });
 
       if (error) throw error;
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la soumission');
+      }
 
       setSubmitted(true);
       toast.success("Succès", {
@@ -126,7 +125,7 @@ export default function PublicFormView() {
     } catch (error: any) {
       console.error('Error submitting form:', error);
       toast.error("Erreur", {
-        description: "Impossible de soumettre le formulaire",
+        description: error.message || "Impossible de soumettre le formulaire",
       });
     } finally {
       setSubmitting(false);

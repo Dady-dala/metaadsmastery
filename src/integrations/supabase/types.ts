@@ -560,32 +560,38 @@ export type Database = {
       }
       forms: {
         Row: {
+          action_type: string
           created_at: string
           created_by: string | null
           description: string | null
           fields: Json
           id: string
           is_active: boolean
+          mapping_config: Json | null
           title: string
           updated_at: string
         }
         Insert: {
+          action_type?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
           fields?: Json
           id?: string
           is_active?: boolean
+          mapping_config?: Json | null
           title: string
           updated_at?: string
         }
         Update: {
+          action_type?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
           fields?: Json
           id?: string
           is_active?: boolean
+          mapping_config?: Json | null
           title?: string
           updated_at?: string
         }
