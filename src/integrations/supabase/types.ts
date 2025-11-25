@@ -356,6 +356,71 @@ export type Database = {
         }
         Relationships: []
       }
+      form_submissions: {
+        Row: {
+          data: Json
+          email: string | null
+          form_id: string
+          id: string
+          submitted_at: string
+        }
+        Insert: {
+          data?: Json
+          email?: string | null
+          form_id: string
+          id?: string
+          submitted_at?: string
+        }
+        Update: {
+          data?: Json
+          email?: string | null
+          form_id?: string
+          id?: string
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_submissions_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          fields: Json
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fields?: Json
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          fields?: Json
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       landing_page_sections: {
         Row: {
           content: Json | null

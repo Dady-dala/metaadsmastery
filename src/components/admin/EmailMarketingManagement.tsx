@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Mail, Play, Pause, Trash2, BarChart3 } from "lucide-react";
 import { EmailCampaignEditor } from "./EmailCampaignEditor";
 import { EmailCampaignStats } from "./EmailCampaignStats";
+import { EmailMarketingDashboard } from "./EmailMarketingDashboard";
 
 interface EmailCampaign {
   id: string;
@@ -111,13 +112,14 @@ export function EmailMarketingManagement() {
 
   const getTriggerLabel = (triggerType: string) => {
     const labels: Record<string, string> = {
-      manual: 'Manuel',
-      new_student: 'Nouvel étudiant',
-      course_assigned: 'Assignation formation',
-      course_completed: 'Formation complétée',
-      inactivity: 'Inactivité',
-      date_based: 'Date spécifique',
-      percentage_progress: 'Progression %',
+      manual: '📧 Manuel',
+      new_student: '👋 Nouvel étudiant',
+      course_assigned: '📚 Assignation formation',
+      course_completed: '🎓 Formation complétée',
+      inactivity: '⏰ Inactivité',
+      date_based: '📅 Date spécifique',
+      percentage_progress: '📊 Progression %',
+      form_submitted: '📝 Formulaire soumis',
     };
     return labels[triggerType] || triggerType;
   };
@@ -180,6 +182,8 @@ export function EmailMarketingManagement() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <EmailMarketingDashboard />
 
       <div className="grid gap-4">
         {campaigns.length === 0 ? (

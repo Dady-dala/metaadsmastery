@@ -16,6 +16,7 @@ import { AdvancedAnalytics } from '@/components/admin/AdvancedAnalytics';
 import { CertificateSettings } from '@/components/admin/CertificateSettings';
 import { EmailTemplateSettings } from '@/components/admin/EmailTemplateSettings';
 import { EmailMarketingManagement } from '@/components/admin/EmailMarketingManagement';
+import { FormManagement } from '@/components/admin/FormManagement';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -219,6 +220,7 @@ const Admin = () => {
                 {activeTab === 'certificates' && <CertificateSettings />}
                 {activeTab === 'email-templates' && <EmailTemplateSettings />}
                 {activeTab === 'email-marketing' && <EmailMarketingManagement />}
+                {activeTab === 'forms' && <FormManagement />}
                 {activeTab === 'profile' && <AdminProfileSettings />}
                 
                 {activeTab === 'submissions' && (

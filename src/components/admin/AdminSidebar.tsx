@@ -23,6 +23,7 @@ import {
   LayoutDashboard,
   Award,
   MailOpen,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -71,6 +72,11 @@ const menuItems = [
     title: 'Marketing Email',
     icon: Mail,
     tab: 'email-marketing',
+  },
+  {
+    title: 'Formulaires',
+    icon: FileText,
+    tab: 'forms',
   },
   {
     title: 'Inscriptions',

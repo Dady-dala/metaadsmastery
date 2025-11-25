@@ -20,14 +20,17 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
   const [htmlBody, setHtmlBody] = useState(campaign?.html_body || '');
   const [triggerType, setTriggerType] = useState(campaign?.trigger_type || 'manual');
   const [targetCourseId, setTargetCourseId] = useState(campaign?.target_audience?.course_id || '');
+  const [targetFormId, setTargetFormId] = useState(campaign?.target_audience?.form_id || '');
   const [inactivityDays, setInactivityDays] = useState(campaign?.trigger_config?.days || '7');
   const [progressPercentage, setProgressPercentage] = useState(campaign?.trigger_config?.percentage || '50');
   const [courses, setCourses] = useState<any[]>([]);
+  const [forms, setForms] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCourses();
+    loadForms();
   }, []);
 
   const loadCourses = async () => {
@@ -37,6 +40,16 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
       .order('title');
     
     setCourses(data || []);
+  };
+
+  const loadForms = async () => {
+    const { data } = await supabase
+      .from('forms')
+      .select('id, title')
+      .eq('is_active', true)
+      .order('title');
+    
+    setForms(data || []);
   };
 
   const handleSave = async () => {
@@ -62,6 +75,9 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
       const targetAudience: any = {};
       if (targetCourseId) {
         targetAudience.course_id = targetCourseId;
+      }
+      if (targetFormId) {
+        targetAudience.form_id = targetFormId;
       }
 
       const campaignData = {
@@ -147,12 +163,13 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="manual">Manuel</SelectItem>
-              <SelectItem value="new_student">Nouvel étudiant</SelectItem>
-              <SelectItem value="course_assigned">Assignation à une formation</SelectItem>
-              <SelectItem value="course_completed">Formation complétée</SelectItem>
-              <SelectItem value="percentage_progress">Progression % atteinte</SelectItem>
-              <SelectItem value="inactivity">Inactivité</SelectItem>
+              <SelectItem value="manual">📧 Manuel</SelectItem>
+              <SelectItem value="new_student">👋 Nouvel étudiant</SelectItem>
+              <SelectItem value="course_assigned">📚 Assignation à une formation</SelectItem>
+              <SelectItem value="course_completed">🎓 Formation complétée</SelectItem>
+              <SelectItem value="percentage_progress">📊 Progression % atteinte</SelectItem>
+              <SelectItem value="inactivity">⏰ Inactivité</SelectItem>
+              <SelectItem value="form_submitted">📝 Soumission de formulaire</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -181,6 +198,24 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
               min="0"
               max="100"
             />
+          </div>
+        )}
+
+        {triggerType === 'form_submitted' && (
+          <div>
+            <Label htmlFor="target_form">Formulaire ciblé</Label>
+            <Select value={targetFormId || undefined} onValueChange={setTargetFormId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez un formulaire" />
+              </SelectTrigger>
+              <SelectContent>
+                {forms.map((form) => (
+                  <SelectItem key={form.id} value={form.id}>
+                    {form.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         )}
 
