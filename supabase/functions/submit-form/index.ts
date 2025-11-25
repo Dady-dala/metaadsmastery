@@ -109,6 +109,8 @@ Deno.serve(async (req) => {
         .eq('email', contactData.email)
         .maybeSingle();
 
+      let contactId: string;
+
       if (existingContact) {
         // Mettre à jour le contact existant
         const { data: updatedContact, error: updateError } = await supabase
@@ -128,6 +130,7 @@ Deno.serve(async (req) => {
 
         console.log('Contact updated:', updatedContact.id);
         results.contact = updatedContact;
+        contactId = updatedContact.id;
       } else {
         // Créer un nouveau contact
         const { data: newContact, error: contactError } = await supabase
@@ -143,6 +146,39 @@ Deno.serve(async (req) => {
 
         console.log('Contact created:', newContact.id);
         results.contact = newContact;
+        contactId = newContact.id;
+      }
+
+      // 3. Ajouter à la liste si configurée
+      if (form.target_list_id && contactId) {
+        console.log('Adding contact to list:', form.target_list_id);
+        
+        // Vérifier si le contact est déjà dans la liste
+        const { data: existingMember } = await supabase
+          .from('contact_list_members')
+          .select('id')
+          .eq('contact_id', contactId)
+          .eq('list_id', form.target_list_id)
+          .maybeSingle();
+
+        if (!existingMember) {
+          const { error: memberError } = await supabase
+            .from('contact_list_members')
+            .insert({
+              contact_id: contactId,
+              list_id: form.target_list_id,
+            });
+
+          if (memberError) {
+            console.error('Error adding contact to list:', memberError);
+            // Ne pas bloquer la soumission si l'ajout à la liste échoue
+          } else {
+            console.log('Contact added to list successfully');
+            results.added_to_list = true;
+          }
+        } else {
+          console.log('Contact already in list');
+        }
       }
     }
 

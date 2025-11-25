@@ -73,6 +73,7 @@ export const ContactManagement = () => {
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [editingList, setEditingList] = useState<ContactList | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -277,40 +278,81 @@ export const ContactManagement = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const { data: newList, error: listError } = await supabase
-        .from('contact_lists')
-        .insert([{
-          name: listFormData.name,
-          description: listFormData.description || null,
-          created_by: user?.id,
-        }])
-        .select()
-        .single();
+      const listData = {
+        name: listFormData.name,
+        description: listFormData.description || null,
+        created_by: user?.id,
+      };
 
-      if (listError) throw listError;
+      if (editingList) {
+        const { error } = await supabase
+          .from('contact_lists')
+          .update(listData)
+          .eq('id', editingList.id);
 
-      if (selectedContacts.size > 0 && newList) {
-        const members = Array.from(selectedContacts).map(contactId => ({
-          contact_id: contactId,
-          list_id: newList.id,
-        }));
+        if (error) throw error;
+        toast.success('Liste modifiée avec succès');
+      } else {
+        const { data: newList, error: listError } = await supabase
+          .from('contact_lists')
+          .insert([listData])
+          .select()
+          .single();
 
-        const { error: membersError } = await supabase
-          .from('contact_list_members')
-          .insert(members);
+        if (listError) throw listError;
 
-        if (membersError) throw membersError;
+        if (selectedContacts.size > 0 && newList) {
+          const members = Array.from(selectedContacts).map(contactId => ({
+            contact_id: contactId,
+            list_id: newList.id,
+          }));
+
+          const { error: membersError } = await supabase
+            .from('contact_list_members')
+            .insert(members);
+
+          if (membersError) throw membersError;
+        }
+
+        toast.success('Liste créée avec succès');
       }
 
-      toast.success('Liste créée avec succès');
       setIsListDialogOpen(false);
+      setEditingList(null);
       setListFormData({ name: '', description: '' });
       setSelectedContacts(new Set());
       loadData();
     } catch (error: any) {
-      console.error('Error creating list:', error);
-      toast.error(error.message || 'Erreur lors de la création de la liste');
+      console.error('Error saving list:', error);
+      toast.error(error.message || 'Erreur lors de la sauvegarde de la liste');
     }
+  };
+
+  const handleDeleteList = async (id: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette liste ?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('contact_lists')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('Liste supprimée avec succès');
+      loadData();
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      toast.error('Erreur lors de la suppression de la liste');
+    }
+  };
+
+  const handleEditList = (list: ContactList) => {
+    setEditingList(list);
+    setListFormData({
+      name: list.name,
+      description: list.description || '',
+    });
+    setIsListDialogOpen(true);
   };
 
   const resetForm = () => {
@@ -496,6 +538,54 @@ export const ContactManagement = () => {
             </DialogContent>
           </Dialog>
 
+          <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" onClick={() => { setEditingList(null); setListFormData({ name: '', description: '' }); }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Créer une liste
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingList ? 'Modifier la liste' : 'Créer une liste'}</DialogTitle>
+                <DialogDescription>
+                  {editingList ? 'Modifiez les informations de la liste' : selectedContacts.size > 0 ? `Créer une liste avec ${selectedContacts.size} contact(s) sélectionné(s)` : 'Créer une nouvelle liste vide'}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="list_name">Nom de la liste *</Label>
+                  <Input
+                    id="list_name"
+                    value={listFormData.name}
+                    onChange={(e) => setListFormData({ ...listFormData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="list_description">Description</Label>
+                  <Textarea
+                    id="list_description"
+                    value={listFormData.description}
+                    onChange={(e) => setListFormData({ ...listFormData, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsListDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={handleCreateList}>
+                  {editingList ? 'Modifier' : 'Créer'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" />
             Exporter
@@ -527,53 +617,10 @@ export const ContactManagement = () => {
           </Dialog>
 
           {selectedContacts.size > 0 && (
-            <Dialog open={isListDialogOpen} onOpenChange={setIsListDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <List className="mr-2 h-4 w-4" />
-                  Créer une liste ({selectedContacts.size})
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Créer une liste</DialogTitle>
-                  <DialogDescription>
-                    Créer une nouvelle liste avec les contacts sélectionnés
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="grid gap-4 py-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="list_name">Nom de la liste *</Label>
-                    <Input
-                      id="list_name"
-                      value={listFormData.name}
-                      onChange={(e) => setListFormData({ ...listFormData, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="list_description">Description</Label>
-                    <Textarea
-                      id="list_description"
-                      value={listFormData.description}
-                      onChange={(e) => setListFormData({ ...listFormData, description: e.target.value })}
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsListDialogOpen(false)}>
-                    Annuler
-                  </Button>
-                  <Button onClick={handleCreateList}>
-                    Créer la liste
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button variant="outline" onClick={() => { setEditingList(null); setIsListDialogOpen(true); }}>
+              <List className="mr-2 h-4 w-4" />
+              Ajouter à une liste ({selectedContacts.size})
+            </Button>
           )}
         </div>
       </div>
@@ -736,20 +783,50 @@ export const ContactManagement = () => {
       </Card>
 
       {/* Lists */}
-      {lists.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Listes de diffusion ({lists.length})</CardTitle>
-            <CardDescription>Gérez vos listes de contacts</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Listes de diffusion ({lists.length})</CardTitle>
+              <CardDescription>Gérez vos listes de contacts</CardDescription>
+            </div>
+            <Button onClick={() => { setEditingList(null); setListFormData({ name: '', description: '' }); setIsListDialogOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" />
+              Nouvelle liste
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {lists.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              Aucune liste créée. Créez votre première liste pour organiser vos contacts.
+            </p>
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {lists.map((list) => (
                 <Card key={list.id}>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center">
-                      <Users className="mr-2 h-4 w-4" />
-                      {list.name}
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Users className="mr-2 h-4 w-4" />
+                        {list.name}
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditList(list)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteList(list.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </CardTitle>
                     {list.description && (
                       <CardDescription>{list.description}</CardDescription>
@@ -758,9 +835,9 @@ export const ContactManagement = () => {
                 </Card>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
