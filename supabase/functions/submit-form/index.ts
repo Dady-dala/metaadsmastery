@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
 
       // Mapper les champs du formulaire vers les colonnes de contacts
       Object.entries(mappingConfig).forEach(([fieldId, contactField]) => {
-        if (contactField && data[fieldId]) {
+        if (contactField && contactField !== 'none' && data[fieldId]) {
           contactData[contactField as string] = data[fieldId];
         }
       });
