@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
       try {
         const resendApiKey = Deno.env.get('RESEND_API_KEY');
         if (resendApiKey) {
-          const response = await fetch(`https://api.resend.com/emails/${emailId}`, {
+          // Use the receiving endpoint for inbound emails
+          const response = await fetch(`https://api.resend.com/emails/receiving/${emailId}`, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${resendApiKey}`,
@@ -58,12 +59,13 @@ Deno.serve(async (req) => {
           });
 
           if (response.ok) {
-            const emailDetails = await response.json();
-            console.log('Fetched email details from Resend:', emailDetails);
-            htmlBody = emailDetails.html || emailDetails.body || '';
-            textBody = emailDetails.text || emailDetails.body || '';
+            const emailContent = await response.json();
+            console.log('Fetched email content from Resend receiving API:', emailContent);
+            htmlBody = emailContent.html || '';
+            textBody = emailContent.text || '';
           } else {
-            console.error('Failed to fetch email from Resend:', await response.text());
+            const errorText = await response.text();
+            console.error('Failed to fetch email from Resend receiving API:', errorText);
           }
         }
       } catch (fetchError: any) {
