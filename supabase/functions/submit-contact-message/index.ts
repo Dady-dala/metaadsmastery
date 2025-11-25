@@ -179,11 +179,13 @@ Deno.serve(async (req) => {
     });
 
     // Create notification for admins about new contact message
-    const { data: adminUsers } = await supabaseAdmin
+    const { data: adminUsers, error: adminError } = await supabaseAdmin
       .from('user_roles')
       .select('user_id')
       .eq('role', 'admin')
       .eq('is_active', true);
+
+    console.log('Admin users found for contact message:', adminUsers?.length || 0);
 
     if (adminUsers && adminUsers.length > 0) {
       const notifications = adminUsers.map(admin => ({
@@ -194,7 +196,13 @@ Deno.serve(async (req) => {
         link: '/admin?tab=messages',
       }));
 
-      await supabaseAdmin.from('notifications').insert(notifications);
+      const { error: notifError } = await supabaseAdmin.from('notifications').insert(notifications);
+      
+      if (notifError) {
+        console.error('Error inserting message notifications:', notifError);
+      } else {
+        console.log('Message notifications created successfully');
+      }
     }
 
     // Send admin notification (background task - don't await)
