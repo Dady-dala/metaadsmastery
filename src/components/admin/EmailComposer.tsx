@@ -53,7 +53,17 @@ export function EmailComposer({ replyTo, onSent, onCancel }: EmailComposerProps)
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('Email sending error from edge function:', data.error);
+        throw new Error(data.error);
+      }
 
       toast.success("Succès", {
         description: "Email envoyé avec succès",
@@ -62,8 +72,9 @@ export function EmailComposer({ replyTo, onSent, onCancel }: EmailComposerProps)
       onSent();
     } catch (error: any) {
       console.error('Error sending email:', error);
-      toast.error("Erreur", {
-        description: "Impossible d'envoyer l'email",
+      const errorMessage = error?.message || error?.toString() || "Impossible d'envoyer l'email";
+      toast.error("Erreur d'envoi", {
+        description: errorMessage,
       });
     } finally {
       setSending(false);

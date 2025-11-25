@@ -29,9 +29,13 @@ const handler = async (req: Request): Promise<Response> => {
     
     const { toEmail, toName, subject, htmlBody, replyToId }: TransactionalEmailRequest = await req.json();
 
-    console.log("Sending transactional email to:", toEmail);
+    console.log("=== Starting email send ===");
+    console.log("To:", toEmail);
+    console.log("Subject:", subject);
+    console.log("Has HTML body:", !!htmlBody);
 
     // Send email via Resend with reply-to configured
+    console.log("Calling Resend API...");
     const emailResponse = await resend.emails.send({
       from: "Meta Ads Mastery <metamastery@aldiacoruu.resend.app>",
       to: [toEmail],
@@ -43,19 +47,32 @@ const handler = async (req: Request): Promise<Response> => {
       },
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Resend API response:", JSON.stringify(emailResponse));
+
+    if (emailResponse.error) {
+      console.error("Resend API error:", emailResponse.error);
+      throw new Error(`Resend error: ${JSON.stringify(emailResponse.error)}`);
+    }
+
+    console.log("Email sent successfully, ID:", emailResponse.data?.id);
 
     // Get current user
     const authHeader = req.headers.get('Authorization');
     let createdBy = null;
     if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabase.auth.getUser(token);
-      createdBy = user?.id || null;
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(token);
+        createdBy = user?.id || null;
+        console.log("Email sent by user:", createdBy);
+      } catch (authError) {
+        console.log("Could not get user from auth token:", authError);
+      }
     }
 
     // Store email in database
-    const { error: dbError } = await supabase
+    console.log("Storing email in database...");
+    const { data: insertedEmail, error: dbError } = await supabase
       .from('emails')
       .insert([{
         from_email: 'metamastery@aldiacoruu.resend.app',
@@ -71,24 +88,31 @@ const handler = async (req: Request): Promise<Response> => {
           sent_by_admin: true,
           resend_id: emailResponse.data?.id
         }
-      }]);
+      }])
+      .select()
+      .single();
 
     if (dbError) {
       console.error("Error storing email in database:", dbError);
       throw dbError;
     }
 
+    console.log("Email stored in database with ID:", insertedEmail?.id);
+
     return new Response(
-      JSON.stringify({ success: true, emailId: emailResponse.data?.id }),
+      JSON.stringify({ success: true, emailId: emailResponse.data?.id, dbId: insertedEmail?.id }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error: any) {
-    console.error("Error in send-transactional-email function:", error);
+    console.error("=== Error in send-transactional-email function ===");
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("Full error:", JSON.stringify(error, null, 2));
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message, details: error.toString() }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
