@@ -124,6 +124,69 @@ export type Database = {
           },
         ]
       }
+      contact_list_members: {
+        Row: {
+          added_at: string
+          contact_id: string
+          id: string
+          list_id: string
+        }
+        Insert: {
+          added_at?: string
+          contact_id: string
+          id?: string
+          list_id: string
+        }
+        Update: {
+          added_at?: string
+          contact_id?: string
+          id?: string
+          list_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_list_members_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_list_members_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_lists: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           created_at: string
@@ -172,6 +235,54 @@ export type Database = {
           id?: string
           last_name?: string
           phone_number?: string
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          metadata: Json | null
+          notes: string | null
+          phone: string | null
+          source: string
+          status: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          phone?: string | null
+          source?: string
+          status?: string
+          tags?: string[] | null
+          updated_at?: string
         }
         Relationships: []
       }
