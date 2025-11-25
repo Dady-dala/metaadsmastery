@@ -73,7 +73,13 @@ export default function PublicFormView() {
       const fields = formWithTypedFields.fields;
       if (Array.isArray(fields)) {
         fields.forEach((field: FormField) => {
-          initialData[field.id] = field.type === 'checkbox' ? false : '';
+          if (field.type === 'checkbox') {
+            initialData[field.id] = false;
+          } else if (field.type === 'phone') {
+            initialData[field.id] = '+243';
+          } else {
+            initialData[field.id] = '';
+          }
         });
       }
       setFormData(initialData);

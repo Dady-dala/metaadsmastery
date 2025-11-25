@@ -98,7 +98,7 @@ export function PhoneInput({ value, onChange, required, id }: PhoneInputProps) {
         <SelectTrigger className="w-[180px]">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent className="max-h-[300px]">
+        <SelectContent className="max-h-[300px] bg-background z-50">
           {countryCodes.map((country) => (
             <SelectItem key={country.code} value={country.code}>
               <span className="flex items-center gap-2">
