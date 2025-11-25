@@ -16,18 +16,39 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Parse the incoming webhook data from Resend
-    const emailData = await req.json();
-    
-    console.log('Received email webhook:', emailData);
+    const payload = await req.json();
 
-    // Extract email information from Resend webhook payload
-    const { from, to, subject, html, text, reply_to } = emailData;
+    console.log('Received email webhook:', payload);
+
+    // Resend "email.received" payload structure:
+    // {
+    //   created_at: string,
+    //   type: "email.received",
+    //   data: {
+    //     from: string,
+    //     to: string[],
+    //     subject?: string,
+    //     html?: string,
+    //     text?: string,
+    //     ...
+    //   }
+    // }
+
+    const data = payload.data ?? {};
+
+    const from = data.from ?? payload.from;
+    const toArray = data.to ?? (payload.to ? [payload.to] : []);
+    const to = Array.isArray(toArray) ? toArray.join(', ') : toArray;
+
+    const subject = data.subject ?? payload.subject ?? '(Pas de sujet)';
+    const html = data.html ?? payload.html ?? null;
+    const text = data.text ?? payload.text ?? null;
 
     // Store the received email in the database
-    const { data, error } = await supabase.from('emails').insert({
+    const { data: insertedEmail, error } = await supabase.from('emails').insert({
       from_email: from,
       to_email: to,
-      subject: subject || '(Pas de sujet)',
+      subject,
       html_body: html || text || '',
       text_body: text,
       reply_to_id: null,
@@ -35,8 +56,8 @@ Deno.serve(async (req) => {
       metadata: {
         sent_by_admin: false,
         received_at: new Date().toISOString(),
-        raw_data: emailData
-      }
+        raw_data: payload,
+      },
     }).select().single();
 
     if (error) {
@@ -44,7 +65,7 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    console.log('Email stored successfully:', data);
+    console.log('Email stored successfully:', insertedEmail);
 
     return new Response(
       JSON.stringify({ success: true, email_id: data.id }),
