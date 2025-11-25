@@ -25,6 +25,7 @@ import ThankYou from "./pages/ThankYou";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import EspaceFormation from "./pages/EspaceFormation";
+import PublicFormView from "./pages/PublicFormView";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -54,7 +55,8 @@ const App = () => (
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/merci" element={<ThankYou />} />
           <Route path="/auth" element={<Auth />} />
-          <Route 
+          <Route path="/formulaire/:formId" element={<PublicFormView />} />
+          <Route
             path="/admin" 
             element={
               <ProtectedRoute requiredRole="admin">

@@ -24,6 +24,7 @@ import {
   Award,
   MailOpen,
   FileText,
+  Inbox,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -72,6 +73,11 @@ const menuItems = [
     title: 'Marketing Email',
     icon: Mail,
     tab: 'email-marketing',
+  },
+  {
+    title: 'Boîte de réception',
+    icon: Inbox,
+    tab: 'email-inbox',
   },
   {
     title: 'Formulaires',
