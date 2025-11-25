@@ -68,6 +68,11 @@ const menuItems = [
     tab: 'email-templates',
   },
   {
+    title: 'Marketing Email',
+    icon: Mail,
+    tab: 'email-marketing',
+  },
+  {
     title: 'Inscriptions',
     icon: Mail,
     tab: 'submissions',

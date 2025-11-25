@@ -237,6 +237,86 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaign_logs: {
+        Row: {
+          campaign_id: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          sent_at: string
+          status: string
+          student_id: string
+        }
+        Insert: {
+          campaign_id: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string
+          status?: string
+          student_id: string
+        }
+        Update: {
+          campaign_id?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          sent_at?: string
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaign_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_campaigns: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          html_body: string
+          id: string
+          name: string
+          status: string
+          subject: string
+          target_audience: Json | null
+          trigger_config: Json | null
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          html_body: string
+          id?: string
+          name: string
+          status?: string
+          subject: string
+          target_audience?: Json | null
+          trigger_config?: Json | null
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          html_body?: string
+          id?: string
+          name?: string
+          status?: string
+          subject?: string
+          target_audience?: Json | null
+          trigger_config?: Json | null
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           content: Json
