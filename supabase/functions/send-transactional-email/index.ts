@@ -39,7 +39,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Meta Ads Mastery <noreply@metaadsmastery.dalaconcept.com>",
       to: [toEmail],
-      reply_to: "contact@metaadsmastery.dalaconcept.com",
+      reply_to: "metamastery@aldiacoruu.resend.app",
       subject: subject,
       html: htmlBody,
       headers: {
