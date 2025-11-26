@@ -74,6 +74,7 @@ export const ContactManagement = () => {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [editingList, setEditingList] = useState<ContactList | null>(null);
+  const [selectedListForNewContact, setSelectedListForNewContact] = useState<string>('');
 
   // Form states
   const [formData, setFormData] = useState({
@@ -148,11 +149,29 @@ export const ContactManagement = () => {
         if (error) throw error;
         toast.success('Contact modifié avec succès');
       } else {
-        const { error } = await supabase
+        const { data: newContact, error } = await supabase
           .from('contacts')
-          .insert([contactData]);
+          .insert([contactData])
+          .select()
+          .single();
 
         if (error) throw error;
+
+        // Ajouter le contact à la liste sélectionnée si une liste est spécifiée
+        if (selectedListForNewContact && newContact) {
+          const { error: memberError } = await supabase
+            .from('contact_list_members')
+            .insert({
+              contact_id: newContact.id,
+              list_id: selectedListForNewContact,
+            });
+
+          if (memberError) {
+            console.error('Error adding contact to list:', memberError);
+            toast.warning('Contact créé mais non ajouté à la liste');
+          }
+        }
+
         toast.success('Contact ajouté avec succès');
       }
 
@@ -366,6 +385,7 @@ export const ContactManagement = () => {
       source: 'manual',
       status: 'active',
     });
+    setSelectedListForNewContact('');
   };
 
   const toggleContactSelection = (id: string) => {
@@ -525,6 +545,25 @@ export const ContactManagement = () => {
                     rows={3}
                   />
                 </div>
+
+                {!editingContact && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="target_list">Ajouter à une liste (optionnel)</Label>
+                    <Select value={selectedListForNewContact} onValueChange={setSelectedListForNewContact}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une liste" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Aucune liste</SelectItem>
+                        {lists.map((list) => (
+                          <SelectItem key={list.id} value={list.id}>
+                            {list.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
               
               <DialogFooter>
