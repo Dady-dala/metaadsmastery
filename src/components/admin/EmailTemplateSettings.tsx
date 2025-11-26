@@ -10,12 +10,6 @@ import { Loader2, Mail, Save, Eye, Plus, Trash2, ChevronLeft, ChevronRight } fro
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -359,160 +353,141 @@ export const EmailTemplateSettings = () => {
         </Select>
       </div>
 
-      <Tabs
-        value={selectedTemplate?.template_key}
-        onValueChange={(value) => {
-          const template = templates.find((t) => t.template_key === value);
-          if (template) setSelectedTemplate(template);
-        }}
-      >
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-          {templates.map((template) => (
-            <TabsTrigger key={template.id} value={template.template_key}>
-              <Mail className="h-4 w-4 mr-2" />
-              {templateLabels[template.template_key]}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      {selectedTemplate && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>{templateLabels[selectedTemplate.template_key] || selectedTemplate.template_key}</CardTitle>
+                <CardDescription>
+                  Variables disponibles: {selectedTemplate.variables.join(", ")}
+                </CardDescription>
+              </div>
+              {!systemTemplateKeys.includes(selectedTemplate.template_key) && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="subject">Sujet de l'email (Objectif)</Label>
+              <Input
+                id="subject"
+                placeholder="Ex: Bienvenue chez Meta Ads Mastery !"
+                value={selectedTemplate?.subject || ""}
+                onChange={(e) =>
+                  selectedTemplate &&
+                  setSelectedTemplate({
+                    ...selectedTemplate,
+                    subject: e.target.value,
+                  })
+                }
+              />
+            </div>
 
-        {templates.map((template) => (
-          <TabsContent key={template.id} value={template.template_key}>
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>{templateLabels[template.template_key] || template.template_key}</CardTitle>
-                    <CardDescription>
-                      Variables disponibles: {template.variables.join(", ")}
-                    </CardDescription>
-                  </div>
-                  {!systemTemplateKeys.includes(template.template_key) && (
+            <div className="space-y-2">
+              <Label htmlFor="preview_text">Texte d'aperçu</Label>
+              <Input
+                id="preview_text"
+                placeholder="Ex: Votre message important de Meta Ads Mastery"
+                value={selectedTemplate?.preview_text || ""}
+                onChange={(e) =>
+                  selectedTemplate &&
+                  setSelectedTemplate({
+                    ...selectedTemplate,
+                    preview_text: e.target.value,
+                  })
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Ce texte apparaît dans l'aperçu de l'email avant ouverture
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="html_body">Corps du mail</Label>
+                <div className="flex gap-1 flex-wrap">
+                  {selectedTemplate.variables.map((variable: string) => (
                     <Button
-                      variant="destructive"
+                      key={variable}
+                      type="button"
+                      variant="outline"
                       size="sm"
-                      onClick={() => setDeleteDialogOpen(true)}
+                      onClick={() => insertVariable(variable)}
+                      className="text-xs"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Supprimer
+                      +{variable}
                     </Button>
-                  )}
+                  ))}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Sujet de l'email (Objectif)</Label>
-                  <Input
-                    id="subject"
-                    placeholder="Ex: Bienvenue chez Meta Ads Mastery !"
-                    value={selectedTemplate?.subject || ""}
-                    onChange={(e) =>
-                      selectedTemplate &&
-                      setSelectedTemplate({
-                        ...selectedTemplate,
-                        subject: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+              </div>
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={selectedTemplate?.html_body || ""}
+                onChange={(value) =>
+                  selectedTemplate &&
+                  setSelectedTemplate({
+                    ...selectedTemplate,
+                    html_body: value,
+                  })
+                }
+                modules={modules}
+                className="bg-background"
+                style={{ height: "400px", marginBottom: "50px" }}
+              />
+              <p className="text-xs text-muted-foreground mt-12">
+                Utilisez les boutons de formatage pour styliser votre email. Cliquez sur les variables ci-dessus pour les insérer.
+              </p>
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="preview_text">Texte d'aperçu</Label>
-                  <Input
-                    id="preview_text"
-                    placeholder="Ex: Votre message important de Meta Ads Mastery"
-                    value={selectedTemplate?.preview_text || ""}
-                    onChange={(e) =>
-                      selectedTemplate &&
-                      setSelectedTemplate({
-                        ...selectedTemplate,
-                        preview_text: e.target.value,
-                      })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Ce texte apparaît dans l'aperçu de l'email avant ouverture
-                  </p>
-                </div>
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enregistrement...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Enregistrer
+                  </>
+                )}
+              </Button>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <Label htmlFor="html_body">Corps du mail</Label>
-                    <div className="flex gap-1 flex-wrap">
-                      {template.variables.map((variable: string) => (
-                        <Button
-                          key={variable}
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => insertVariable(variable)}
-                          className="text-xs"
-                        >
-                          +{variable}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <ReactQuill
-                    ref={quillRef}
-                    theme="snow"
-                    value={selectedTemplate?.html_body || ""}
-                    onChange={(value) =>
-                      selectedTemplate &&
-                      setSelectedTemplate({
-                        ...selectedTemplate,
-                        html_body: value,
-                      })
-                    }
-                    modules={modules}
-                    className="bg-background"
-                    style={{ height: "400px", marginBottom: "50px" }}
-                  />
-                  <p className="text-xs text-muted-foreground mt-12">
-                    Utilisez les boutons de formatage pour styliser votre email. Cliquez sur les variables ci-dessus pour les insérer.
-                  </p>
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <Button onClick={handleSave} disabled={saving}>
-                    {saving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enregistrement...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Enregistrer
-                      </>
-                    )}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" onClick={handlePreview}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Prévisualiser
                   </Button>
-
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" onClick={handlePreview}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Prévisualiser
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Prévisualisation de l'email</DialogTitle>
-                        <DialogDescription>
-                          Voici à quoi ressemblera l'email envoyé
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div
-                        dangerouslySetInnerHTML={{ __html: previewHtml }}
-                        className="border rounded-lg p-4"
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Prévisualisation de l'email</DialogTitle>
+                    <DialogDescription>
+                      Voici à quoi ressemblera l'email envoyé
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: previewHtml }}
+                    className="border rounded-lg p-4"
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Dialog de création */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
