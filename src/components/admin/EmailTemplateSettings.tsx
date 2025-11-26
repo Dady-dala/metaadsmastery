@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Mail, Save, Eye } from "lucide-react";
+import { Loader2, Mail, Save, Eye, Plus, Trash2 } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import {
@@ -22,6 +23,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface EmailTemplate {
   id: string;
@@ -33,6 +44,13 @@ interface EmailTemplate {
   variables: any;
   is_active: boolean;
 }
+
+const systemTemplateKeys = [
+  'confirmation_email',
+  'admin_notification_submission',
+  'admin_notification_message',
+  'course_assignment',
+];
 
 const templateLabels: Record<string, string> = {
   confirmation_email: "Email de Confirmation Prospect",
@@ -47,6 +65,16 @@ export const EmailTemplateSettings = () => {
   const [saving, setSaving] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [previewHtml, setPreviewHtml] = useState("");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({
+    template_key: "",
+    subject: "",
+    preview_text: "",
+    html_body: "",
+    variables: [] as string[],
+  });
+  const [newVariable, setNewVariable] = useState("");
   const quillRef = useRef<ReactQuill>(null);
 
   useEffect(() => {
@@ -97,6 +125,87 @@ export const EmailTemplateSettings = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCreateTemplate = async () => {
+    if (!newTemplate.template_key || !newTemplate.subject) {
+      toast.error("Clé et sujet sont requis");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("email_templates")
+        .insert({
+          template_key: newTemplate.template_key,
+          subject: newTemplate.subject,
+          preview_text: newTemplate.preview_text,
+          html_body: newTemplate.html_body,
+          content: {},
+          variables: newTemplate.variables,
+          is_active: true,
+        });
+
+      if (error) throw error;
+
+      toast.success("Template créé avec succès");
+      setCreateDialogOpen(false);
+      setNewTemplate({
+        template_key: "",
+        subject: "",
+        preview_text: "",
+        html_body: "",
+        variables: [],
+      });
+      setNewVariable("");
+      fetchTemplates();
+    } catch (error) {
+      console.error("Error creating template:", error);
+      toast.error("Erreur lors de la création du template");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!selectedTemplate) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("email_templates")
+        .delete()
+        .eq("id", selectedTemplate.id);
+
+      if (error) throw error;
+
+      toast.success("Template supprimé avec succès");
+      setDeleteDialogOpen(false);
+      fetchTemplates();
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      toast.error("Erreur lors de la suppression du template");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addVariable = () => {
+    if (newVariable && !newTemplate.variables.includes(newVariable)) {
+      setNewTemplate({
+        ...newTemplate,
+        variables: [...newTemplate.variables, newVariable],
+      });
+      setNewVariable("");
+    }
+  };
+
+  const removeVariable = (variable: string) => {
+    setNewTemplate({
+      ...newTemplate,
+      variables: newTemplate.variables.filter(v => v !== variable),
+    });
   };
 
   const generatePreview = (template: EmailTemplate) => {
@@ -176,11 +285,17 @@ export const EmailTemplateSettings = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Gestion des Templates Email</h2>
-        <p className="text-muted-foreground">
-          Personnalisez les emails envoyés automatiquement aux prospects et étudiants
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Gestion des Templates Email</h2>
+          <p className="text-muted-foreground">
+            Personnalisez les emails envoyés automatiquement aux prospects et étudiants
+          </p>
+        </div>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Créer un template
+        </Button>
       </div>
 
       <Tabs
@@ -203,10 +318,24 @@ export const EmailTemplateSettings = () => {
           <TabsContent key={template.id} value={template.template_key}>
             <Card>
               <CardHeader>
-                <CardTitle>{templateLabels[template.template_key]}</CardTitle>
-                <CardDescription>
-                  Variables disponibles: {template.variables.join(", ")}
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>{templateLabels[template.template_key] || template.template_key}</CardTitle>
+                    <CardDescription>
+                      Variables disponibles: {template.variables.join(", ")}
+                    </CardDescription>
+                  </div>
+                  {!systemTemplateKeys.includes(template.template_key) && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Supprimer
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -323,6 +452,132 @@ export const EmailTemplateSettings = () => {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Dialog de création */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Créer un nouveau template email</DialogTitle>
+            <DialogDescription>
+              Créez un template réutilisable pour vos emails automatisés
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new_template_key">Clé du template (unique) *</Label>
+              <Input
+                id="new_template_key"
+                placeholder="Ex: welcome_newsletter, new_contact"
+                value={newTemplate.template_key}
+                onChange={(e) => setNewTemplate({ ...newTemplate, template_key: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Identifiant unique sans espaces (utilisé dans les workflows)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="new_subject">Sujet de l'email *</Label>
+              <Input
+                id="new_subject"
+                placeholder="Ex: Bienvenue dans notre newsletter !"
+                value={newTemplate.subject}
+                onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="new_preview">Texte d'aperçu</Label>
+              <Input
+                id="new_preview"
+                placeholder="Ex: Découvrez les dernières actualités..."
+                value={newTemplate.preview_text}
+                onChange={(e) => setNewTemplate({ ...newTemplate, preview_text: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Variables disponibles</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ex: prenom, nom, email"
+                  value={newVariable}
+                  onChange={(e) => setNewVariable(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addVariable()}
+                />
+                <Button type="button" onClick={addVariable} variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {newTemplate.variables.map((variable) => (
+                  <Badge key={variable} variant="secondary" className="gap-1">
+                    {variable}
+                    <button
+                      type="button"
+                      onClick={() => removeVariable(variable)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Ajoutez les variables que vous utiliserez dans le template (ex: nom, prenom, email)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="new_html_body">Corps du mail</Label>
+              <ReactQuill
+                theme="snow"
+                value={newTemplate.html_body}
+                onChange={(value) => setNewTemplate({ ...newTemplate, html_body: value })}
+                modules={modules}
+                className="bg-background"
+                style={{ height: "300px", marginBottom: "50px" }}
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end pt-4">
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleCreateTemplate} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Création...
+                </>
+              ) : (
+                "Créer le template"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de suppression */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce template ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Le template sera définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTemplate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
