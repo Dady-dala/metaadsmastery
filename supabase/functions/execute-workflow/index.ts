@@ -231,8 +231,21 @@ Deno.serve(async (req) => {
 async function executeCreateContactAction(action: any, triggerData: any, supabase: any): Promise<string> {
   console.log('Creating contact from form submission data:', triggerData);
 
-  // Extraire les données du formulaire depuis triggerData
-  const formData = triggerData.submission_data || triggerData.data || triggerData || {};
+  // Extraire les données brutes du formulaire depuis triggerData
+  const rawFormData = triggerData.submission_data || triggerData.data || triggerData || {};
+
+  // Normaliser les clés grâce au mapping_config du formulaire si disponible
+  let formData: any = rawFormData;
+  if (triggerData.mapping_config && typeof triggerData.mapping_config === 'object') {
+    const mapped: any = {};
+    for (const [fieldId, targetKey] of Object.entries(triggerData.mapping_config)) {
+      const value = (rawFormData as any)[fieldId as string];
+      if (value !== undefined && value !== null && value !== '') {
+        mapped[targetKey as string] = value;
+      }
+    }
+    formData = { ...rawFormData, ...mapped };
+  }
   
   // Mapper les champs communs
   const contactData: any = {
@@ -242,7 +255,7 @@ async function executeCreateContactAction(action: any, triggerData: any, supabas
       workflow_created: true,
       form_submission_id: triggerData.submission_id,
       submission_date: new Date().toISOString(),
-      raw_form_data: formData,
+      raw_form_data: rawFormData,
     },
   };
 
