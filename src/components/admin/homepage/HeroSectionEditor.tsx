@@ -80,6 +80,27 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
 
     setSaving(true);
     try {
+      // Vérifier et rafraîchir la session si nécessaire
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast.error('Session expirée. Veuillez vous reconnecter.');
+        window.location.href = '/auth';
+        return;
+      }
+
+      // Rafraîchir le token si proche de l'expiration
+      const expiresAt = session.expires_at;
+      const now = Math.floor(Date.now() / 1000);
+      if (expiresAt && (expiresAt - now) < 300) { // Moins de 5 minutes restantes
+        const { error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          toast.error('Erreur de rafraîchissement. Veuillez vous reconnecter.');
+          window.location.href = '/auth';
+          return;
+        }
+      }
+
       const { data: existing } = await supabase
         .from('landing_page_sections')
         .select('id')
@@ -113,13 +134,32 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
           .insert(payload));
       }
 
-      if (error) throw error;
+      if (error) {
+        // Gestion spécifique de l'erreur JWT expiré
+        if (error.code === 'PGRST303') {
+          toast.error('Session expirée. Veuillez vous reconnecter.');
+          setTimeout(() => {
+            window.location.href = '/auth';
+          }, 2000);
+          return;
+        }
+        throw error;
+      }
 
       toast.success('Section Hero enregistrée');
       onSave?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      
+      // Gestion spécifique des erreurs d'authentification
+      if (error?.code === 'PGRST303' || error?.message?.includes('JWT')) {
+        toast.error('Session expirée. Redirection vers la connexion...');
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 2000);
+      } else {
+        toast.error('Erreur lors de la sauvegarde');
+      }
     } finally {
       setSaving(false);
     }
