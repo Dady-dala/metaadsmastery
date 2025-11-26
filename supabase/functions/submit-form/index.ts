@@ -92,6 +92,7 @@ Deno.serve(async (req) => {
                 submission_id: submission.id,
                 submission_data: data,
                 data: data, // Alias pour faciliter l'accès
+                mapping_config: form.mapping_config || null,
               },
             },
           });
