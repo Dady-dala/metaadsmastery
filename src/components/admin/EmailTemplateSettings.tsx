@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Mail, Save, Eye, Plus, Trash2 } from "lucide-react";
+import { Loader2, Mail, Save, Eye, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import {
@@ -23,6 +23,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -296,6 +303,60 @@ export const EmailTemplateSettings = () => {
           <Plus className="h-4 w-4 mr-2" />
           Créer un template
         </Button>
+      </div>
+
+      {/* Navigation par sélection et flèches */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              const currentIndex = templates.findIndex(t => t.template_key === selectedTemplate?.template_key);
+              if (currentIndex > 0) {
+                setSelectedTemplate(templates[currentIndex - 1]);
+              }
+            }}
+            disabled={!selectedTemplate || templates.findIndex(t => t.template_key === selectedTemplate?.template_key) === 0}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => {
+              const currentIndex = templates.findIndex(t => t.template_key === selectedTemplate?.template_key);
+              if (currentIndex < templates.length - 1) {
+                setSelectedTemplate(templates[currentIndex + 1]);
+              }
+            }}
+            disabled={!selectedTemplate || templates.findIndex(t => t.template_key === selectedTemplate?.template_key) === templates.length - 1}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <Select
+          value={selectedTemplate?.template_key}
+          onValueChange={(value) => {
+            const template = templates.find((t) => t.template_key === value);
+            if (template) setSelectedTemplate(template);
+          }}
+        >
+          <SelectTrigger className="w-[300px]">
+            <SelectValue placeholder="Sélectionner un template" />
+          </SelectTrigger>
+          <SelectContent>
+            {templates.map((template) => (
+              <SelectItem key={template.id} value={template.template_key}>
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {templateLabels[template.template_key] || template.template_key}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Tabs
