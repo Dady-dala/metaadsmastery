@@ -75,10 +75,37 @@ Deno.serve(async (req) => {
 
     console.log('Workflow execution created:', execution.id);
 
+    // Si pas de contact et qu'on a des données de formulaire, créer le contact automatiquement
+    let currentContact = contact;
+    if (!currentContact && triggerData && (triggerData.submission_data || triggerData.data)) {
+      console.log('No contact provided, creating from form submission data...');
+      try {
+        const contactId = await executeCreateContactAction({ type: 'create_contact' }, triggerData, supabase);
+        
+        // Récupérer le contact créé
+        const { data: newContact } = await supabase
+          .from('contacts')
+          .select('*')
+          .eq('id', contactId)
+          .single();
+        
+        currentContact = newContact;
+        console.log('Contact auto-created:', contactId);
+        
+        // Mettre à jour l'exécution avec le contact_id
+        await supabase
+          .from('workflow_executions')
+          .update({ contact_id: contactId })
+          .eq('id', execution.id);
+      } catch (error: any) {
+        console.error('Failed to auto-create contact:', error);
+        // Continuer quand même - certaines actions ne nécessitent peut-être pas de contact
+      }
+    }
+
     // Exécuter les actions
     const actions = workflow.actions as any[];
     const completedActions: any[] = [];
-    let currentContact = contact; // Variable pour stocker le contact actuel
 
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
