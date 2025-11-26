@@ -20,6 +20,12 @@ const Hero = () => {
     loadHeroData();
   }, []);
 
+  const isEmptyHtml = (html: string | null | undefined): boolean => {
+    if (!html || html.trim() === '') return true;
+    const stripped = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+    return stripped === '';
+  };
+
   const loadHeroData = async () => {
     try {
       const { data, error } = await supabase
@@ -29,26 +35,26 @@ const Hero = () => {
         .eq('is_active', true)
         .single();
 
-    if (data && !error) {
-      const content = data.content as any || {};
-      const defaultData = {
-        title: 'Maîtrise Facebook & Instagram Ads et Transforme Ton Business en Machine à Ventes Automatique',
-        subtitle1: 'La Formation Complète pour Vendre SANS Site Web grâce à Facebook, Instagram & WhatsApp Business — Même si tu Pars de Zéro.',
-        subtitle2: 'Garantie Satisfaction 30 Jours : Si la formation ne correspond pas à tes attentes, tu es remboursé intégralement — sans question, sans condition.',
-        wistiaMediaId: 'wfrtok35jw',
-        ctaText: 'Je Veux Accéder à la Formation →',
-        logosTitle: 'Ils Nous Font Confiance'
-      };
-      
-      setHeroData({
-        title: (data.title && data.title.trim() !== '' && data.title !== '<p><br></p>') ? data.title : defaultData.title,
-        subtitle1: (data.subtitle && data.subtitle.trim() !== '' && data.subtitle !== '<p><br></p>') ? data.subtitle : defaultData.subtitle1,
-        subtitle2: (content.subtitle2 && content.subtitle2.trim() !== '' && content.subtitle2 !== '<p><br></p>') ? content.subtitle2 : defaultData.subtitle2,
-        wistiaMediaId: data.media_url || defaultData.wistiaMediaId,
-        ctaText: content.ctaText || defaultData.ctaText,
-        logosTitle: content.logosTitle || defaultData.logosTitle
-      });
-    }
+      if (data && !error) {
+        const content = data.content as any || {};
+        const defaultData = {
+          title: 'Maîtrise Facebook & Instagram Ads et Transforme Ton Business en Machine à Ventes Automatique',
+          subtitle1: 'La Formation Complète pour Vendre SANS Site Web grâce à Facebook, Instagram & WhatsApp Business — Même si tu Pars de Zéro.',
+          subtitle2: 'Garantie Satisfaction 30 Jours : Si la formation ne correspond pas à tes attentes, tu es remboursé intégralement — sans question, sans condition.',
+          wistiaMediaId: 'wfrtok35jw',
+          ctaText: 'Je Veux Accéder à la Formation →',
+          logosTitle: 'Ils Nous Font Confiance'
+        };
+        
+        setHeroData({
+          title: !isEmptyHtml(data.title) ? data.title : defaultData.title,
+          subtitle1: !isEmptyHtml(data.subtitle) ? data.subtitle : defaultData.subtitle1,
+          subtitle2: !isEmptyHtml(content.subtitle2) ? content.subtitle2 : defaultData.subtitle2,
+          wistiaMediaId: data.media_url || defaultData.wistiaMediaId,
+          ctaText: content.ctaText || defaultData.ctaText,
+          logosTitle: content.logosTitle || defaultData.logosTitle
+        });
+      }
     } catch (error) {
       console.error('Erreur lors du chargement de la section Hero:', error);
     }
