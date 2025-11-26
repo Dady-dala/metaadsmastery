@@ -22,6 +22,7 @@ import { ContactManagement } from '@/components/admin/ContactManagement';
 import { WorkflowManagement } from '@/components/admin/WorkflowManagement';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+import { HomePageManagement } from '@/components/admin/HomePageManagement';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -227,6 +228,7 @@ const Admin = () => {
                 {activeTab === 'contacts' && <ContactManagement />}
                 {activeTab === 'forms' && <FormManagement />}
                 {activeTab === 'workflows' && <WorkflowManagement />}
+                {activeTab === 'homepage' && <HomePageManagement />}
                 {activeTab === 'profile' && <AdminProfileSettings />}
                 
                 {activeTab === 'submissions' && (
