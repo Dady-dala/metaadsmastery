@@ -68,6 +68,7 @@ export const ContactManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
+  const [listFilter, setListFilter] = useState<string>('all');
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
@@ -75,6 +76,8 @@ export const ContactManagement = () => {
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [editingList, setEditingList] = useState<ContactList | null>(null);
   const [selectedListForNewContact, setSelectedListForNewContact] = useState<string>('');
+
+  const [listMembers, setListMembers] = useState<{ contact_id: string; list_id: string }[]>([]);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -116,6 +119,13 @@ export const ContactManagement = () => {
 
       if (listsError) throw listsError;
       setLists(listsData || []);
+
+      const { data: membersData, error: membersError } = await supabase
+        .from('contact_list_members')
+        .select('contact_id, list_id');
+
+      if (membersError) throw membersError;
+      setListMembers(membersData || []);
     } catch (error) {
       console.error('Error loading contacts:', error);
       toast.error('Erreur lors du chargement des contacts');
@@ -409,6 +419,9 @@ export const ContactManagement = () => {
   // Get unique tags
   const allTags = Array.from(new Set(contacts.flatMap(c => c.tags)));
 
+  const getListMemberCount = (listId: string) =>
+    listMembers.filter((member) => member.list_id === listId).length;
+
   // Filter contacts
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = 
@@ -418,8 +431,11 @@ export const ContactManagement = () => {
     
     const matchesStatus = statusFilter === 'all' || contact.status === statusFilter;
     const matchesTag = tagFilter === 'all' || contact.tags.includes(tagFilter);
+    const matchesList =
+      listFilter === 'all' ||
+      listMembers.some((member) => member.contact_id === contact.id && member.list_id === listFilter);
     
-    return matchesSearch && matchesStatus && matchesTag;
+    return matchesSearch && matchesStatus && matchesTag && matchesList;
   });
 
   if (loading) {
@@ -701,6 +717,18 @@ export const ContactManagement = () => {
               </SelectContent>
             </Select>
             
+            <Select value={listFilter} onValueChange={setListFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Toutes les listes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les listes</SelectItem>
+                {lists.map((list) => (
+                  <SelectItem key={list.id} value={list.id}>{list.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
             <div className="flex items-center gap-2">
               <Button 
                 variant="outline" 
@@ -709,6 +737,7 @@ export const ContactManagement = () => {
                   setSearchTerm('');
                   setStatusFilter('all');
                   setTagFilter('all');
+                  setListFilter('all');
                 }}
               >
                 <X className="h-4 w-4 mr-2" />
@@ -845,11 +874,23 @@ export const ContactManagement = () => {
                 <Card key={list.id}>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center justify-between">
-                      <div className="flex items-center">
-                        <Users className="mr-2 h-4 w-4" />
-                        {list.name}
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        <div className="flex flex-col">
+                          <span>{list.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {getListMemberCount(list.id)} contact{getListMemberCount(list.id) > 1 ? 's' : ''}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setListFilter(list.id)}
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
