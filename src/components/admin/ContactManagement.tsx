@@ -930,37 +930,26 @@ export const ContactManagement = () => {
                             const contact = contacts.find((c) => c.id === member.contact_id);
                             if (!contact) return null;
                             return (
-                              <div key={member.contact_id} className="flex items-center justify-between gap-4 p-2 rounded-md bg-muted/50 text-sm overflow-x-auto">
-                                <div className="flex items-center gap-4 flex-wrap min-w-0">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <Mail className="h-3 w-3 flex-shrink-0" />
-                                    <span className="font-medium truncate">{contact.email}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-muted-foreground">Prénom:</span>
-                                    <span>{contact.first_name || '-'}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-muted-foreground">Nom:</span>
-                                    <span>{contact.last_name || '-'}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-muted-foreground">Tél:</span>
-                                    <span>{contact.phone || '-'}</span>
-                                  </div>
-                                  <Badge variant={contact.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                                    {contact.status}
-                                  </Badge>
-                                  {contact.tags && contact.tags.length > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      {contact.tags.map((tag, idx) => (
-                                        <Badge key={idx} variant="outline" className="text-xs">
-                                          {tag}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
+                              <div key={member.contact_id} className="flex items-center gap-4 p-2 rounded-md bg-muted/50 text-sm overflow-x-auto flex-wrap">
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-3 w-3 flex-shrink-0" />
+                                  <span className="font-medium">{contact.email}</span>
                                 </div>
+                                <span>{contact.first_name || '-'}</span>
+                                <span>{contact.last_name || '-'}</span>
+                                <span>{contact.phone || '-'}</span>
+                                <Badge variant={contact.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                  {contact.status}
+                                </Badge>
+                                {contact.tags && contact.tags.length > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    {contact.tags.map((tag, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-xs">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
