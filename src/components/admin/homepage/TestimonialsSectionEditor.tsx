@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Save, Loader2, Plus, Trash2, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 interface Testimonial {
   name: string;
@@ -271,15 +271,14 @@ export const TestimonialsSectionEditor = ({ onSave }: Props) => {
 
                         <div className="space-y-2">
                           <Label className="text-sm">Témoignage</Label>
-                          <Textarea
+                          <RichTextEditor
                             value={testimonial.testimonial}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               const updated = [...testimonials];
-                              updated[index].testimonial = e.target.value;
+                              updated[index].testimonial = value;
                               setTestimonials(updated);
                             }}
                             placeholder="Le témoignage complet du client..."
-                            className="min-h-[100px] bg-background border-border"
                           />
                         </div>
                       </CardContent>

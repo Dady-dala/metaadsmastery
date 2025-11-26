@@ -103,7 +103,7 @@ const FAQ = () => {
                 {faq.question}
               </AccordionTrigger>
               <AccordionContent className="text-gray-300 text-base leading-relaxed pb-6">
-                {faq.answer}
+                <div dangerouslySetInnerHTML={{ __html: faq.answer }} />
               </AccordionContent>
             </AccordionItem>
           ))}

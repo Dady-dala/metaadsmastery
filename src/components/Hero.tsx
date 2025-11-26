@@ -91,24 +91,22 @@ const Hero = () => {
           textWrap: 'balance',
           lineHeight: '1.15'
         }}>
-            <span className="cinematic-gradient-text cinematic-text-shadow text-primary">{heroData.title}</span>
+            <span className="cinematic-gradient-text cinematic-text-shadow text-primary" dangerouslySetInnerHTML={{ __html: heroData.title }} />
           </h1>
         </div>
 
         {/* Subtitle 1 */}
         <div className="text-center mb-4 sm:mb-6">
-          <p className="text-lg sm:text-xl md:text-2xl text-gray-200 font-medium max-w-3xl mx-auto cinematic-text-shadow px-4" style={{
+          <div className="text-lg sm:text-xl md:text-2xl text-gray-200 font-medium max-w-3xl mx-auto cinematic-text-shadow px-4" style={{
           lineHeight: '1.45'
-        }}>{heroData.subtitle1}</p>
+        }} dangerouslySetInnerHTML={{ __html: heroData.subtitle1 }} />
         </div>
 
         {/* Subtitle 2 */}
         <div className="text-center mb-8 sm:mb-12">
-          <p className="text-sm sm:text-base md:text-lg text-gray-300 font-normal max-w-3xl mx-auto cinematic-text-shadow px-4" style={{
+          <div className="text-sm sm:text-base md:text-lg text-gray-300 font-normal max-w-3xl mx-auto cinematic-text-shadow px-4" style={{
           lineHeight: '1.5'
-        }}>
-            {heroData.subtitle2}
-          </p>
+        }} dangerouslySetInnerHTML={{ __html: heroData.subtitle2 }} />
         </div>
 
         {/* CTA Button */}
