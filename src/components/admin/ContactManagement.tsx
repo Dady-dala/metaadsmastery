@@ -31,6 +31,8 @@ import {
   X,
   List,
   CheckSquare,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   Select,
@@ -69,6 +71,7 @@ export const ContactManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [listFilter, setListFilter] = useState<string>('all');
+  const [expandedLists, setExpandedLists] = useState<Record<string, boolean>>({});
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
@@ -875,6 +878,13 @@ export const ContactManagement = () => {
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center justify-between">
                       <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpandedLists(prev => ({ ...prev, [list.id]: !prev[list.id] }))}
+                        >
+                          {expandedLists[list.id] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </Button>
                         <Users className="h-4 w-4" />
                         <div className="flex flex-col">
                           <span>{list.name}</span>
@@ -911,31 +921,33 @@ export const ContactManagement = () => {
                       <CardDescription>{list.description}</CardDescription>
                     )}
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {listMembers
-                        .filter((member) => member.list_id === list.id)
-                        .map((member) => {
-                          const contact = contacts.find((c) => c.id === member.contact_id);
-                          if (!contact) return null;
-                          return (
-                            <div key={member.contact_id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-3 w-3" />
-                                <span className="text-sm">
-                                  {contact.first_name && contact.last_name
-                                    ? `${contact.first_name} ${contact.last_name}`
-                                    : contact.email}
-                                </span>
+                  {expandedLists[list.id] && (
+                    <CardContent>
+                      <div className="space-y-2">
+                        {listMembers
+                          .filter((member) => member.list_id === list.id)
+                          .map((member) => {
+                            const contact = contacts.find((c) => c.id === member.contact_id);
+                            if (!contact) return null;
+                            return (
+                              <div key={member.contact_id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="text-sm">
+                                    {contact.first_name && contact.last_name
+                                      ? `${contact.first_name} ${contact.last_name}`
+                                      : contact.email}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      {getListMemberCount(list.id) === 0 && (
-                        <p className="text-sm text-muted-foreground">Aucun contact dans cette liste</p>
-                      )}
-                    </div>
-                  </CardContent>
+                            );
+                          })}
+                        {getListMemberCount(list.id) === 0 && (
+                          <p className="text-sm text-muted-foreground">Aucun contact dans cette liste</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  )}
                 </Card>
               ))}
             </div>
