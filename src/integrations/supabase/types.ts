@@ -393,6 +393,7 @@ export type Database = {
           html_body: string
           id: string
           name: string
+          scheduled_at: string | null
           status: string
           subject: string
           target_audience: Json | null
@@ -406,6 +407,7 @@ export type Database = {
           html_body: string
           id?: string
           name: string
+          scheduled_at?: string | null
           status?: string
           subject: string
           target_audience?: Json | null
@@ -419,6 +421,7 @@ export type Database = {
           html_body?: string
           id?: string
           name?: string
+          scheduled_at?: string | null
           status?: string
           subject?: string
           target_audience?: Json | null
