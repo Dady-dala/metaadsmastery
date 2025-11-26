@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const { workflowId, contactId, triggerData } = await req.json();
 
-    console.log('Executing workflow:', { workflowId, contactId });
+    console.log('Executing workflow:', { workflowId, contactId, hasSubmissionData: !!triggerData });
 
     // Récupérer le workflow
     const { data: workflow, error: workflowError } = await supabase
@@ -39,19 +39,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Récupérer le contact
-    const { data: contact, error: contactError } = await supabase
-      .from('contacts')
-      .select('*')
-      .eq('id', contactId)
-      .single();
+    // Récupérer le contact si un contactId est fourni
+    let contact: any = null;
+    
+    if (contactId) {
+      const { data: existingContact, error: contactError } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', contactId)
+        .maybeSingle();
 
-    if (contactError || !contact) {
-      console.error('Contact not found:', contactError);
-      return new Response(
-        JSON.stringify({ error: 'Contact introuvable' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (contactError) {
+        console.error('Error fetching contact:', contactError);
+      }
+      
+      contact = existingContact;
     }
 
     // Créer l'exécution du workflow
@@ -59,7 +61,7 @@ Deno.serve(async (req) => {
       .from('workflow_executions')
       .insert({
         workflow_id: workflowId,
-        contact_id: contactId,
+        contact_id: contactId || null,
         trigger_data: triggerData || {},
         status: 'pending',
       })
@@ -76,6 +78,7 @@ Deno.serve(async (req) => {
     // Exécuter les actions
     const actions = workflow.actions as any[];
     const completedActions: any[] = [];
+    let currentContact = contact; // Variable pour stocker le contact actuel
 
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
@@ -92,28 +95,49 @@ Deno.serve(async (req) => {
 
         // Exécuter l'action selon son type
         switch (action.type) {
+          case 'create_contact': {
+            const createdContactId = await executeCreateContactAction(action, triggerData, supabase);
+            
+            // Récupérer le contact créé pour les actions suivantes
+            const { data: newContact } = await supabase
+              .from('contacts')
+              .select('*')
+              .eq('id', createdContactId)
+              .single();
+            
+            currentContact = newContact;
+            console.log('Contact created and set as current contact:', createdContactId);
+            break;
+          }
+
           case 'send_email':
-            await executeSendEmailAction(action, contact, supabase, resend);
+            if (!currentContact) throw new Error('Aucun contact disponible pour envoyer email');
+            await executeSendEmailAction(action, currentContact, supabase, resend);
             break;
 
           case 'add_to_list':
-            await executeAddToListAction(action, contact, supabase);
+            if (!currentContact) throw new Error('Aucun contact disponible pour ajouter à liste');
+            await executeAddToListAction(action, currentContact, supabase);
             break;
 
           case 'remove_from_list':
-            await executeRemoveFromListAction(action, contact, supabase);
+            if (!currentContact) throw new Error('Aucun contact disponible pour retirer de liste');
+            await executeRemoveFromListAction(action, currentContact, supabase);
             break;
 
           case 'add_tag':
-            await executeAddTagAction(action, contact, supabase);
+            if (!currentContact) throw new Error('Aucun contact disponible pour ajouter tag');
+            await executeAddTagAction(action, currentContact, supabase);
             break;
 
           case 'remove_tag':
-            await executeRemoveTagAction(action, contact, supabase);
+            if (!currentContact) throw new Error('Aucun contact disponible pour retirer tag');
+            await executeRemoveTagAction(action, currentContact, supabase);
             break;
 
           case 'send_notification':
-            await executeSendNotificationAction(action, contact, supabase, resend);
+            if (!currentContact) throw new Error('Aucun contact disponible pour notification');
+            await executeSendNotificationAction(action, currentContact, supabase, resend);
             break;
 
           case 'wait':
@@ -177,6 +201,88 @@ Deno.serve(async (req) => {
 });
 
 // Action handlers
+async function executeCreateContactAction(action: any, triggerData: any, supabase: any): Promise<string> {
+  console.log('Creating contact from form submission data:', triggerData);
+
+  // Extraire les données du formulaire depuis triggerData
+  const formData = triggerData.submission_data || triggerData.data || triggerData || {};
+  
+  // Mapper les champs communs
+  const contactData: any = {
+    source: 'workflow_automation',
+    status: 'active',
+    metadata: {
+      workflow_created: true,
+      form_submission_id: triggerData.submission_id,
+      submission_date: new Date().toISOString(),
+      raw_form_data: formData,
+    },
+  };
+
+  // Mapper les champs standards (support de différentes variations de noms)
+  if (formData.email) contactData.email = formData.email;
+  if (formData.first_name || formData.prenom || formData.firstName) {
+    contactData.first_name = formData.first_name || formData.prenom || formData.firstName;
+  }
+  if (formData.last_name || formData.nom || formData.lastName) {
+    contactData.last_name = formData.last_name || formData.nom || formData.lastName;
+  }
+  if (formData.phone || formData.telephone) contactData.phone = formData.phone || formData.telephone;
+  if (formData.notes || formData.message) contactData.notes = formData.notes || formData.message;
+
+  // Email est obligatoire pour créer un contact
+  if (!contactData.email) {
+    throw new Error('Email manquant dans les données du formulaire. Vérifiez que le formulaire contient un champ email.');
+  }
+
+  console.log('Contact data to create/update:', contactData);
+
+  // Vérifier si le contact existe déjà
+  const { data: existingContact } = await supabase
+    .from('contacts')
+    .select('id, email')
+    .eq('email', contactData.email)
+    .maybeSingle();
+
+  if (existingContact) {
+    console.log('Contact already exists, updating:', existingContact.id);
+    
+    // Mettre à jour le contact existant
+    const { error: updateError } = await supabase
+      .from('contacts')
+      .update({
+        ...contactData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existingContact.id);
+
+    if (updateError) {
+      console.error('Error updating contact:', updateError);
+      throw updateError;
+    }
+    
+    console.log('Contact updated successfully');
+    return existingContact.id;
+  } else {
+    console.log('Creating new contact');
+    
+    // Créer un nouveau contact
+    const { data: newContact, error: insertError } = await supabase
+      .from('contacts')
+      .insert(contactData)
+      .select('id')
+      .single();
+
+    if (insertError) {
+      console.error('Error creating contact:', insertError);
+      throw insertError;
+    }
+    
+    console.log('Contact created successfully:', newContact.id);
+    return newContact.id;
+  }
+}
+
 async function executeSendEmailAction(action: any, contact: any, supabase: any, resend: any) {
   const templateId = action.config.template_id;
   

@@ -135,6 +135,7 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
 
   const getActionLabel = (type: string) => {
     const labels: Record<string, string> = {
+      create_contact: '👤 Créer un contact',
       send_email: '📧 Envoyer email',
       add_to_list: '📋 Ajouter à liste',
       remove_from_list: '🗑️ Retirer de liste',
@@ -318,6 +319,9 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
                     <div className="flex-1">
                       <div className="font-medium">{getActionLabel(action.type)}</div>
                       <div className="text-sm text-muted-foreground">
+                        {action.type === 'create_contact' && (
+                          <>Crée un contact à partir des données du formulaire</>
+                        )}
                         {action.type === 'send_email' && action.config.template_id && (
                           <>Email: {emailTemplates.find(t => t.id === action.config.template_id)?.subject}</>
                         )}
@@ -369,6 +373,7 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="create_contact">👤 Créer un contact</SelectItem>
                     <SelectItem value="send_email">📧 Envoyer email</SelectItem>
                     <SelectItem value="add_to_list">📋 Ajouter à liste</SelectItem>
                     <SelectItem value="remove_from_list">🗑️ Retirer de liste</SelectItem>
@@ -379,6 +384,20 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
                   </SelectContent>
                 </Select>
               </div>
+
+              {editingAction.type === 'create_contact' && (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Cette action créera un nouveau contact à partir des données du formulaire soumis.
+                  </p>
+                  <div>
+                    <Label>Mapping des champs (optionnel)</Label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Par défaut, les champs "email", "first_name", "last_name" et "phone" seront automatiquement mappés s'ils existent dans le formulaire.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {editingAction.type === 'send_email' && (
                 <div>
