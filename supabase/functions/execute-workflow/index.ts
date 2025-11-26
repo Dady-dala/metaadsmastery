@@ -260,7 +260,26 @@ async function executeCreateContactAction(action: any, triggerData: any, supabas
   };
 
   // Mapper les champs standards (support de différentes variations de noms)
-  if (formData.email) contactData.email = formData.email;
+  let emailFromFields: string | null =
+    formData.email ||
+    formData.email_address ||
+    formData.mail ||
+    null;
+
+  // Si aucun email explicite via mapping, essayer de le détecter dans les valeurs brutes du formulaire
+  if (!emailFromFields) {
+    for (const value of Object.values(rawFormData)) {
+      if (typeof value === 'string' && /\S+@\S+\.\S+/.test(value)) {
+        emailFromFields = value;
+        break;
+      }
+    }
+  }
+
+  if (emailFromFields) {
+    contactData.email = emailFromFields;
+  }
+
   if (formData.first_name || formData.prenom || formData.firstName) {
     contactData.first_name = formData.first_name || formData.prenom || formData.firstName;
   }
