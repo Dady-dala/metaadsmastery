@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, ArrowRight, GripVertical, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 
 interface WorkflowBuilderProps {
   workflow: any | null;
@@ -88,6 +89,16 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
 
   const handleRemoveAction = (id: string) => {
     setActions(actions.filter(a => a.id !== id));
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(actions);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setActions(items);
   };
 
   const handleSave = async () => {
@@ -301,56 +312,82 @@ export function WorkflowBuilder({ workflow, onSave, onCancel }: WorkflowBuilderP
               Aucune action configurée. Ajoutez une action pour commencer.
             </p>
           ) : (
-            <div className="space-y-3">
-              {actions.map((action, index) => (
-                <div key={action.id}>
-                  {index > 0 && (
-                    <div className="flex items-center justify-center py-2">
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      {action.delay_minutes && (
-                        <Badge variant="outline" className="ml-2">
-                          Attendre {action.delay_minutes} min
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <div className="font-medium">{getActionLabel(action.type)}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {action.type === 'create_contact' && (
-                          <>Crée un contact à partir des données du formulaire</>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="workflow-actions">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="space-y-3"
+                  >
+                    {actions.map((action, index) => (
+                      <Draggable key={action.id} draggableId={action.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div>
+                            {index > 0 && (
+                              <div className="flex items-center justify-center py-2">
+                                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                {action.delay_minutes && (
+                                  <Badge variant="outline" className="ml-2">
+                                    Attendre {action.delay_minutes} min
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`flex items-center gap-2 p-3 rounded-lg bg-muted/50 border transition-all ${
+                                snapshot.isDragging ? 'shadow-lg scale-105 border-primary' : ''
+                              }`}
+                            >
+                              <div
+                                {...provided.dragHandleProps}
+                                className="cursor-grab active:cursor-grabbing"
+                              >
+                                <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium">{getActionLabel(action.type)}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {action.type === 'create_contact' && (
+                                    <>Crée un contact à partir des données du formulaire</>
+                                  )}
+                                  {action.type === 'send_email' && action.config.template_id && (
+                                    <>Email: {emailTemplates.find(t => t.id === action.config.template_id)?.subject}</>
+                                  )}
+                                  {action.type === 'add_to_list' && action.config.list_id && (
+                                    <>Liste: {contactLists.find(l => l.id === action.config.list_id)?.name}</>
+                                  )}
+                                  {action.type === 'add_tag' && action.config.tag && (
+                                    <>Tag: {action.config.tag}</>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditAction(action)}
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveAction(action.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
                         )}
-                        {action.type === 'send_email' && action.config.template_id && (
-                          <>Email: {emailTemplates.find(t => t.id === action.config.template_id)?.subject}</>
-                        )}
-                        {action.type === 'add_to_list' && action.config.list_id && (
-                          <>Liste: {contactLists.find(l => l.id === action.config.list_id)?.name}</>
-                        )}
-                        {action.type === 'add_tag' && action.config.tag && (
-                          <>Tag: {action.config.tag}</>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditAction(action)}
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveAction(action.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
                   </div>
-                </div>
-              ))}
-            </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           )}
         </CardContent>
       </Card>
