@@ -43,149 +43,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Form configuration:', { actionType: form.action_type, mappingConfig: form.mapping_config });
+    console.log('Form configuration:', { formId: form.id, title: form.title });
 
-    const results: any = {};
+    // Créer la soumission
+    const { data: submission, error: submissionError } = await supabase
+      .from('form_submissions')
+      .insert({
+        form_id: formId,
+        data: data,
+        email: data.email || null,
+      })
+      .select()
+      .single();
 
-    // 1. Créer la soumission si nécessaire
-    if (form.action_type === 'submission' || form.action_type === 'both') {
-      const { data: submission, error: submissionError } = await supabase
-        .from('form_submissions')
-        .insert({
-          form_id: formId,
-          data: data,
-          email: data.email || null,
-        })
-        .select()
-        .single();
-
-      if (submissionError) {
-        console.error('Error creating submission:', submissionError);
-        throw submissionError;
-      }
-
-      console.log('Submission created:', submission.id);
-      results.submission = submission;
+    if (submissionError) {
+      console.error('Error creating submission:', submissionError);
+      throw submissionError;
     }
 
-    // 2. Créer le contact si nécessaire
-    if (form.action_type === 'contact' || form.action_type === 'both') {
-      const mappingConfig = form.mapping_config || {};
-      
-      // Construire l'objet contact à partir du mapping
-      const contactData: any = {
-        source: `form_${formId}`,
-        status: 'active',
-        metadata: {
-          form_id: formId,
-          form_title: form.title,
-          submission_date: new Date().toISOString(),
-          raw_data: data,
-        },
-      };
-
-      // Mapper les champs du formulaire vers les colonnes de contacts
-      Object.entries(mappingConfig).forEach(([fieldId, contactField]) => {
-        if (contactField && contactField !== 'none' && data[fieldId]) {
-          contactData[contactField as string] = data[fieldId];
-        }
-      });
-
-      // Email est obligatoire pour créer un contact
-      if (!contactData.email) {
-        console.error('Email is required to create contact');
-        return new Response(
-          JSON.stringify({ error: 'Email est requis pour créer un contact' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log('Creating contact with data:', contactData);
-
-      // Vérifier si le contact existe déjà
-      const { data: existingContact } = await supabase
-        .from('contacts')
-        .select('id, email')
-        .eq('email', contactData.email)
-        .maybeSingle();
-
-      let contactId: string;
-
-      if (existingContact) {
-        // Mettre à jour le contact existant
-        const { data: updatedContact, error: updateError } = await supabase
-          .from('contacts')
-          .update({
-            ...contactData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingContact.id)
-          .select()
-          .single();
-
-        if (updateError) {
-          console.error('Error updating contact:', updateError);
-          throw updateError;
-        }
-
-        console.log('Contact updated:', updatedContact.id);
-        results.contact = updatedContact;
-        contactId = updatedContact.id;
-      } else {
-        // Créer un nouveau contact
-        const { data: newContact, error: contactError } = await supabase
-          .from('contacts')
-          .insert(contactData)
-          .select()
-          .single();
-
-        if (contactError) {
-          console.error('Error creating contact:', contactError);
-          throw contactError;
-        }
-
-        console.log('Contact created:', newContact.id);
-        results.contact = newContact;
-        contactId = newContact.id;
-      }
-
-      // 3. Ajouter à la liste si configurée
-      if (form.target_list_id && contactId) {
-        console.log('Adding contact to list:', form.target_list_id);
-        
-        // Vérifier si le contact est déjà dans la liste
-        const { data: existingMember } = await supabase
-          .from('contact_list_members')
-          .select('id')
-          .eq('contact_id', contactId)
-          .eq('list_id', form.target_list_id)
-          .maybeSingle();
-
-        if (!existingMember) {
-          const { error: memberError } = await supabase
-            .from('contact_list_members')
-            .insert({
-              contact_id: contactId,
-              list_id: form.target_list_id,
-            });
-
-          if (memberError) {
-            console.error('Error adding contact to list:', memberError);
-            // Ne pas bloquer la soumission si l'ajout à la liste échoue
-          } else {
-            console.log('Contact added to list successfully');
-            results.added_to_list = true;
-          }
-        } else {
-          console.log('Contact already in list');
-        }
-      }
-    }
-
-    console.log('Form submission completed successfully:', results);
+    console.log('Submission created successfully:', submission.id);
 
     return new Response(
-      JSON.stringify({ success: true, results }),
+      JSON.stringify({ 
+        success: true, 
+        submission,
+        message: 'Formulaire soumis avec succès. Les workflows automatisés prendront le relais.'
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
