@@ -554,7 +554,6 @@ export const ContactManagement = () => {
                         <SelectValue placeholder="Sélectionner une liste" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Aucune liste</SelectItem>
                         {lists.map((list) => (
                           <SelectItem key={list.id} value={list.id}>
                             {list.name}
