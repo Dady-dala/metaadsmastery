@@ -126,6 +126,7 @@ export function WorkflowManagement() {
 
   const getActionLabel = (type: string) => {
     const labels: Record<string, string> = {
+      create_contact: '👤 Créer un contact',
       send_email: '📧 Envoyer email',
       add_to_list: '📋 Ajouter à liste',
       remove_from_list: '🗑️ Retirer de liste',
