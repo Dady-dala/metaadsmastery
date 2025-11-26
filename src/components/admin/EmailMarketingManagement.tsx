@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Mail, Play, Pause, Trash2, BarChart3 } from "lucide-react";
+import { Plus, Mail, Play, Pause, Trash2, BarChart3, Send } from "lucide-react";
 import { EmailCampaignEditor } from "./EmailCampaignEditor";
 import { EmailCampaignStats } from "./EmailCampaignStats";
 import { EmailMarketingDashboard } from "./EmailMarketingDashboard";
@@ -105,6 +105,32 @@ export function EmailMarketingManagement() {
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la campagne",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendNow = async (campaignId: string) => {
+    if (!confirm('Lancer cette campagne maintenant ? Les emails seront envoyés immédiatement.')) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('process-email-campaigns', {
+        body: { campaignId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: data.message || "Campagne lancée avec succès",
+      });
+
+      loadCampaigns();
+    } catch (error: any) {
+      console.error('Error sending campaign:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de lancer la campagne",
         variant: "destructive",
       });
     }
@@ -210,6 +236,16 @@ export function EmailMarketingManagement() {
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
+                    {campaign.trigger_type === 'manual' && campaign.status === 'active' && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleSendNow(campaign.id)}
+                      >
+                        <Send className="h-4 w-4 mr-1" />
+                        Envoyer
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"

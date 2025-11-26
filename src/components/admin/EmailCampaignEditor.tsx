@@ -24,11 +24,23 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
   const [selectedContactLists, setSelectedContactLists] = useState<string[]>(campaign?.target_audience?.contact_lists || []);
   const [inactivityDays, setInactivityDays] = useState(campaign?.trigger_config?.days || '7');
   const [progressPercentage, setProgressPercentage] = useState(campaign?.trigger_config?.percentage || '50');
+  const [sendOption, setSendOption] = useState<'immediate' | 'scheduled'>('immediate');
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [scheduledTime, setScheduledTime] = useState('');
   const [courses, setCourses] = useState<any[]>([]);
   const [forms, setForms] = useState<any[]>([]);
   const [contactLists, setContactLists] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (campaign?.scheduled_at) {
+      setSendOption('scheduled');
+      const date = new Date(campaign.scheduled_at);
+      setScheduledDate(date.toISOString().split('T')[0]);
+      setScheduledTime(date.toTimeString().slice(0, 5));
+    }
+  }, [campaign]);
 
   useEffect(() => {
     loadCourses();
@@ -95,6 +107,19 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
         targetAudience.contact_lists = selectedContactLists;
       }
 
+      let scheduledAt = null;
+      if (sendOption === 'scheduled') {
+        if (!scheduledDate || !scheduledTime) {
+          toast({
+            title: "Erreur",
+            description: "Veuillez sélectionner une date et heure de programmation",
+            variant: "destructive",
+          });
+          return;
+        }
+        scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`).toISOString();
+      }
+
       const campaignData = {
         name,
         subject,
@@ -102,6 +127,8 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
         trigger_type: triggerType,
         trigger_config: triggerConfig,
         target_audience: targetAudience,
+        scheduled_at: scheduledAt,
+        status: sendOption === 'immediate' ? 'active' : 'draft',
       };
 
       if (campaign) {
@@ -286,6 +313,58 @@ export function EmailCampaignEditor({ campaign, onSave, onCancel }: EmailCampaig
           <p className="text-sm text-muted-foreground mt-2">
             Sélectionnez les listes de contacts qui recevront cet email
           </p>
+        </div>
+
+        <div>
+          <Label>Options d'envoi</Label>
+          <div className="space-y-4 mt-2">
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="immediate"
+                  checked={sendOption === 'immediate'}
+                  onChange={(e) => setSendOption(e.target.value as 'immediate')}
+                  className="rounded"
+                />
+                <span>Lancer immédiatement</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="scheduled"
+                  checked={sendOption === 'scheduled'}
+                  onChange={(e) => setSendOption(e.target.value as 'scheduled')}
+                  className="rounded"
+                />
+                <span>Programmer l'envoi</span>
+              </label>
+            </div>
+
+            {sendOption === 'scheduled' && (
+              <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div>
+                  <Label htmlFor="scheduled_date">Date</Label>
+                  <Input
+                    id="scheduled_date"
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="scheduled_time">Heure</Label>
+                  <Input
+                    id="scheduled_time"
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
