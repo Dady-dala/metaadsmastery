@@ -923,22 +923,54 @@ export const ContactManagement = () => {
                   </CardHeader>
                   {expandedLists[list.id] && (
                     <CardContent>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {listMembers
                           .filter((member) => member.list_id === list.id)
                           .map((member) => {
                             const contact = contacts.find((c) => c.id === member.contact_id);
                             if (!contact) return null;
                             return (
-                              <div key={member.contact_id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                              <div key={member.contact_id} className="p-3 rounded-md bg-muted/50 space-y-2">
                                 <div className="flex items-center gap-2">
-                                  <Mail className="h-3 w-3" />
-                                  <span className="text-sm">
-                                    {contact.first_name && contact.last_name
-                                      ? `${contact.first_name} ${contact.last_name}`
-                                      : contact.email}
-                                  </span>
+                                  <Mail className="h-4 w-4" />
+                                  <span className="text-sm font-medium">{contact.email}</span>
                                 </div>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Prénom: </span>
+                                    <span>{contact.first_name || '-'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Nom: </span>
+                                    <span>{contact.last_name || '-'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Téléphone: </span>
+                                    <span>{contact.phone || '-'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Statut: </span>
+                                    <Badge variant={contact.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                      {contact.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {contact.tags && contact.tags.length > 0 && (
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    <span className="text-xs text-muted-foreground">Tags:</span>
+                                    {contact.tags.map((tag, idx) => (
+                                      <Badge key={idx} variant="outline" className="text-xs">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                                {contact.notes && (
+                                  <div className="text-xs text-muted-foreground">
+                                    <span className="font-medium">Notes: </span>
+                                    {contact.notes}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
