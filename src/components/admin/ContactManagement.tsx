@@ -911,6 +911,31 @@ export const ContactManagement = () => {
                       <CardDescription>{list.description}</CardDescription>
                     )}
                   </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {listMembers
+                        .filter((member) => member.list_id === list.id)
+                        .map((member) => {
+                          const contact = contacts.find((c) => c.id === member.contact_id);
+                          if (!contact) return null;
+                          return (
+                            <div key={member.contact_id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-3 w-3" />
+                                <span className="text-sm">
+                                  {contact.first_name && contact.last_name
+                                    ? `${contact.first_name} ${contact.last_name}`
+                                    : contact.email}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      {getListMemberCount(list.id) === 0 && (
+                        <p className="text-sm text-muted-foreground">Aucun contact dans cette liste</p>
+                      )}
+                    </div>
+                  </CardContent>
                 </Card>
               ))}
             </div>
