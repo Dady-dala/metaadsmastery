@@ -3,12 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Save, Loader2, Plus, Trash2, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 interface Props {
   onSave?: () => void;
@@ -17,8 +17,8 @@ interface Props {
 export const ServicesSectionEditor = ({ onSave }: Props) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [problems, setProblems] = useState<string[]>([]);
-  const [learnings, setLearnings] = useState<string[]>([]);
+  const [problems, setProblems] = useState<Array<{ title: string; description: string }>>([]);
+  const [learnings, setLearnings] = useState<Array<{ title: string; description: string }>>([]);
   const [modules, setModules] = useState<Array<{ number: string; title: string; description: string }>>([]);
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export const ServicesSectionEditor = ({ onSave }: Props) => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setProblems([...problems, ''])}
+              onClick={() => setProblems([...problems, { title: '', description: '' }])}
             >
               <Plus className="w-4 h-4 mr-2" />
               Ajouter
@@ -139,33 +139,51 @@ export const ServicesSectionEditor = ({ onSave }: Props) => {
                   {problems.map((problem, index) => (
                     <Draggable key={index} draggableId={`problem-${index}`} index={index}>
                       {(provided) => (
-                        <div
+                        <Card
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className="flex gap-2 items-start"
+                          className="bg-card border-border"
                         >
-                          <div {...provided.dragHandleProps} className="mt-3">
-                            <GripVertical className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                          <Textarea
-                            value={problem}
-                            onChange={(e) => {
-                              const updated = [...problems];
-                              updated[index] = e.target.value;
-                              setProblems(updated);
-                            }}
-                            placeholder="Décrivez un problème..."
-                            className="flex-1 bg-background border-border text-foreground"
-                          />
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setProblems(problems.filter((_, i) => i !== index))}
-                            className="mt-2"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div {...provided.dragHandleProps}>
+                                <GripVertical className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => setProblems(problems.filter((_, i) => i !== index))}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">Titre</Label>
+                              <Input
+                                value={problem.title}
+                                onChange={(e) => {
+                                  const updated = [...problems];
+                                  updated[index].title = e.target.value;
+                                  setProblems(updated);
+                                }}
+                                placeholder="Titre du problème"
+                                className="bg-background border-border"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">Description</Label>
+                              <RichTextEditor
+                                value={problem.description}
+                                onChange={(value) => {
+                                  const updated = [...problems];
+                                  updated[index].description = value;
+                                  setProblems(updated);
+                                }}
+                                placeholder="Description du problème"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
                     </Draggable>
                   ))}
@@ -182,7 +200,7 @@ export const ServicesSectionEditor = ({ onSave }: Props) => {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setLearnings([...learnings, ''])}
+              onClick={() => setLearnings([...learnings, { title: '', description: '' }])}
             >
               <Plus className="w-4 h-4 mr-2" />
               Ajouter
@@ -196,33 +214,51 @@ export const ServicesSectionEditor = ({ onSave }: Props) => {
                   {learnings.map((learning, index) => (
                     <Draggable key={index} draggableId={`learning-${index}`} index={index}>
                       {(provided) => (
-                        <div
+                        <Card
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className="flex gap-2 items-start"
+                          className="bg-card border-border"
                         >
-                          <div {...provided.dragHandleProps} className="mt-3">
-                            <GripVertical className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                          <Textarea
-                            value={learning}
-                            onChange={(e) => {
-                              const updated = [...learnings];
-                              updated[index] = e.target.value;
-                              setLearnings(updated);
-                            }}
-                            placeholder="Décrivez un apprentissage..."
-                            className="flex-1 bg-background border-border text-foreground"
-                          />
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setLearnings(learnings.filter((_, i) => i !== index))}
-                            className="mt-2"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div {...provided.dragHandleProps}>
+                                <GripVertical className="w-4 h-4 text-muted-foreground" />
+                              </div>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => setLearnings(learnings.filter((_, i) => i !== index))}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">Titre</Label>
+                              <Input
+                                value={learning.title}
+                                onChange={(e) => {
+                                  const updated = [...learnings];
+                                  updated[index].title = e.target.value;
+                                  setLearnings(updated);
+                                }}
+                                placeholder="Titre de l'apprentissage"
+                                className="bg-background border-border"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm">Description</Label>
+                              <RichTextEditor
+                                value={learning.description}
+                                onChange={(value) => {
+                                  const updated = [...learnings];
+                                  updated[index].description = value;
+                                  setLearnings(updated);
+                                }}
+                                placeholder="Description de l'apprentissage"
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
                       )}
                     </Draggable>
                   ))}
@@ -302,15 +338,14 @@ export const ServicesSectionEditor = ({ onSave }: Props) => {
                             </div>
                             <div className="space-y-2">
                               <Label className="text-sm">Description</Label>
-                              <Textarea
+                              <RichTextEditor
                                 value={module.description}
-                                onChange={(e) => {
+                                onChange={(value) => {
                                   const updated = [...modules];
-                                  updated[index].description = e.target.value;
+                                  updated[index].description = value;
                                   setModules(updated);
                                 }}
                                 placeholder="Description du module"
-                                className="bg-background border-border"
                               />
                             </div>
                           </CardContent>

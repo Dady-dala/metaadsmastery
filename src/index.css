@@ -498,6 +498,45 @@ body > div[style*="z-index"] {
   }
 }
 
+/* Rich Text Editor Styles */
+.rich-text-editor .ql-container {
+  @apply bg-background text-foreground border-border rounded-b-md;
+  min-height: 150px;
+}
+
+.rich-text-editor .ql-toolbar {
+  @apply bg-muted border-border rounded-t-md;
+}
+
+.rich-text-editor .ql-editor {
+  @apply text-foreground;
+  min-height: 150px;
+}
+
+.rich-text-editor .ql-editor.ql-blank::before {
+  @apply text-muted-foreground;
+}
+
+.rich-text-editor .ql-snow .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+
+.rich-text-editor .ql-snow .ql-fill {
+  fill: hsl(var(--foreground));
+}
+
+.rich-text-editor .ql-snow .ql-picker-label {
+  color: hsl(var(--foreground));
+}
+
+.rich-text-editor .ql-snow .ql-picker-options {
+  @apply bg-background border-border;
+}
+
+.rich-text-editor .ql-snow .ql-picker-item:hover {
+  @apply text-primary;
+}
+
 /* Cinematic Styling */
 .cinematic-section {
   background: #000;

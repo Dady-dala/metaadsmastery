@@ -75,8 +75,8 @@ const Services = () => {
     }
   ];
 
-  const [problems, setProblems] = useState<string[]>(defaultProblems);
-  const [learnings, setLearnings] = useState<string[]>(defaultLearnings);
+  const [problems, setProblems] = useState<Array<string | { title: string; description: string }>>(defaultProblems);
+  const [learnings, setLearnings] = useState<Array<string | { title: string; description: string }>>(defaultLearnings);
   const [modules, setModules] = useState<Array<{ number: string; title: string; description: string }>>(defaultModules);
 
   useEffect(() => {
@@ -200,9 +200,17 @@ const Services = () => {
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             {problems.map((problem, index) => (
               <Card key={index} className="bg-black/40 border-red-500/20 hover:border-red-500/40 transition-all">
-                <CardContent className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6">
-                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-1" />
-                  <p className="text-gray-200 text-sm sm:text-base md:text-lg">{problem}</p>
+                <CardContent className="p-4 sm:p-6 space-y-2">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-1" />
+                    <h3 className="text-white text-base sm:text-lg font-semibold">{typeof problem === 'string' ? problem : problem.title}</h3>
+                  </div>
+                  {typeof problem === 'object' && problem.description && (
+                    <div 
+                      className="text-gray-300 text-sm sm:text-base ml-9 sm:ml-10"
+                      dangerouslySetInnerHTML={{ __html: problem.description }}
+                    />
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -233,9 +241,17 @@ const Services = () => {
 
           <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
             {learnings.map((learning, index) => (
-              <div key={index} className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-black/20 border border-primary/10 hover:border-primary/30 transition-all">
-                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5 sm:mt-1" />
-                <p className="text-gray-200 text-sm sm:text-base md:text-lg">{learning}</p>
+              <div key={index} className="p-3 sm:p-4 rounded-lg bg-black/20 border border-primary/10 hover:border-primary/30 transition-all space-y-2">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0 mt-0.5 sm:mt-1" />
+                  <p className="text-white text-sm sm:text-base font-semibold">{typeof learning === 'string' ? learning : learning.title}</p>
+                </div>
+                {typeof learning === 'object' && learning.description && (
+                  <div 
+                    className="text-gray-300 text-sm ml-7 sm:ml-9"
+                    dangerouslySetInnerHTML={{ __html: learning.description }}
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -291,7 +307,10 @@ const Services = () => {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-white mb-3">{module.title}</h3>
-                    <p className="text-gray-300 text-lg">{module.description}</p>
+                    <div 
+                      className="text-gray-300 text-lg"
+                      dangerouslySetInnerHTML={{ __html: module.description }}
+                    />
                   </div>
                 </CardContent>
               </Card>

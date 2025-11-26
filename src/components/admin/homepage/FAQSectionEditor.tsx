@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Save, Loader2, Plus, Trash2, GripVertical } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 interface FAQ {
   question: string;
@@ -165,15 +165,14 @@ export const FAQSectionEditor = ({ onSave }: Props) => {
                         </div>
                         <div className="space-y-2">
                           <Label className="text-sm">Réponse</Label>
-                          <Textarea
+                          <RichTextEditor
                             value={faq.answer}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               const updated = [...faqs];
-                              updated[index].answer = e.target.value;
+                              updated[index].answer = value;
                               setFaqs(updated);
                             }}
                             placeholder="La réponse à la question..."
-                            className="min-h-[100px] bg-background border-border"
                           />
                         </div>
                       </CardContent>

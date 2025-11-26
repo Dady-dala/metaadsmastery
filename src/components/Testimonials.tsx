@@ -187,9 +187,10 @@ const Testimonials = () => {
               </CardHeader>
 
               <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
-                <p className="text-gray-300 italic leading-relaxed text-sm sm:text-base">
-                  "{testimonial.testimonial}"
-                </p>
+                <div 
+                  className="text-gray-300 italic leading-relaxed text-sm sm:text-base"
+                  dangerouslySetInnerHTML={{ __html: `"${testimonial.testimonial}"` }}
+                />
 
                 <div className="grid grid-cols-3 gap-2 pt-3 sm:pt-4 border-t border-primary/20">
                   {testimonial.metrics.map((metric, idx) => (

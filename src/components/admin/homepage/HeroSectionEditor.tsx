@@ -3,9 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Save, Loader2, Video } from 'lucide-react';
+import RichTextEditor from '@/components/admin/RichTextEditor';
 
 interface HeroSettings {
   title: string;
@@ -125,34 +125,28 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="title" className="text-foreground">Titre Principal</Label>
-        <Textarea
-          id="title"
+        <RichTextEditor
           value={settings.title}
-          onChange={(e) => setSettings({ ...settings, title: e.target.value })}
+          onChange={(value) => setSettings({ ...settings, title: value })}
           placeholder="Maîtrise Facebook & Instagram Ads..."
-          className="min-h-[100px] bg-background border-border text-foreground"
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="subtitle1" className="text-foreground">Sous-titre 1</Label>
-        <Textarea
-          id="subtitle1"
+        <RichTextEditor
           value={settings.subtitle1}
-          onChange={(e) => setSettings({ ...settings, subtitle1: e.target.value })}
+          onChange={(value) => setSettings({ ...settings, subtitle1: value })}
           placeholder="La Formation Complète pour Vendre..."
-          className="min-h-[80px] bg-background border-border text-foreground"
         />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="subtitle2" className="text-foreground">Sous-titre 2 (Garantie)</Label>
-        <Textarea
-          id="subtitle2"
+        <RichTextEditor
           value={settings.subtitle2}
-          onChange={(e) => setSettings({ ...settings, subtitle2: e.target.value })}
+          onChange={(value) => setSettings({ ...settings, subtitle2: value })}
           placeholder="Garantie Satisfaction 30 Jours..."
-          className="min-h-[80px] bg-background border-border text-foreground"
         />
       </div>
 
