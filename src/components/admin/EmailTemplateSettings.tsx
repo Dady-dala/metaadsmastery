@@ -308,7 +308,8 @@ export const EmailTemplateSettings = () => {
             onClick={() => {
               const currentIndex = templates.findIndex(t => t.template_key === selectedTemplate?.template_key);
               if (currentIndex > 0) {
-                setSelectedTemplate(templates[currentIndex - 1]);
+                // Créer une nouvelle référence pour forcer le re-render
+                setSelectedTemplate({ ...templates[currentIndex - 1] });
               }
             }}
             disabled={!selectedTemplate || templates.findIndex(t => t.template_key === selectedTemplate?.template_key) === 0}
@@ -321,7 +322,8 @@ export const EmailTemplateSettings = () => {
             onClick={() => {
               const currentIndex = templates.findIndex(t => t.template_key === selectedTemplate?.template_key);
               if (currentIndex < templates.length - 1) {
-                setSelectedTemplate(templates[currentIndex + 1]);
+                // Créer une nouvelle référence pour forcer le re-render
+                setSelectedTemplate({ ...templates[currentIndex + 1] });
               }
             }}
             disabled={!selectedTemplate || templates.findIndex(t => t.template_key === selectedTemplate?.template_key) === templates.length - 1}
@@ -334,7 +336,10 @@ export const EmailTemplateSettings = () => {
           value={selectedTemplate?.template_key}
           onValueChange={(value) => {
             const template = templates.find((t) => t.template_key === value);
-            if (template) setSelectedTemplate(template);
+            if (template) {
+              // Créer une nouvelle référence pour forcer le re-render
+              setSelectedTemplate({ ...template });
+            }
           }}
         >
           <SelectTrigger className="w-[300px]">
@@ -354,7 +359,7 @@ export const EmailTemplateSettings = () => {
       </div>
 
       {selectedTemplate && (
-        <Card>
+        <Card key={selectedTemplate.template_key}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
