@@ -1,8 +1,10 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { HelpCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const FAQ = () => {
-  const faqs = [
+  const defaultFaqs = [
     {
       question: "Est-ce que cette formation convient aux débutants complets ?",
       answer: "Absolument ! Meta Ads Mastery est conçu pour partir de zéro. Même si tu n'as jamais créé de publicité de ta vie, tu vas tout comprendre grâce à nos explications claires et nos démonstrations pas à pas. Aucun prérequis technique n'est nécessaire."
@@ -48,6 +50,29 @@ const FAQ = () => {
       answer: "OUI ! À la fin de Meta Ads Mastery, tu auras toutes les compétences pour lancer et gérer des campagnes Facebook Ads rentables, que ce soit pour ton propre business ou pour des clients. De nombreux étudiants ont commencé à proposer ce service et facturent entre $100 et $500 par client et par mois. La demande est énorme en Afrique et peu de gens maîtrisent vraiment Meta Ads."
     }
   ];
+
+  const [faqs, setFaqs] = useState(defaultFaqs);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('landing_page_sections')
+          .select('*')
+          .eq('section_key', 'faq')
+          .single();
+
+        if (error || !data?.content) return;
+
+        const content = data.content as any;
+        if (content.faqs?.length > 0) setFaqs(content.faqs);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+      }
+    };
+
+    loadContent();
+  }, []);
 
   return (
     <section className="relative py-20 cinematic-section overflow-hidden">

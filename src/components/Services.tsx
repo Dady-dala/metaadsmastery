@@ -1,41 +1,25 @@
 import { Target, TrendingUp, Shield, Zap, BookOpen, Award, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ContactFormDialog from '@/components/ContactFormDialog';
 import CountdownTimer from '@/components/CountdownTimer';
+import { supabase } from '@/integrations/supabase/client';
 
 const Services = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
-  const problems = [
-    {
-      icon: XCircle,
-      problem: "Tu cliques sur 'Booster' sans stratégie et ton argent disparaît sans résultats"
-    },
-    {
-      icon: XCircle,
-      problem: "Tes publicités ne génèrent aucune vente, juste des likes inutiles"
-    },
-    {
-      icon: XCircle,
-      problem: "Tu n'as pas de site web et tu penses que c'est impossible de vendre en ligne"
-    },
-    {
-      icon: XCircle,
-      problem: "Tes concurrents dominent Facebook pendant que toi, tu restes invisible"
-    },
-    {
-      icon: XCircle,
-      problem: "Tu paies des 'experts' qui ne te donnent aucun résultat concret"
-    },
-    {
-      icon: XCircle,
-      problem: "Tu ne sais pas comment utiliser WhatsApp Business pour convertir tes prospects en clients"
-    }
+  // Valeurs par défaut
+  const defaultProblems = [
+    "Tu cliques sur 'Booster' sans stratégie et ton argent disparaît sans résultats",
+    "Tes publicités ne génèrent aucune vente, juste des likes inutiles",
+    "Tu n'as pas de site web et tu penses que c'est impossible de vendre en ligne",
+    "Tes concurrents dominent Facebook pendant que toi, tu restes invisible",
+    "Tu paies des 'experts' qui ne te donnent aucun résultat concret",
+    "Tu ne sais pas comment utiliser WhatsApp Business pour convertir tes prospects en clients"
   ];
 
-  const learnings = [
+  const defaultLearnings = [
     "Créer et configurer ton Business Manager de A à Z comme un pro",
     "Mettre en place WhatsApp Business comme tunnel de conversion automatique",
     "Créer des audiences hyper-ciblées qui convertissent réellement",
@@ -48,34 +32,7 @@ const Services = () => {
     "Scaler tes campagnes gagnantes sans perdre en rentabilité"
   ];
 
-  const targetAudience = [
-    {
-      title: "Entrepreneurs & Commerçants",
-      description: "Tu vends des produits/services et tu veux attirer plus de clients"
-    },
-    {
-      title: "Infopreneurs & Formateurs",
-      description: "Tu veux vendre tes formations, ebooks ou coaching en ligne"
-    },
-    {
-      title: "Freelances & Graphistes",
-      description: "Tu veux proposer la gestion de pubs Facebook à tes clients"
-    },
-    {
-      title: "Marketeurs Digitaux",
-      description: "Tu veux ajouter une compétence ultra-demandée à ton CV"
-    },
-    {
-      title: "Débutants Complets",
-      description: "Aucune expérience requise, on part de zéro ensemble"
-    },
-    {
-      title: "Étudiants Ambitieux",
-      description: "Tu veux maîtriser un skill qui paie vraiment en Afrique"
-    }
-  ];
-
-  const modules = [
+  const defaultModules = [
     {
       number: "01",
       title: "Fondations Meta Ads",
@@ -115,6 +72,60 @@ const Services = () => {
       number: "08",
       title: "Scaling & Croissance",
       description: "Multiplier les résultats des campagnes gagnantes, gérer des budgets plus importants."
+    }
+  ];
+
+  const [problems, setProblems] = useState<string[]>(defaultProblems);
+  const [learnings, setLearnings] = useState<string[]>(defaultLearnings);
+  const [modules, setModules] = useState<Array<{ number: string; title: string; description: string }>>(defaultModules);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('landing_page_sections')
+          .select('*')
+          .eq('section_key', 'services')
+          .single();
+
+        if (error || !data?.content) return;
+
+        const content = data.content as any;
+        if (content.problems?.length > 0) setProblems(content.problems);
+        if (content.learnings?.length > 0) setLearnings(content.learnings);
+        if (content.modules?.length > 0) setModules(content.modules);
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+      }
+    };
+
+    loadContent();
+  }, []);
+
+  const targetAudience = [
+    {
+      title: "Entrepreneurs & Commerçants",
+      description: "Tu vends des produits/services et tu veux attirer plus de clients"
+    },
+    {
+      title: "Infopreneurs & Formateurs",
+      description: "Tu veux vendre tes formations, ebooks ou coaching en ligne"
+    },
+    {
+      title: "Freelances & Graphistes",
+      description: "Tu veux proposer la gestion de pubs Facebook à tes clients"
+    },
+    {
+      title: "Marketeurs Digitaux",
+      description: "Tu veux ajouter une compétence ultra-demandée à ton CV"
+    },
+    {
+      title: "Débutants Complets",
+      description: "Aucune expérience requise, on part de zéro ensemble"
+    },
+    {
+      title: "Étudiants Ambitieux",
+      description: "Tu veux maîtriser un skill qui paie vraiment en Afrique"
     }
   ];
 
@@ -187,11 +198,11 @@ const Services = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-            {problems.map((item, index) => (
+            {problems.map((problem, index) => (
               <Card key={index} className="bg-black/40 border-red-500/20 hover:border-red-500/40 transition-all">
                 <CardContent className="flex items-start gap-3 sm:gap-4 p-4 sm:p-6">
-                  <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-1" />
-                  <p className="text-gray-200 text-sm sm:text-base md:text-lg">{item.problem}</p>
+                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0 mt-1" />
+                  <p className="text-gray-200 text-sm sm:text-base md:text-lg">{problem}</p>
                 </CardContent>
               </Card>
             ))}

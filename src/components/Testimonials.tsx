@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Star, TrendingUp, DollarSign, Users } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Testimonials = () => {
-  const testimonials = [
+  const defaultTestimonials = [
     {
       name: "Aminata D.",
       location: "Dakar, Sénégal",
@@ -94,6 +96,40 @@ const Testimonials = () => {
       ]
     }
   ];
+
+  const [testimonials, setTestimonials] = useState(defaultTestimonials);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('landing_page_sections')
+          .select('*')
+          .eq('section_key', 'testimonials')
+          .single();
+
+        if (error || !data?.content) return;
+
+        const content = data.content as any;
+        if (content.testimonials?.length > 0) {
+          // Ajouter les metrics par défaut si elles ne sont pas définies
+          const testimonialsWithMetrics = content.testimonials.map((t: any) => ({
+            ...t,
+            metrics: t.metrics || [
+              { label: "ROI", value: "800%" },
+              { label: "Clients/mois", value: "47" },
+              { label: "Coût/client", value: "$3.19" }
+            ]
+          }));
+          setTestimonials(testimonialsWithMetrics);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+      }
+    };
+
+    loadContent();
+  }, []);
 
   return (
     <section className="relative py-20 cinematic-section overflow-hidden">
