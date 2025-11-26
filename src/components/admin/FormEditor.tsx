@@ -236,7 +236,6 @@ export function FormEditor({ form, onSave, onCancel }: FormEditorProps) {
                       <SelectValue placeholder="Aucune liste (contacts uniquement)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Aucune liste</SelectItem>
                       {contactLists.map((list) => (
                         <SelectItem key={list.id} value={list.id}>
                           {list.name}
