@@ -37,6 +37,7 @@ import {
   ListChecks,
   ChevronDown,
   ChevronRight,
+  Layout,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,11 @@ const menuSections = [
         title: 'Messages',
         icon: MessageSquare,
         tab: 'messages',
+      },
+      {
+        title: 'Page d\'accueil',
+        icon: Layout,
+        tab: 'homepage',
       },
     ],
   },
@@ -168,7 +174,7 @@ export const AdminSidebar = () => {
     return saved ? JSON.parse(saved) : {
       'Vue d\'ensemble': true,
       'Formation': false,
-      'Gestion': false,
+      'Gestion': true,
       'Marketing & CRM': false,
       'Automatisation': false,
       'Paramètres': false,
