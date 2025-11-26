@@ -65,7 +65,19 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
     }
   };
 
+  const isEmptyHtml = (html: string): boolean => {
+    if (!html || html.trim() === '') return true;
+    const stripped = html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+    return stripped === '';
+  };
+
   const handleSave = async () => {
+    // Validation: s'assurer que le titre n'est pas vide
+    if (isEmptyHtml(settings.title)) {
+      toast.error('Le titre principal ne peut pas être vide');
+      return;
+    }
+
     setSaving(true);
     try {
       const { data: existing } = await supabase
