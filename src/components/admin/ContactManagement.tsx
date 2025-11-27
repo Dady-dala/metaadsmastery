@@ -67,10 +67,12 @@ export const ContactManagement = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [lists, setLists] = useState<ContactList[]>([]);
   const [loading, setLoading] = useState(true);
+  const [studentEmails, setStudentEmails] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [listFilter, setListFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
   const [expandedLists, setExpandedLists] = useState<Record<string, boolean>>({});
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -129,6 +131,34 @@ export const ContactManagement = () => {
 
       if (membersError) throw membersError;
       setListMembers(membersData || []);
+
+      // Load student roles to identify which contacts are students
+      const { data: studentsData, error: studentsError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'student')
+        .eq('is_active', true);
+
+      if (!studentsError && studentsData && studentsData.length > 0) {
+        try {
+          // Call the get-users edge function to get user emails
+          const { data: usersResponse } = await supabase.functions.invoke('get-users');
+          
+          if (usersResponse?.users) {
+            const studentUserIds = new Set(studentsData.map(s => s.user_id));
+            const studentEmailsSet = new Set<string>(
+              usersResponse.users
+                .filter((u: any) => studentUserIds.has(u.id))
+                .map((u: any) => u.email?.toLowerCase())
+                .filter((email: any): email is string => Boolean(email))
+            );
+            
+            setStudentEmails(studentEmailsSet);
+          }
+        } catch (error) {
+          console.error('Error fetching student emails:', error);
+        }
+      }
     } catch (error) {
       console.error('Error loading contacts:', error);
       toast.error('Erreur lors du chargement des contacts');
@@ -438,7 +468,11 @@ export const ContactManagement = () => {
       listFilter === 'all' ||
       listMembers.some((member) => member.contact_id === contact.id && member.list_id === listFilter);
     
-    return matchesSearch && matchesStatus && matchesTag && matchesList;
+    const matchesRole = 
+      roleFilter === 'all' || 
+      (roleFilter === 'student' && studentEmails.has(contact.email.toLowerCase()));
+    
+    return matchesSearch && matchesStatus && matchesTag && matchesList && matchesRole;
   });
 
   if (loading) {
@@ -685,7 +719,7 @@ export const ContactManagement = () => {
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -731,6 +765,16 @@ export const ContactManagement = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tous les rôles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les rôles</SelectItem>
+                <SelectItem value="student">Étudiants uniquement</SelectItem>
+              </SelectContent>
+            </Select>
             
             <div className="flex items-center gap-2">
               <Button 
@@ -741,6 +785,7 @@ export const ContactManagement = () => {
                   setStatusFilter('all');
                   setTagFilter('all');
                   setListFilter('all');
+                  setRoleFilter('all');
                 }}
               >
                 <X className="h-4 w-4 mr-2" />
