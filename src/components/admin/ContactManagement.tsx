@@ -68,20 +68,21 @@ export const ContactManagement = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [lists, setLists] = useState<ContactList[]>([]);
   const [loading, setLoading] = useState(true);
-  const [studentEmails, setStudentEmails] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [listFilter, setListFilter] = useState<string>('all');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [expandedLists, setExpandedLists] = useState<Record<string, boolean>>({});
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isListDialogOpen, setIsListDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isAddToListDialogOpen, setIsAddToListDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [editingList, setEditingList] = useState<ContactList | null>(null);
   const [selectedListForNewContact, setSelectedListForNewContact] = useState<string>('');
+  const [selectedListForAddition, setSelectedListForAddition] = useState<string>('');
 
   const [listMembers, setListMembers] = useState<{ contact_id: string; list_id: string }[]>([]);
 
@@ -105,18 +106,17 @@ export const ContactManagement = () => {
   useEffect(() => {
     loadData();
 
-    // Set up real-time subscription for user_roles changes
+    // Set up real-time subscription for contacts changes
     const channel = supabase
-      .channel('user-roles-changes')
+      .channel('contacts-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'user_roles'
+          table: 'contacts'
         },
-        (payload) => {
-          console.log('User roles changed, reloading student emails:', payload);
+        () => {
           loadData();
         }
       )
@@ -153,32 +153,6 @@ export const ContactManagement = () => {
 
       if (membersError) throw membersError;
       setListMembers(membersData || []);
-
-      // Load student emails from users with student role
-      try {
-        // Call the get-users edge function to get all users with their roles
-        const { data: usersResponse, error: usersError } = await supabase.functions.invoke('get-users');
-        
-        if (usersError) {
-          console.error('Error fetching users:', usersError);
-        } else if (usersResponse?.users) {
-          // Filter users who have 'student' role and are active
-          const studentEmailsSet = new Set<string>(
-            usersResponse.users
-              .filter((u: any) => 
-                u.roles?.includes('student') && 
-                u.is_active === true
-              )
-              .map((u: any) => u.email?.toLowerCase())
-              .filter((email: any): email is string => Boolean(email))
-          );
-          
-          setStudentEmails(studentEmailsSet);
-          console.log(`Loaded ${studentEmailsSet.size} active student emails`);
-        }
-      } catch (error) {
-        console.error('Error fetching student emails:', error);
-      }
     } catch (error) {
       console.error('Error loading contacts:', error);
       toast.error('Erreur lors du chargement des contacts');
@@ -437,6 +411,38 @@ export const ContactManagement = () => {
     setIsListDialogOpen(true);
   };
 
+  const handleAddToExistingList = async () => {
+    if (!selectedListForAddition || selectedContacts.size === 0) {
+      toast.error('Veuillez sélectionner une liste');
+      return;
+    }
+
+    try {
+      const members = Array.from(selectedContacts).map(contactId => ({
+        contact_id: contactId,
+        list_id: selectedListForAddition,
+      }));
+
+      const { error } = await supabase
+        .from('contact_list_members')
+        .upsert(members, {
+          onConflict: 'contact_id,list_id',
+          ignoreDuplicates: true,
+        });
+
+      if (error) throw error;
+      
+      toast.success(`${selectedContacts.size} contact(s) ajouté(s) à la liste`);
+      setIsAddToListDialogOpen(false);
+      setSelectedListForAddition('');
+      setSelectedContacts(new Set());
+      loadData();
+    } catch (error: any) {
+      console.error('Error adding contacts to list:', error);
+      toast.error(error.message || 'Erreur lors de l\'ajout des contacts à la liste');
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       email: '',
@@ -488,15 +494,11 @@ export const ContactManagement = () => {
       listFilter === 'all' ||
       listMembers.some((member) => member.contact_id === contact.id && member.list_id === listFilter);
     
-    const isStudentContact =
-      (contact as any).metadata?.role === 'student' ||
-      studentEmails.has(contact.email.toLowerCase());
-
-    const matchesRole = 
-      roleFilter === 'all' || 
-      (roleFilter === 'student' && isStudentContact);
+    const matchesSource = 
+      sourceFilter === 'all' || 
+      contact.source === sourceFilter;
     
-    return matchesSearch && matchesStatus && matchesTag && matchesList && matchesRole;
+    return matchesSearch && matchesStatus && matchesTag && matchesList && matchesSource;
   });
 
   if (loading) {
@@ -701,6 +703,44 @@ export const ContactManagement = () => {
             </DialogContent>
           </Dialog>
 
+          <Dialog open={isAddToListDialogOpen} onOpenChange={setIsAddToListDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Ajouter des contacts à une liste</DialogTitle>
+                <DialogDescription>
+                  Sélectionnez une liste existante pour y ajouter {selectedContacts.size} contact(s)
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="target_list">Liste de destination *</Label>
+                  <Select value={selectedListForAddition} onValueChange={setSelectedListForAddition}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une liste" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {lists.map((list) => (
+                        <SelectItem key={list.id} value={list.id}>
+                          {list.name} ({getListMemberCount(list.id)} contacts)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddToListDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={handleAddToExistingList}>
+                  Ajouter à la liste
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="mr-2 h-4 w-4" />
             Exporter
@@ -732,7 +772,7 @@ export const ContactManagement = () => {
           </Dialog>
 
           {selectedContacts.size > 0 && (
-            <Button variant="outline" onClick={() => { setEditingList(null); setIsListDialogOpen(true); }}>
+            <Button variant="outline" onClick={() => setIsAddToListDialogOpen(true)}>
               <List className="mr-2 h-4 w-4" />
               Ajouter à une liste ({selectedContacts.size})
             </Button>
@@ -790,13 +830,16 @@ export const ContactManagement = () => {
               </SelectContent>
             </Select>
 
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les rôles" />
+                <SelectValue placeholder="Toutes les sources" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les rôles</SelectItem>
-                <SelectItem value="student">Étudiants uniquement</SelectItem>
+                <SelectItem value="all">Toutes les sources</SelectItem>
+                <SelectItem value="registration_form">Formulaire d'inscription</SelectItem>
+                <SelectItem value="contact_form">Formulaire de contact</SelectItem>
+                <SelectItem value="custom_form">Formulaire personnalisé</SelectItem>
+                <SelectItem value="manual">Ajout manuel</SelectItem>
               </SelectContent>
             </Select>
             
@@ -809,7 +852,7 @@ export const ContactManagement = () => {
                   setStatusFilter('all');
                   setTagFilter('all');
                   setListFilter('all');
-                  setRoleFilter('all');
+                  setSourceFilter('all');
                 }}
               >
                 <X className="h-4 w-4 mr-2" />
