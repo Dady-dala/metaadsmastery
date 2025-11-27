@@ -78,16 +78,10 @@ const Services = () => {
   const [problems, setProblems] = useState<Array<string | { title: string; description: string }>>(defaultProblems);
   const [learnings, setLearnings] = useState<Array<string | { title: string; description: string }>>(defaultLearnings);
   const [modules, setModules] = useState<Array<{ number: string; title: string; description: string }>>(defaultModules);
-  const [bonuses, setBonuses] = useState<Array<{ title: string; value: string }>>([
-    { title: "Templates de Campagnes Prêts à l'Emploi", value: "Valeur $25" },
-    { title: "Checklist d'Optimisation Complète", value: "Valeur $15" },
-    { title: "Banque de Visuels & Exemples de Pubs", value: "Valeur $35" },
-    { title: "Accès au Groupe Privé d'Entraide", value: "Inestimable" },
-    { title: "Mises à Jour de la Formation à Vie", value: "Inclus" }
-  ]);
+  const [bonuses, setBonuses] = useState<Array<{ title: string; value: string }>>([]);
   const [pricing, setPricing] = useState({
-    originalPrice: '229',
-    discountedPrice: '49.99',
+    originalPrice: '',
+    discountedPrice: '',
     ctaText: 'Je Rejoins Meta Ads Mastery Maintenant →',
     countdownEndDate: ''
   });
@@ -318,34 +312,36 @@ const Services = () => {
       </section>
 
       {/* Bonus */}
-      <section className="relative py-20 cinematic-section overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-orange-500/5"></div>
-        
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 cinematic-text-shadow">
-              🎁 Bonus Exclusifs Inclus
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Pour maximiser tes chances de succès dès le départ.
-            </p>
-          </div>
+      {bonuses.length > 0 && (
+        <section className="relative py-20 cinematic-section overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-orange-500/5"></div>
+          
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 cinematic-text-shadow">
+                🎁 Bonus Exclusifs Inclus
+              </h2>
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                Pour maximiser tes chances de succès dès le départ.
+              </p>
+            </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {bonuses.map((bonus, index) => (
-              <Card key={index} className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30 hover:border-yellow-500/50 transition-all">
-                <CardHeader>
-                  <Award className="w-12 h-12 text-yellow-400 mb-4" />
-                  <CardTitle className="text-lg text-white">{bonus.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-yellow-400 font-bold text-xl">{bonus.value}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bonuses.map((bonus, index) => (
+                <Card key={index} className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30 hover:border-yellow-500/50 transition-all">
+                  <CardHeader>
+                    <Award className="w-12 h-12 text-yellow-400 mb-4" />
+                    <CardTitle className="text-lg text-white">{bonus.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-yellow-400 font-bold text-xl">{bonus.value}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Pourquoi Différent */}
       <section className="relative py-20 bg-gradient-to-b from-background to-background/80">
@@ -388,13 +384,15 @@ const Services = () => {
           
           {pricing.countdownEndDate && <CountdownTimer targetDate={pricing.countdownEndDate} />}
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
-            <div className="text-center">
-              <p className="text-gray-400 line-through text-xl sm:text-2xl">${pricing.originalPrice}</p>
-              <p className="text-yellow-400 text-4xl sm:text-5xl font-bold">${pricing.discountedPrice}</p>
-              <p className="text-gray-300 text-xs sm:text-sm mt-2">Offre de Lancement Limitée</p>
+          {pricing.originalPrice && pricing.discountedPrice && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
+              <div className="text-center">
+                <p className="text-gray-400 line-through text-xl sm:text-2xl">${pricing.originalPrice}</p>
+                <p className="text-yellow-400 text-4xl sm:text-5xl font-bold">${pricing.discountedPrice}</p>
+                <p className="text-gray-300 text-xs sm:text-sm mt-2">Offre de Lancement Limitée</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <Button 
             size="lg" 
