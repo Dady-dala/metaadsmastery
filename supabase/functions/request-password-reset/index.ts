@@ -71,8 +71,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw tokenError;
     }
 
-    // Create reset link
-    const resetLink = `${Deno.env.get("SUPABASE_URL")?.replace('.supabase.co', '.lovable.app')}/reset-password?token=${token}`;
+    // Create reset link with custom domain
+    const resetLink = `https://metaadsmastery.dalaconcept.com/reset-password?token=${token}`;
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
