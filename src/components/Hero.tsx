@@ -82,9 +82,9 @@ const Hero = () => {
   }}>
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         {/* MasterClass Badge */}
-        <div className="text-center mb-4 sm:mb-6">
-          <div className="inline-block bg-primary px-6 sm:px-8 py-3 sm:py-4 rounded-full">
-            <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-background tracking-wide">
+        <div className="text-center mb-3 sm:mb-4">
+          <div className="inline-block bg-primary/20 backdrop-blur-sm px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-primary/30">
+            <span className="text-xs sm:text-sm font-semibold text-primary tracking-wider uppercase">
               MasterClass 1.0
             </span>
           </div>
