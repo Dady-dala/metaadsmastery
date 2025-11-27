@@ -112,21 +112,43 @@ serve(async (req) => {
       .eq('student_id', userId);
     if (enrollError) console.error('Error deleting enrollments:', enrollError);
 
-    // 7. Delete notifications
+    // 7. Delete email campaign logs
+    const { error: campaignLogsError } = await supabaseClient
+      .from('email_campaign_logs')
+      .delete()
+      .eq('student_id', userId);
+    if (campaignLogsError) console.error('Error deleting campaign logs:', campaignLogsError);
+
+    // 8. Delete password reset tokens
+    const { error: tokensError } = await supabaseClient
+      .from('password_reset_tokens')
+      .delete()
+      .eq('user_id', userId);
+    if (tokensError) console.error('Error deleting password reset tokens:', tokensError);
+
+    // 9. Delete notifications
     const { error: notifsError } = await supabaseClient
       .from('notifications')
       .delete()
       .eq('user_id', userId);
     if (notifsError) console.error('Error deleting notifications:', notifsError);
 
-    // 8. Delete user roles
+    // 10. Update created_by references to null (don't delete these records)
+    await supabaseClient.from('workflows').update({ created_by: null }).eq('created_by', userId);
+    await supabaseClient.from('forms').update({ created_by: null }).eq('created_by', userId);
+    await supabaseClient.from('emails').update({ created_by: null }).eq('created_by', userId);
+    await supabaseClient.from('email_campaigns').update({ created_by: null }).eq('created_by', userId);
+    await supabaseClient.from('contacts').update({ created_by: null }).eq('created_by', userId);
+    await supabaseClient.from('contact_lists').update({ created_by: null }).eq('created_by', userId);
+
+    // 11. Delete user roles
     const { error: rolesError } = await supabaseClient
       .from('user_roles')
       .delete()
       .eq('user_id', userId);
     if (rolesError) console.error('Error deleting user roles:', rolesError);
 
-    // 9. Delete profile
+    // 12. Delete profile
     const { error: profileError } = await supabaseClient
       .from('profiles')
       .delete()
