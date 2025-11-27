@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,25 +13,20 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [hasToken, setHasToken] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Vérifier si nous avons un token de réinitialisation
-    const checkToken = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const accessToken = hashParams.get('access_token');
-      const type = hashParams.get('type');
-
-      if (accessToken && type === 'recovery') {
-        setHasToken(true);
-      } else {
-        toast.error('Lien de réinitialisation invalide ou expiré');
-        setTimeout(() => navigate('/auth'), 2000);
-      }
-    };
-
-    checkToken();
-  }, [navigate]);
+    // Vérifier si nous avons un token dans l'URL
+    const token = searchParams.get('token');
+    
+    if (token) {
+      setHasToken(true);
+    } else {
+      toast.error('Lien de réinitialisation invalide ou expiré');
+      setTimeout(() => navigate('/auth'), 2000);
+    }
+  }, [navigate, searchParams]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,16 +43,18 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      const token = searchParams.get('token');
+      
+      const { data, error } = await supabase.functions.invoke('verify-reset-token', {
+        body: { 
+          token,
+          newPassword
+        }
       });
 
       if (error) throw error;
 
       toast.success('Mot de passe réinitialisé avec succès !');
-      
-      // Déconnecter l'utilisateur après la réinitialisation
-      await supabase.auth.signOut();
       
       setTimeout(() => {
         navigate('/auth');
