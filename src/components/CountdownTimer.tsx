@@ -8,12 +8,22 @@ interface TimeLeft {
   seconds: number;
 }
 
-const CountdownTimer = () => {
+interface Props {
+  targetDate?: string;
+}
+
+const CountdownTimer = ({ targetDate }: Props) => {
   const calculateTimeLeft = (): TimeLeft => {
-    // Set countdown to 3 days from now
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 3);
-    endDate.setHours(23, 59, 59, 999);
+    let endDate: Date;
+    
+    if (targetDate) {
+      endDate = new Date(targetDate);
+    } else {
+      // Set countdown to 3 days from now as default
+      endDate = new Date();
+      endDate.setDate(endDate.getDate() + 3);
+      endDate.setHours(23, 59, 59, 999);
+    }
     
     const difference = endDate.getTime() - new Date().getTime();
     

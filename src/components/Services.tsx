@@ -78,22 +78,47 @@ const Services = () => {
   const [problems, setProblems] = useState<Array<string | { title: string; description: string }>>(defaultProblems);
   const [learnings, setLearnings] = useState<Array<string | { title: string; description: string }>>(defaultLearnings);
   const [modules, setModules] = useState<Array<{ number: string; title: string; description: string }>>(defaultModules);
+  const [bonuses, setBonuses] = useState<Array<{ title: string; value: string }>>([
+    { title: "Templates de Campagnes Prêts à l'Emploi", value: "Valeur $25" },
+    { title: "Checklist d'Optimisation Complète", value: "Valeur $15" },
+    { title: "Banque de Visuels & Exemples de Pubs", value: "Valeur $35" },
+    { title: "Accès au Groupe Privé d'Entraide", value: "Inestimable" },
+    { title: "Mises à Jour de la Formation à Vie", value: "Inclus" }
+  ]);
+  const [pricing, setPricing] = useState({
+    originalPrice: '229',
+    discountedPrice: '49.99',
+    ctaText: 'Je Rejoins Meta Ads Mastery Maintenant →',
+    countdownEndDate: ''
+  });
 
   useEffect(() => {
     const loadContent = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: servicesData } = await supabase
           .from('landing_page_sections')
           .select('*')
           .eq('section_key', 'services')
           .single();
 
-        if (error || !data?.content) return;
+        if (servicesData?.content) {
+          const content = servicesData.content as any;
+          if (content.problems?.length > 0) setProblems(content.problems);
+          if (content.learnings?.length > 0) setLearnings(content.learnings);
+          if (content.modules?.length > 0) setModules(content.modules);
+        }
 
-        const content = data.content as any;
-        if (content.problems?.length > 0) setProblems(content.problems);
-        if (content.learnings?.length > 0) setLearnings(content.learnings);
-        if (content.modules?.length > 0) setModules(content.modules);
+        const { data: bonusPricingData } = await supabase
+          .from('landing_page_sections')
+          .select('*')
+          .eq('section_key', 'bonus_pricing')
+          .single();
+
+        if (bonusPricingData?.content) {
+          const content = bonusPricingData.content as any;
+          if (content.bonuses?.length > 0) setBonuses(content.bonuses);
+          if (content.pricing) setPricing(content.pricing);
+        }
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
       }
@@ -129,33 +154,6 @@ const Services = () => {
     }
   ];
 
-  const bonuses = [
-    {
-      icon: Award,
-      title: "Templates de Campagnes Prêts à l'Emploi",
-      value: "Valeur $25"
-    },
-    {
-      icon: Award,
-      title: "Checklist d'Optimisation Complète",
-      value: "Valeur $15"
-    },
-    {
-      icon: Award,
-      title: "Banque de Visuels & Exemples de Pubs",
-      value: "Valeur $35"
-    },
-    {
-      icon: Award,
-      title: "Accès au Groupe Privé d'Entraide",
-      value: "Inestimable"
-    },
-    {
-      icon: Award,
-      title: "Mises à Jour de la Formation à Vie",
-      value: "Inclus"
-    }
-  ];
 
   const differentiators = [
     {
@@ -337,7 +335,7 @@ const Services = () => {
             {bonuses.map((bonus, index) => (
               <Card key={index} className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30 hover:border-yellow-500/50 transition-all">
                 <CardHeader>
-                  <bonus.icon className="w-12 h-12 text-yellow-400 mb-4" />
+                  <Award className="w-12 h-12 text-yellow-400 mb-4" />
                   <CardTitle className="text-lg text-white">{bonus.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -388,12 +386,12 @@ const Services = () => {
             Des milliers d'entrepreneurs africains ont déjà pris leur envol grâce aux Meta Ads. C'est ton tour maintenant.
           </p>
           
-          <CountdownTimer />
+          {pricing.countdownEndDate && <CountdownTimer targetDate={pricing.countdownEndDate} />}
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
             <div className="text-center">
-              <p className="text-gray-400 line-through text-xl sm:text-2xl">$229</p>
-              <p className="text-yellow-400 text-4xl sm:text-5xl font-bold">$49.99</p>
+              <p className="text-gray-400 line-through text-xl sm:text-2xl">${pricing.originalPrice}</p>
+              <p className="text-yellow-400 text-4xl sm:text-5xl font-bold">${pricing.discountedPrice}</p>
               <p className="text-gray-300 text-xs sm:text-sm mt-2">Offre de Lancement Limitée</p>
             </div>
           </div>
@@ -403,7 +401,7 @@ const Services = () => {
             className="cinematic-cta text-base sm:text-lg md:text-xl px-8 sm:px-10 md:px-12 py-6 sm:py-7 md:py-8 font-bold shadow-2xl hover:shadow-glow transition-all duration-500 transform hover:scale-105 w-full sm:w-auto"
             onClick={() => setIsContactDialogOpen(true)}
           >
-            Je Rejoins Meta Ads Mastery Maintenant →
+            {pricing.ctaText}
           </Button>
 
           <div className="mt-6 sm:mt-8 flex items-center justify-center gap-4 sm:gap-6 text-gray-300 flex-wrap px-4">

@@ -9,6 +9,7 @@ import { ServicesSectionEditor } from './homepage/ServicesSectionEditor';
 import { TestimonialsSectionEditor } from './homepage/TestimonialsSectionEditor';
 import { FAQSectionEditor } from './homepage/FAQSectionEditor';
 import { SocialProofEditor } from './homepage/SocialProofEditor';
+import { BonusPricingEditor } from './homepage/BonusPricingEditor';
 import { LivePreview } from './homepage/LivePreview';
 
 export const HomePageManagement = () => {
@@ -44,9 +45,10 @@ export const HomePageManagement = () => {
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="space-y-6">
               <Tabs defaultValue="hero" className="w-full">
-                <TabsList className="grid w-full grid-cols-5 bg-muted">
+                <TabsList className="grid w-full grid-cols-6 bg-muted">
                   <TabsTrigger value="hero">Hero</TabsTrigger>
                   <TabsTrigger value="services">Services</TabsTrigger>
+                  <TabsTrigger value="bonus-pricing">Bonus & Prix</TabsTrigger>
                   <TabsTrigger value="testimonials">Témoignages</TabsTrigger>
                   <TabsTrigger value="social-proof">Preuves</TabsTrigger>
                   <TabsTrigger value="faq">FAQ</TabsTrigger>
@@ -58,6 +60,10 @@ export const HomePageManagement = () => {
                 
                 <TabsContent value="services" className="mt-6">
                   <ServicesSectionEditor onSave={refreshPreview} />
+                </TabsContent>
+                
+                <TabsContent value="bonus-pricing" className="mt-6">
+                  <BonusPricingEditor onSave={refreshPreview} />
                 </TabsContent>
                 
                 <TabsContent value="testimonials" className="mt-6">
