@@ -78,16 +78,18 @@ const Hero = () => {
     };
   }, [heroData.wistiaMediaId]);
   return <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 overflow-hidden" style={{
-    contain: 'layout'
+    contain: 'layout',
+    background: 'linear-gradient(180deg, hsl(240 10% 8%) 0%, hsl(240 10% 3.9%) 100%)'
   }}>
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         {/* Title */}
         {heroData.title && (
           <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold max-w-4xl mx-auto px-2 text-primary" style={{
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold max-w-4xl mx-auto px-2" style={{
             textWrap: 'balance',
             lineHeight: '1.15',
-            textShadow: '0 2px 10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(88, 214, 141, 0.5)'
+            color: 'hsl(88 80% 55%)',
+            textShadow: '0 0 20px hsl(88 80% 55% / 0.6), 0 0 40px hsl(88 80% 55% / 0.4), 0 2px 10px rgba(0, 0, 0, 0.8)'
           }}>
               <span dangerouslySetInnerHTML={{ __html: heroData.title }} />
             </h1>
