@@ -21,13 +21,13 @@ const SocialProof = () => {
       const { data: sectionData } = await supabase
         .from('landing_page_sections')
         .select('content')
-        .eq('section_key', 'social_proof')
+        .eq('section_key', 'social-proof')
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (sectionData?.content) {
         const content = sectionData.content as any;
-        setImages(content.images || []);
+        setImages(content.proofs || content.images || []);
       }
     } catch (error) {
       console.error('Erreur chargement preuves sociales:', error);

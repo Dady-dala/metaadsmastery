@@ -34,15 +34,15 @@ export const SocialProofEditor = ({ onSave }: Props) => {
       const { data, error } = await supabase
         .from('landing_page_sections')
         .select('*')
-        .eq('section_key', 'social_proof')
-        .single();
+        .eq('section_key', 'social-proof')
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
 
       if (data) {
         setSectionId(data.id);
         const content = data.content as any || {};
-        setImages(content.images || []);
+        setImages(content.proofs || content.images || []);
       }
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
@@ -153,14 +153,14 @@ export const SocialProofEditor = ({ onSave }: Props) => {
       }
 
       const payload = {
-        section_key: 'social_proof',
-        section_type: 'social_proof',
+        section_key: 'social-proof',
+        section_type: 'social-proof',
         title: 'Preuves Sociales',
         content: {
-          images: images
+          proofs: images
         } as any,
         is_active: true,
-        order_index: 10
+        order_index: 4
       };
 
       let error;
