@@ -103,6 +103,27 @@ export const ContactManagement = () => {
 
   useEffect(() => {
     loadData();
+
+    // Set up real-time subscription for user_roles changes
+    const channel = supabase
+      .channel('user-roles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_roles'
+        },
+        (payload) => {
+          console.log('User roles changed, reloading student emails:', payload);
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadData = async () => {
