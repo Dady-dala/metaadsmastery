@@ -77,14 +77,9 @@ const Hero = () => {
       document.head.removeChild(style);
     };
   }, [heroData.wistiaMediaId]);
-  return <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 overflow-hidden cinematic-section" style={{
+  return <section className="relative pt-24 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 overflow-hidden" style={{
     contain: 'layout'
   }}>
-      {/* Film grain effect */}
-      <div className="absolute inset-0 cinematic-grain opacity-20 z-0" style={{
-      willChange: 'opacity'
-    }}></div>
-      
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         {/* Title */}
         {heroData.title && (
