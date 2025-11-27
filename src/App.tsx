@@ -21,6 +21,7 @@ import Schedule from "./pages/Schedule";
 import VideoGrowth from "./pages/VideoGrowth";
 import ThankYou from "./pages/ThankYou";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Admin from "./pages/Admin";
 import EspaceFormation from "./pages/EspaceFormation";
 import PublicFormView from "./pages/PublicFormView";
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/merci" element={<ThankYou />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/formulaire/:formId" element={<PublicFormView />} />
           <Route
             path="/admin" 
