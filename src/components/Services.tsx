@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import ContactFormDialog from '@/components/ContactFormDialog';
-import CountdownTimer from '@/components/CountdownTimer';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
 
@@ -432,8 +431,6 @@ const Services = () => {
           <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto px-4">
             Des milliers d'entrepreneurs africains ont déjà pris leur envol grâce aux Meta Ads. C'est ton tour maintenant.
           </p>
-          
-          {pricing.countdownEndDate && <CountdownTimer targetDate={pricing.countdownEndDate} originalPrice={pricing.originalPrice} />}
           
           {pricing.originalPrice && pricing.discountedPrice && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
