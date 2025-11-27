@@ -48,7 +48,7 @@ const CountdownTimer = ({ targetDate, originalPrice }: Props) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [targetDate]); // Add targetDate as dependency to recalculate when it changes
 
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center bg-black/60 border border-yellow-400/30 rounded-lg p-3 sm:p-4 min-w-[60px] sm:min-w-[80px]">
