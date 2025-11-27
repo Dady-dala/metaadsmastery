@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import ContactFormDialog from '@/components/ContactFormDialog';
 import CountdownTimer from '@/components/CountdownTimer';
 import { supabase } from '@/integrations/supabase/client';
+import { motion } from 'framer-motion';
 
 const Services = () => {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
@@ -328,15 +329,23 @@ const Services = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {bonuses.map((bonus, index) => (
-                <Card key={index} className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30 hover:border-yellow-500/50 transition-all">
-                  <CardHeader>
-                    <Award className="w-12 h-12 text-yellow-400 mb-4" />
-                    <CardTitle className="text-lg text-white">{bonus.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-yellow-400 font-bold text-xl">{bonus.value}</p>
-                  </CardContent>
-                </Card>
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-yellow-500/30 hover:border-yellow-500/50 transition-all h-full">
+                    <CardHeader>
+                      <Award className="w-12 h-12 text-yellow-400 mb-4" />
+                      <CardTitle className="text-lg text-white">{bonus.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-yellow-400 font-bold text-xl">{bonus.value}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -382,7 +391,7 @@ const Services = () => {
             Des milliers d'entrepreneurs africains ont déjà pris leur envol grâce aux Meta Ads. C'est ton tour maintenant.
           </p>
           
-          {pricing.countdownEndDate && <CountdownTimer targetDate={pricing.countdownEndDate} />}
+          {pricing.countdownEndDate && <CountdownTimer targetDate={pricing.countdownEndDate} originalPrice={pricing.originalPrice} />}
           
           {pricing.originalPrice && pricing.discountedPrice && (
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
