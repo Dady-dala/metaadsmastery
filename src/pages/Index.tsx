@@ -14,6 +14,7 @@ import { EditModeBar } from '@/components/admin/homepage/EditModeBar';
 import { EditableSection } from '@/components/admin/homepage/EditableSection';
 import { supabase } from '@/integrations/supabase/client';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
+import CountdownTimer from '@/components/CountdownTimer';
 
 const Index = () => {
   const [isInscriptionDialogOpen, setIsInscriptionDialogOpen] = useState(false);
@@ -113,6 +114,7 @@ const Index = () => {
               </div>
             </div>
           )}
+          <CountdownTimer originalPrice={pricing.originalPrice} />
           <p className="text-warning font-semibold text-lg mb-8">
             ⚠️ Offre limitée - Le prix augmente bientôt !
           </p>
