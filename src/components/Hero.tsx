@@ -81,6 +81,15 @@ const Hero = () => {
     contain: 'layout'
   }}>
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+        {/* MasterClass Badge */}
+        <div className="text-center mb-4 sm:mb-6">
+          <div className="inline-block bg-primary px-6 sm:px-8 py-3 sm:py-4 rounded-full">
+            <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-background tracking-wide">
+              MasterClass 1.0
+            </span>
+          </div>
+        </div>
+
         {/* Title */}
         {heroData.title && (
           <div className="text-center mb-6 sm:mb-8">
