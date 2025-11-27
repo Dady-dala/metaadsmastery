@@ -66,15 +66,87 @@ serve(async (req) => {
       );
     }
 
-    // Delete user with admin API
+    console.log('Starting cascading deletion for user:', userId);
+
+    // Delete related records in order (to respect foreign key constraints)
+    
+    // 1. Delete video notes
+    const { error: notesError } = await supabaseClient
+      .from('video_notes')
+      .delete()
+      .eq('student_id', userId);
+    if (notesError) console.error('Error deleting video notes:', notesError);
+
+    // 2. Delete video progress
+    const { error: progressError } = await supabaseClient
+      .from('video_progress')
+      .delete()
+      .eq('student_id', userId);
+    if (progressError) console.error('Error deleting video progress:', progressError);
+
+    // 3. Delete quiz attempts
+    const { error: quizError } = await supabaseClient
+      .from('quiz_attempts')
+      .delete()
+      .eq('student_id', userId);
+    if (quizError) console.error('Error deleting quiz attempts:', quizError);
+
+    // 4. Delete student badges
+    const { error: badgesError } = await supabaseClient
+      .from('student_badges')
+      .delete()
+      .eq('student_id', userId);
+    if (badgesError) console.error('Error deleting student badges:', badgesError);
+
+    // 5. Delete certificates
+    const { error: certsError } = await supabaseClient
+      .from('certificates')
+      .delete()
+      .eq('student_id', userId);
+    if (certsError) console.error('Error deleting certificates:', certsError);
+
+    // 6. Delete student enrollments
+    const { error: enrollError } = await supabaseClient
+      .from('student_enrollments')
+      .delete()
+      .eq('student_id', userId);
+    if (enrollError) console.error('Error deleting enrollments:', enrollError);
+
+    // 7. Delete notifications
+    const { error: notifsError } = await supabaseClient
+      .from('notifications')
+      .delete()
+      .eq('user_id', userId);
+    if (notifsError) console.error('Error deleting notifications:', notifsError);
+
+    // 8. Delete user roles
+    const { error: rolesError } = await supabaseClient
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userId);
+    if (rolesError) console.error('Error deleting user roles:', rolesError);
+
+    // 9. Delete profile
+    const { error: profileError } = await supabaseClient
+      .from('profiles')
+      .delete()
+      .eq('user_id', userId);
+    if (profileError) console.error('Error deleting profile:', profileError);
+
+    console.log('Cascading deletion completed, now deleting auth user');
+
+    // 10. Finally, delete the auth user
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId);
 
     if (deleteError) {
+      console.error('Error deleting auth user:', deleteError);
       return new Response(
         JSON.stringify({ error: deleteError.message }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    console.log('User deleted successfully:', userId);
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -82,6 +154,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('Unexpected error in delete-user:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
