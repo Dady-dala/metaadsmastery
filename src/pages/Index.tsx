@@ -2,6 +2,7 @@ import ModernHeader from '@/components/ModernHeader';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
+import SocialProof from '@/components/SocialProof';
 import FAQ from '@/components/FAQ';
 import ContactFormDialog from '@/components/ContactFormDialog';
 import { ContactMessageForm } from '@/components/ContactMessageForm';
@@ -72,6 +73,7 @@ const Index = () => {
         <Services />
       </div>
       <Testimonials />
+      <SocialProof />
       <FAQ />
       
       <section className="cinematic-section py-16 px-4 sm:px-6 lg:px-8">

@@ -8,6 +8,7 @@ import { HeroSectionEditor } from './homepage/HeroSectionEditor';
 import { ServicesSectionEditor } from './homepage/ServicesSectionEditor';
 import { TestimonialsSectionEditor } from './homepage/TestimonialsSectionEditor';
 import { FAQSectionEditor } from './homepage/FAQSectionEditor';
+import { SocialProofEditor } from './homepage/SocialProofEditor';
 import { LivePreview } from './homepage/LivePreview';
 
 export const HomePageManagement = () => {
@@ -43,10 +44,11 @@ export const HomePageManagement = () => {
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="space-y-6">
               <Tabs defaultValue="hero" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 bg-muted">
+                <TabsList className="grid w-full grid-cols-5 bg-muted">
                   <TabsTrigger value="hero">Hero</TabsTrigger>
                   <TabsTrigger value="services">Services</TabsTrigger>
                   <TabsTrigger value="testimonials">Témoignages</TabsTrigger>
+                  <TabsTrigger value="social-proof">Preuves</TabsTrigger>
                   <TabsTrigger value="faq">FAQ</TabsTrigger>
                 </TabsList>
                 
@@ -60,6 +62,10 @@ export const HomePageManagement = () => {
                 
                 <TabsContent value="testimonials" className="mt-6">
                   <TestimonialsSectionEditor onSave={refreshPreview} />
+                </TabsContent>
+                
+                <TabsContent value="social-proof" className="mt-6">
+                  <SocialProofEditor onSave={refreshPreview} />
                 </TabsContent>
                 
                 <TabsContent value="faq" className="mt-6">
