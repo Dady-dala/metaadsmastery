@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import SEO from '@/components/SEO';
 import StructuredData from '@/components/StructuredData';
 import { useState, useEffect } from 'react';
-import { EditModeProvider } from '@/contexts/EditModeContext';
 import { EditModeBar } from '@/components/admin/homepage/EditModeBar';
 import { EditableSection } from '@/components/admin/homepage/EditableSection';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,7 +43,7 @@ const Index = () => {
   }, []);
 
   return (
-    <EditModeProvider>
+    <>
       <EditModeBar />
       <div className="min-h-screen">
         <SEO 
@@ -125,7 +124,7 @@ const Index = () => {
           </div>
         </footer>
       </div>
-    </EditModeProvider>
+    </>
   );
 };
 

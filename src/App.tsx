@@ -26,9 +26,10 @@ import EspaceFormation from "./pages/EspaceFormation";
 import PublicFormView from "./pages/PublicFormView";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import { EditModeProvider } from "./contexts/EditModeContext";
 
 const App = () => (
-  <>
+  <EditModeProvider>
     <ScrollToTop />
     <Routes>
           <Route path="/" element={<Index />} />
@@ -72,7 +73,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-  </>
+  </EditModeProvider>
 );
 
 export default App;
