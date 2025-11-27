@@ -132,32 +132,30 @@ export const ContactManagement = () => {
       if (membersError) throw membersError;
       setListMembers(membersData || []);
 
-      // Load student roles to identify which contacts are students
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'student')
-        .eq('is_active', true);
-
-      if (!studentsError && studentsData && studentsData.length > 0) {
-        try {
-          // Call the get-users edge function to get user emails
-          const { data: usersResponse } = await supabase.functions.invoke('get-users');
+      // Load student emails from users with student role
+      try {
+        // Call the get-users edge function to get all users with their roles
+        const { data: usersResponse, error: usersError } = await supabase.functions.invoke('get-users');
+        
+        if (usersError) {
+          console.error('Error fetching users:', usersError);
+        } else if (usersResponse?.users) {
+          // Filter users who have 'student' role and are active
+          const studentEmailsSet = new Set<string>(
+            usersResponse.users
+              .filter((u: any) => 
+                u.roles?.includes('student') && 
+                u.is_active === true
+              )
+              .map((u: any) => u.email?.toLowerCase())
+              .filter((email: any): email is string => Boolean(email))
+          );
           
-          if (usersResponse?.users) {
-            const studentUserIds = new Set(studentsData.map(s => s.user_id));
-            const studentEmailsSet = new Set<string>(
-              usersResponse.users
-                .filter((u: any) => studentUserIds.has(u.id))
-                .map((u: any) => u.email?.toLowerCase())
-                .filter((email: any): email is string => Boolean(email))
-            );
-            
-            setStudentEmails(studentEmailsSet);
-          }
-        } catch (error) {
-          console.error('Error fetching student emails:', error);
+          setStudentEmails(studentEmailsSet);
+          console.log(`Loaded ${studentEmailsSet.size} active student emails`);
         }
+      } catch (error) {
+        console.error('Error fetching student emails:', error);
       }
     } catch (error) {
       console.error('Error loading contacts:', error);
