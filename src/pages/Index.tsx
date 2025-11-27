@@ -49,17 +49,15 @@ const Index = () => {
       const { data } = await supabase
         .from('landing_page_sections')
         .select('content')
-        .eq('section_key', 'bonus_pricing')
-        .single();
+        .eq('section_key', 'bonus-pricing')
+        .maybeSingle();
       
       if (data?.content) {
         const content = data.content as any;
-        if (content.pricing) {
-          setPricing({
-            originalPrice: content.pricing.originalPrice || '',
-            discountedPrice: content.pricing.discountedPrice || ''
-          });
-        }
+        setPricing({
+          originalPrice: content.originalPrice || '',
+          discountedPrice: content.discountedPrice || ''
+        });
       }
     };
 

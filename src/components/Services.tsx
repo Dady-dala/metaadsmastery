@@ -106,13 +106,20 @@ const Services = () => {
         const { data: bonusPricingData } = await supabase
           .from('landing_page_sections')
           .select('*')
-          .eq('section_key', 'bonus_pricing')
-          .single();
+          .eq('section_key', 'bonus-pricing')
+          .maybeSingle();
 
         if (bonusPricingData?.content) {
           const content = bonusPricingData.content as any;
           if (content.bonuses?.length > 0) setBonuses(content.bonuses);
-          if (content.pricing) setPricing(content.pricing);
+          if (content.originalPrice && content.discountedPrice) {
+            setPricing({
+              originalPrice: content.originalPrice,
+              discountedPrice: content.discountedPrice,
+              ctaText: pricing.ctaText,
+              countdownEndDate: pricing.countdownEndDate
+            });
+          }
         }
       } catch (error) {
         console.error('Erreur lors du chargement:', error);

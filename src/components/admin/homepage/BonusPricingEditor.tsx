@@ -33,10 +33,10 @@ export const BonusPricingEditor = ({ onSave }: Props) => {
       const { data, error } = await supabase
         .from('landing_page_sections')
         .select('*')
-        .eq('section_key', 'bonus_pricing')
-        .single();
+        .eq('section_key', 'bonus-pricing')
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
 
       if (data?.content) {
         const content = data.content as any;
@@ -56,19 +56,20 @@ export const BonusPricingEditor = ({ onSave }: Props) => {
       const { data: existing } = await supabase
         .from('landing_page_sections')
         .select('id')
-        .eq('section_key', 'bonus_pricing')
-        .single();
+        .eq('section_key', 'bonus-pricing')
+        .maybeSingle();
 
       const payload = {
-        section_key: 'bonus_pricing',
-        section_type: 'bonus_pricing',
+        section_key: 'bonus-pricing',
+        section_type: 'bonus-pricing',
         title: 'Bonus et Prix',
         content: {
           bonuses,
-          pricing
+          originalPrice: pricing.originalPrice,
+          discountedPrice: pricing.discountedPrice
         } as any,
         is_active: true,
-        order_index: 5
+        order_index: 2
       };
 
       let error;
