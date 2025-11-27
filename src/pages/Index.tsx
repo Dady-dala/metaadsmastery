@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { EditModeBar } from '@/components/admin/homepage/EditModeBar';
 import { EditableSection } from '@/components/admin/homepage/EditableSection';
 import { supabase } from '@/integrations/supabase/client';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
 
 const Index = () => {
   const [isInscriptionDialogOpen, setIsInscriptionDialogOpen] = useState(false);
@@ -123,6 +124,7 @@ const Index = () => {
             <p className="text-gray-300 text-sm">© 2025 Meta Ads Mastery. Tous droits réservés.</p>
           </div>
         </footer>
+        <ScrollToTopButton />
       </div>
     </>
   );
