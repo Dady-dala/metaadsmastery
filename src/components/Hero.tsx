@@ -89,11 +89,12 @@ const Hero = () => {
         {/* Title */}
         {heroData.title && (
           <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold max-w-4xl mx-auto px-2" style={{
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold max-w-4xl mx-auto px-2 text-primary" style={{
             textWrap: 'balance',
-            lineHeight: '1.15'
+            lineHeight: '1.15',
+            textShadow: '0 2px 10px rgba(0, 0, 0, 0.8), 0 0 30px rgba(88, 214, 141, 0.5)'
           }}>
-              <span className="cinematic-gradient-text cinematic-text-shadow" dangerouslySetInnerHTML={{ __html: heroData.title }} />
+              <span dangerouslySetInnerHTML={{ __html: heroData.title }} />
             </h1>
           </div>
         )}
