@@ -37,6 +37,24 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
     loadSettings();
   }, []);
 
+  // Load Wistia scripts for preview
+  useEffect(() => {
+    const script1 = document.createElement('script');
+    script1.src = 'https://fast.wistia.com/assets/external/E-v1.js';
+    script1.async = true;
+    document.head.appendChild(script1);
+
+    const script2 = document.createElement('script');
+    script2.src = 'https://fast.wistia.com/embed/medias.jsonp';
+    script2.async = true;
+    document.head.appendChild(script2);
+
+    return () => {
+      document.head.removeChild(script1);
+      document.head.removeChild(script2);
+    };
+  }, []);
+
   const loadSettings = async () => {
     try {
       const { data, error } = await supabase
@@ -49,14 +67,24 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
 
       if (data) {
         const content = data.content as any || {};
+        const mediaUrl = data.media_url || '';
+        
         setSettings({
           title: data.title || '',
           subtitle1: data.subtitle || '',
           subtitle2: content.subtitle2 || '',
-          wistiaMediaId: data.media_url || '',
+          wistiaMediaId: mediaUrl,
           ctaText: content.ctaText || '',
           logosTitle: content.logosTitle || ''
         });
+
+        // Extract and set preview ID from loaded data
+        if (mediaUrl) {
+          const extracted = extractWistiaId(mediaUrl);
+          if (extracted && /^[a-z0-9]+$/i.test(extracted)) {
+            setPreviewWistiaId(extracted);
+          }
+        }
       }
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
@@ -147,12 +175,15 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
         .eq('section_key', 'hero')
         .single();
 
+      // Extract Wistia ID before saving
+      const extractedId = extractWistiaId(settings.wistiaMediaId);
+      
       const payload = {
         section_key: 'hero',
         section_type: 'hero',
         title: settings.title,
         subtitle: settings.subtitle1,
-        media_url: settings.wistiaMediaId,
+        media_url: extractedId, // Save only the ID
         content: {
           subtitle2: settings.subtitle2,
           ctaText: settings.ctaText,
