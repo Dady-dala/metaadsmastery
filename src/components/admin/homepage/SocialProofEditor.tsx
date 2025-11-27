@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Save, Loader2, Upload, X, GripVertical } from 'lucide-react';
+import { Save, Loader2, Upload, X, GripVertical, Edit } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { ImageEditor } from '@/components/admin/ImageEditor';
 
 interface SocialProofImage {
   url: string;
@@ -24,6 +25,8 @@ export const SocialProofEditor = ({ onSave }: Props) => {
   const [uploading, setUploading] = useState(false);
   const [images, setImages] = useState<SocialProofImage[]>([]);
   const [sectionId, setSectionId] = useState<string | null>(null);
+  const [editingImage, setEditingImage] = useState<File | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -68,15 +71,20 @@ export const SocialProofEditor = ({ onSave }: Props) => {
       return;
     }
 
+    // Open image editor
+    setPendingImageFile(file);
+    setEditingImage(file);
+  };
+
+  const handleImageEdited = async (editedBlob: Blob) => {
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.png`;
       const filePath = `${fileName}`;
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('social-proof')
-        .upload(filePath, file);
+        .upload(filePath, editedBlob);
 
       if (uploadError) throw uploadError;
 
@@ -93,12 +101,19 @@ export const SocialProofEditor = ({ onSave }: Props) => {
 
       setImages([...images, newImage]);
       toast.success('Image uploadée avec succès');
+      setEditingImage(null);
+      setPendingImageFile(null);
     } catch (error: any) {
       console.error('Erreur upload:', error);
       toast.error('Erreur lors de l\'upload de l\'image');
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingImage(null);
+    setPendingImageFile(null);
   };
 
   const handleRemoveImage = async (index: number) => {
@@ -200,6 +215,16 @@ export const SocialProofEditor = ({ onSave }: Props) => {
     );
   }
 
+  if (editingImage) {
+    return (
+      <ImageEditor
+        imageFile={editingImage}
+        onSave={handleImageEdited}
+        onCancel={handleCancelEdit}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -215,7 +240,7 @@ export const SocialProofEditor = ({ onSave }: Props) => {
           {uploading && <Loader2 className="w-5 h-5 animate-spin text-primary" />}
         </div>
         <p className="text-sm text-muted-foreground">
-          Formats acceptés: JPG, PNG, WEBP, GIF. Taille max: 5MB
+          L'image sera ouverte dans l'éditeur pour recadrage et filtres avant upload
         </p>
       </div>
 

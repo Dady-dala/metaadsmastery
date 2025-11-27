@@ -127,6 +127,41 @@ const Services = () => {
     };
 
     loadContent();
+
+    // Setup realtime subscription for bonus-pricing updates
+    const channel = supabase
+      .channel('bonus-pricing-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'landing_page_sections',
+          filter: 'section_key=eq.bonus-pricing'
+        },
+        (payload) => {
+          console.log('Bonus pricing updated:', payload);
+          if (payload.new && typeof payload.new === 'object') {
+            const newData = payload.new as any;
+            if (newData.content) {
+              const content = newData.content;
+              if (content.bonuses?.length >= 0) setBonuses(content.bonuses);
+              if (content.originalPrice !== undefined && content.discountedPrice !== undefined) {
+                setPricing(prev => ({
+                  ...prev,
+                  originalPrice: content.originalPrice,
+                  discountedPrice: content.discountedPrice
+                }));
+              }
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const targetAudience = [
