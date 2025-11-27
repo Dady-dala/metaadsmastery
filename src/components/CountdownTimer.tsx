@@ -10,9 +10,10 @@ interface TimeLeft {
 
 interface Props {
   targetDate?: string;
+  originalPrice?: string;
 }
 
-const CountdownTimer = ({ targetDate }: Props) => {
+const CountdownTimer = ({ targetDate, originalPrice }: Props) => {
   const calculateTimeLeft = (): TimeLeft => {
     let endDate: Date;
     
@@ -74,14 +75,16 @@ const CountdownTimer = ({ targetDate }: Props) => {
         <TimeUnit value={timeLeft.seconds} label="Sec" />
       </div>
 
-      <div className="text-center px-2">
-        <p className="text-red-400 font-bold text-base sm:text-lg">
-          🔥 Après expiration, le prix passe à $229 !
-        </p>
-        <p className="text-gray-300 text-xs sm:text-sm mt-2">
-          Ne laisse pas passer cette opportunité unique
-        </p>
-      </div>
+      {originalPrice && (
+        <div className="text-center px-2">
+          <p className="text-red-400 font-bold text-base sm:text-lg">
+            🔥 Après expiration, le prix passe à ${originalPrice} !
+          </p>
+          <p className="text-gray-300 text-xs sm:text-sm mt-2">
+            Ne laisse pas passer cette opportunité unique
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -18,6 +18,10 @@ import ScrollToTopButton from '@/components/ScrollToTopButton';
 const Index = () => {
   const [isInscriptionDialogOpen, setIsInscriptionDialogOpen] = useState(false);
   const [heroSectionId, setHeroSectionId] = useState<string>("");
+  const [pricing, setPricing] = useState({
+    originalPrice: '',
+    discountedPrice: ''
+  });
   
   const services = [
     {
@@ -41,7 +45,26 @@ const Index = () => {
       }
     };
 
+    const loadPricing = async () => {
+      const { data } = await supabase
+        .from('landing_page_sections')
+        .select('content')
+        .eq('section_key', 'bonus_pricing')
+        .single();
+      
+      if (data?.content) {
+        const content = data.content as any;
+        if (content.pricing) {
+          setPricing({
+            originalPrice: content.pricing.originalPrice || '',
+            discountedPrice: content.pricing.discountedPrice || ''
+          });
+        }
+      }
+    };
+
     loadSectionIds();
+    loadPricing();
   }, []);
 
   return (
@@ -84,12 +107,14 @@ const Index = () => {
           <p className="text-xl text-gray-300 mb-8 leading-relaxed">
             Ne laisse pas passer cette opportunité. Rejoins Meta Ads Mastery maintenant et commence à générer des résultats dès aujourd'hui !
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl sm:text-4xl font-bold text-foreground line-through opacity-50">$229</span>
-              <span className="text-5xl sm:text-6xl font-bold text-primary">$49.99</span>
+          {pricing.originalPrice && pricing.discountedPrice && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+              <div className="flex items-center gap-2">
+                <span className="text-3xl sm:text-4xl font-bold text-foreground line-through opacity-50">${pricing.originalPrice}</span>
+                <span className="text-5xl sm:text-6xl font-bold text-primary">${pricing.discountedPrice}</span>
+              </div>
             </div>
-          </div>
+          )}
           <p className="text-warning font-semibold text-lg mb-8">
             ⚠️ Offre limitée - Le prix augmente bientôt !
           </p>
