@@ -228,9 +228,17 @@ Deno.serve(async (req) => {
           email: email,
         }),
       }
-    ).catch(error => console.error('Error sending confirmation email:', error));
+    ).then(async res => {
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Confirmation email error response:', res.status, errorText);
+      } else {
+        console.log('Confirmation email sent successfully');
+      }
+    }).catch(error => console.error('Error sending confirmation email:', error));
 
     // Send admin notification (background task - don't await)
+    console.log('Attempting to send admin notification...');
     fetch(
       `${Deno.env.get('SUPABASE_URL')}/functions/v1/send-admin-notification`,
       {
@@ -249,7 +257,14 @@ Deno.serve(async (req) => {
           },
         }),
       }
-    ).catch(error => console.error('Error sending admin notification:', error));
+    ).then(async res => {
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Admin notification error response:', res.status, errorText);
+      } else {
+        console.log('Admin notification sent successfully');
+      }
+    }).catch(error => console.error('Error sending admin notification:', error));
 
     return new Response(
       JSON.stringify({ 
