@@ -23,6 +23,7 @@ interface Props {
 export const HeroSectionEditor = ({ onSave }: Props) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [previewWistiaId, setPreviewWistiaId] = useState('');
   const [settings, setSettings] = useState<HeroSettings>({
     title: '',
     subtitle1: '',
@@ -62,6 +63,45 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
       toast.error('Erreur lors du chargement des paramètres');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Extract Wistia media ID from various formats
+  const extractWistiaId = (input: string): string => {
+    // Remove whitespace
+    const trimmed = input.trim();
+    
+    // Format 1: Direct ID (e.g., "jdj0b36zz9")
+    if (/^[a-z0-9]+$/i.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Format 2: URL (e.g., "https://dadykakwata.wistia.com/medias/jdj0b36zz9?embedType=web_component&seo=false&videoWidth=960")
+    const urlMatch = trimmed.match(/wistia\.com\/medias\/([a-z0-9]+)/i);
+    if (urlMatch) {
+      return urlMatch[1];
+    }
+    
+    // Format 3: Web component code (e.g., '<wistia-player media-id="jdj0b36zz9"...')
+    const componentMatch = trimmed.match(/media-id=["']([a-z0-9]+)["']/i);
+    if (componentMatch) {
+      return componentMatch[1];
+    }
+    
+    // If no pattern matches, return as-is and let validation handle it
+    return trimmed;
+  };
+
+  // Handle Wistia ID input change with live preview
+  const handleWistiaIdChange = (value: string) => {
+    setSettings({ ...settings, wistiaMediaId: value });
+    
+    // Extract and set preview ID
+    const extracted = extractWistiaId(value);
+    if (extracted && /^[a-z0-9]+$/i.test(extracted)) {
+      setPreviewWistiaId(extracted);
+    } else {
+      setPreviewWistiaId('');
     }
   };
 
@@ -205,18 +245,31 @@ export const HeroSectionEditor = ({ onSave }: Props) => {
       <div className="space-y-2">
         <Label htmlFor="wistiaMediaId" className="text-foreground flex items-center gap-2">
           <Video className="w-4 h-4" />
-          ID de la Vidéo Wistia
+          ID ou Lien de la Vidéo Wistia
         </Label>
         <Input
           id="wistiaMediaId"
           value={settings.wistiaMediaId}
-          onChange={(e) => setSettings({ ...settings, wistiaMediaId: e.target.value })}
-          placeholder="wfrtok35jw"
+          onChange={(e) => handleWistiaIdChange(e.target.value)}
+          placeholder="jdj0b36zz9 ou https://dadykakwata.wistia.com/medias/jdj0b36zz9"
           className="bg-background border-border text-foreground"
         />
         <p className="text-sm text-muted-foreground">
-          Entrez l'ID de votre vidéo Wistia (ex: wfrtok35jw)
+          Collez l'URL complète de Wistia ou juste l'ID de la vidéo
         </p>
+        {previewWistiaId && (
+          <div className="mt-4 p-4 bg-muted rounded-lg">
+            <p className="text-sm font-medium mb-2 text-foreground">Aperçu de la vidéo :</p>
+            <div className="aspect-video bg-background rounded-lg overflow-hidden">
+              <wistia-player
+                media-id={previewWistiaId}
+                seo={true}
+                aspect={1.78}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
