@@ -54,6 +54,7 @@ interface Contact {
   notes: string | null;
   status: string;
   created_at: string;
+  metadata?: any | null;
 }
 
 interface ContactList {
@@ -487,9 +488,13 @@ export const ContactManagement = () => {
       listFilter === 'all' ||
       listMembers.some((member) => member.contact_id === contact.id && member.list_id === listFilter);
     
+    const isStudentContact =
+      (contact as any).metadata?.role === 'student' ||
+      studentEmails.has(contact.email.toLowerCase());
+
     const matchesRole = 
       roleFilter === 'all' || 
-      (roleFilter === 'student' && studentEmails.has(contact.email.toLowerCase()));
+      (roleFilter === 'student' && isStudentContact);
     
     return matchesSearch && matchesStatus && matchesTag && matchesList && matchesRole;
   });
