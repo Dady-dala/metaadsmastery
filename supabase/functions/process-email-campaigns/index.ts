@@ -151,6 +151,7 @@ const handler = async (req: Request): Promise<Response> => {
           }
 
           const logId = logEntry.id;
+          console.log(`Sending email to ${studentEmail} with log ID: ${logId}`);
 
           // Send email with improved deliverability settings
           const emailResponse = await resend.emails.send({
@@ -162,7 +163,6 @@ const handler = async (req: Request): Promise<Response> => {
             text: textContent, // Plain text version improves deliverability
             headers: {
               "List-Unsubscribe": "<mailto:unsubscribe@metaadsmastery.dalaconcept.com>",
-              "X-Priority": "3", // Normal priority
             },
             tags: [
               { name: "campaign_log_id", value: logId },
@@ -170,6 +170,12 @@ const handler = async (req: Request): Promise<Response> => {
               { name: "student_id", value: student.user_id },
             ],
           });
+
+          console.log(`Resend response for ${studentEmail}:`, JSON.stringify(emailResponse));
+
+          if (emailResponse.error) {
+            throw new Error(emailResponse.error.message);
+          }
 
           // Update log with success
           await supabase.from('email_campaign_logs')
@@ -179,6 +185,7 @@ const handler = async (req: Request): Promise<Response> => {
             })
             .eq('id', logId);
 
+          console.log(`Email sent successfully to ${studentEmail}`);
           return { success: true, studentId: student.user_id };
         } catch (error: any) {
           console.error(`Error sending to student ${student.user_id}:`, error);
