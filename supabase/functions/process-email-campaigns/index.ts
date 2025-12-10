@@ -133,21 +133,40 @@ const handler = async (req: Request): Promise<Response> => {
             </html>
           `;
 
-          // Send email
+          // First create the log entry to get the ID for tracking
+          const { data: logEntry, error: logError } = await supabase.from('email_campaign_logs').insert({
+            campaign_id: campaignId,
+            student_id: student.user_id,
+            status: 'pending',
+          }).select('id').single();
+
+          if (logError) {
+            console.error('Error creating log entry:', logError);
+            throw logError;
+          }
+
+          const logId = logEntry.id;
+
+          // Send email with tracking tags
           const emailResponse = await resend.emails.send({
             from: "Meta Ads Mastery <noreply@metaadsmastery.dalaconcept.com>",
             to: [studentEmail],
             subject: campaign.subject,
             html: fullHtml,
+            tags: [
+              { name: "campaign_log_id", value: logId },
+              { name: "campaign_id", value: campaignId },
+              { name: "student_id", value: student.user_id },
+            ],
           });
 
-          // Log success
-          await supabase.from('email_campaign_logs').insert({
-            campaign_id: campaignId,
-            student_id: student.user_id,
-            status: 'sent',
-            metadata: { resend_id: emailResponse.data?.id },
-          });
+          // Update log with success
+          await supabase.from('email_campaign_logs')
+            .update({
+              status: 'sent',
+              metadata: { resend_id: emailResponse.data?.id },
+            })
+            .eq('id', logId);
 
           return { success: true, studentId: student.user_id };
         } catch (error: any) {
