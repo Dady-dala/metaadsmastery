@@ -135,7 +135,7 @@ const handler = async (req: Request): Promise<Response> => {
 
           // Send email
           const emailResponse = await resend.emails.send({
-            from: "Meta Ads Mastery <onboarding@metaadsmastery.dalaconcept.com>",
+            from: "Meta Ads Mastery <noreply@metaadsmastery.dalaconcept.com>",
             to: [studentEmail],
             subject: campaign.subject,
             html: fullHtml,
