@@ -351,27 +351,39 @@ export type Database = {
       email_campaign_logs: {
         Row: {
           campaign_id: string
+          click_count: number | null
+          clicked_at: string | null
           error_message: string | null
           id: string
           metadata: Json | null
+          open_count: number | null
+          opened_at: string | null
           sent_at: string
           status: string
           student_id: string
         }
         Insert: {
           campaign_id: string
+          click_count?: number | null
+          clicked_at?: string | null
           error_message?: string | null
           id?: string
           metadata?: Json | null
+          open_count?: number | null
+          opened_at?: string | null
           sent_at?: string
           status?: string
           student_id: string
         }
         Update: {
           campaign_id?: string
+          click_count?: number | null
+          clicked_at?: string | null
           error_message?: string | null
           id?: string
           metadata?: Json | null
+          open_count?: number | null
+          opened_at?: string | null
           sent_at?: string
           status?: string
           student_id?: string

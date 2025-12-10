@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.verify-reset-token]
 verify_jwt = false
+
+[functions.resend-webhook]
+verify_jwt = false
