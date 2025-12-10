@@ -88,39 +88,45 @@ const handler = async (req: Request): Promise<Response> => {
       courseName = course?.title || '';
     }
 
-    // Send emails
-    const results = await Promise.all(
-      targetStudents.map(async (student) => {
-        try {
-          // Get student email
-          const { data: authUser } = await supabase.auth.admin.getUserById(student.user_id);
-          
-          if (!authUser?.user?.email) {
-            throw new Error("Student email not found");
-          }
+    // Helper function to delay between sends
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-          const studentEmail = authUser.user.email;
-          const studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Étudiant';
+    // Send emails sequentially to respect rate limits (2 requests/second max)
+    const results: any[] = [];
+    
+    for (let i = 0; i < targetStudents.length; i++) {
+      const student = targetStudents[i];
+      
+      try {
+        // Get student email
+        const { data: authUser } = await supabase.auth.admin.getUserById(student.user_id);
+        
+        if (!authUser?.user?.email) {
+          throw new Error("Student email not found");
+        }
 
-          // Replace variables in email content
-          let emailContent = campaign.html_body
-            .replace(/\{student_name\}/g, studentName)
-            .replace(/\{course_name\}/g, courseName)
-            .replace(/\{espace_formation_link\}/g, 'https://metaadsmastery.dalaconcept.com/espace-formation');
+        const studentEmail = authUser.user.email;
+        const studentName = `${student.first_name || ''} ${student.last_name || ''}`.trim() || 'Étudiant';
 
-          // Create plain text version (strips HTML tags)
-          const textContent = emailContent
-            .replace(/<br\s*\/?>/gi, '\n')
-            .replace(/<\/p>/gi, '\n\n')
-            .replace(/<[^>]*>/g, '')
-            .replace(/&nbsp;/g, ' ')
-            .replace(/&amp;/g, '&')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .trim();
+        // Replace variables in email content
+        let emailContent = campaign.html_body
+          .replace(/\{student_name\}/g, studentName)
+          .replace(/\{course_name\}/g, courseName)
+          .replace(/\{espace_formation_link\}/g, 'https://metaadsmastery.dalaconcept.com/espace-formation');
 
-          // Simple, personal-looking HTML (avoids Promotions tab)
-          const fullHtml = `
+        // Create plain text version (strips HTML tags)
+        const textContent = emailContent
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>/gi, '\n\n')
+          .replace(/<[^>]*>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .trim();
+
+        // Simple, personal-looking HTML (avoids Promotions tab)
+        const fullHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -138,70 +144,79 @@ const handler = async (req: Request): Promise<Response> => {
 </body>
 </html>`;
 
-          // First create the log entry to get the ID for tracking
-          const { data: logEntry, error: logError } = await supabase.from('email_campaign_logs').insert({
-            campaign_id: campaignId,
-            student_id: student.user_id,
-            status: 'pending',
-          }).select('id').single();
+        // First create the log entry to get the ID for tracking
+        const { data: logEntry, error: logError } = await supabase.from('email_campaign_logs').insert({
+          campaign_id: campaignId,
+          student_id: student.user_id,
+          status: 'pending',
+        }).select('id').single();
 
-          if (logError) {
-            console.error('Error creating log entry:', logError);
-            throw logError;
-          }
-
-          const logId = logEntry.id;
-          console.log(`Sending email to ${studentEmail} with log ID: ${logId}`);
-
-          // Send email with improved deliverability settings
-          const emailResponse = await resend.emails.send({
-            from: "Meta Ads Mastery <noreply@metaadsmastery.dalaconcept.com>",
-            reply_to: "contact@metaadsmastery.dalaconcept.com",
-            to: [studentEmail],
-            subject: campaign.subject,
-            html: fullHtml,
-            text: textContent, // Plain text version improves deliverability
-            headers: {
-              "List-Unsubscribe": "<mailto:unsubscribe@metaadsmastery.dalaconcept.com>",
-            },
-            tags: [
-              { name: "campaign_log_id", value: logId },
-              { name: "campaign_id", value: campaignId },
-              { name: "student_id", value: student.user_id },
-            ],
-          });
-
-          console.log(`Resend response for ${studentEmail}:`, JSON.stringify(emailResponse));
-
-          if (emailResponse.error) {
-            throw new Error(emailResponse.error.message);
-          }
-
-          // Update log with success
-          await supabase.from('email_campaign_logs')
-            .update({
-              status: 'sent',
-              metadata: { resend_id: emailResponse.data?.id },
-            })
-            .eq('id', logId);
-
-          console.log(`Email sent successfully to ${studentEmail}`);
-          return { success: true, studentId: student.user_id };
-        } catch (error: any) {
-          console.error(`Error sending to student ${student.user_id}:`, error);
-
-          // Log failure
-          await supabase.from('email_campaign_logs').insert({
-            campaign_id: campaignId,
-            student_id: student.user_id,
-            status: 'failed',
-            error_message: error.message,
-          });
-
-          return { success: false, studentId: student.user_id, error: error.message };
+        if (logError) {
+          console.error('Error creating log entry:', logError);
+          throw logError;
         }
-      })
-    );
+
+        const logId = logEntry.id;
+        console.log(`[${i + 1}/${targetStudents.length}] Sending email to ${studentEmail} with log ID: ${logId}`);
+
+        // Send email with improved deliverability settings
+        const emailResponse = await resend.emails.send({
+          from: "Meta Ads Mastery <noreply@metaadsmastery.dalaconcept.com>",
+          reply_to: "contact@metaadsmastery.dalaconcept.com",
+          to: [studentEmail],
+          subject: campaign.subject,
+          html: fullHtml,
+          text: textContent,
+          headers: {
+            "List-Unsubscribe": "<mailto:unsubscribe@metaadsmastery.dalaconcept.com>",
+          },
+          tags: [
+            { name: "campaign_log_id", value: logId },
+            { name: "campaign_id", value: campaignId },
+            { name: "student_id", value: student.user_id },
+          ],
+        });
+
+        console.log(`Resend response for ${studentEmail}:`, JSON.stringify(emailResponse));
+
+        if (emailResponse.error) {
+          throw new Error(emailResponse.error.message);
+        }
+
+        // Update log with success
+        await supabase.from('email_campaign_logs')
+          .update({
+            status: 'sent',
+            metadata: { resend_id: emailResponse.data?.id },
+          })
+          .eq('id', logId);
+
+        console.log(`Email sent successfully to ${studentEmail}`);
+        results.push({ success: true, studentId: student.user_id });
+
+        // Wait 600ms before next email to respect rate limit (2/sec = 500ms min, adding buffer)
+        if (i < targetStudents.length - 1) {
+          await delay(600);
+        }
+      } catch (error: any) {
+        console.error(`Error sending to student ${student.user_id}:`, error);
+
+        // Log failure
+        await supabase.from('email_campaign_logs').insert({
+          campaign_id: campaignId,
+          student_id: student.user_id,
+          status: 'failed',
+          error_message: error.message,
+        });
+
+        results.push({ success: false, studentId: student.user_id, error: error.message });
+
+        // Still wait before next attempt
+        if (i < targetStudents.length - 1) {
+          await delay(600);
+        }
+      }
+    }
 
     const successCount = results.filter(r => r.success).length;
     const failureCount = results.filter(r => !r.success).length;
