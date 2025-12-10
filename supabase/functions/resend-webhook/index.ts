@@ -1,30 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, svix-id, svix-timestamp, svix-signature",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-interface ResendWebhookEvent {
-  type: string;
-  created_at: string;
-  data: {
-    email_id: string;
-    from: string;
-    to: string[];
-    subject: string;
-    created_at: string;
-    tags?: { name: string; value: string }[];
-    click?: {
-      link: string;
-      timestamp: string;
-    };
-  };
-}
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -32,111 +12,95 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const event: ResendWebhookEvent = await req.json();
-
+    const event = await req.json();
     console.log("Received Resend webhook event:", event.type);
     console.log("Event data:", JSON.stringify(event.data));
 
-    // Extract campaign log ID from tags if present
-    const campaignLogIdTag = event.data.tags?.find(t => t.name === "campaign_log_id");
-    const campaignLogId = campaignLogIdTag?.value;
+    // Tags can be an object or array - handle both cases
+    const tags = event.data.tags;
+    let campaignLogId: string | undefined;
+    
+    if (tags) {
+      if (typeof tags === 'object' && !Array.isArray(tags)) {
+        // Tags is an object like { campaign_log_id: "...", campaign_id: "..." }
+        campaignLogId = tags.campaign_log_id;
+      } else if (Array.isArray(tags)) {
+        // Tags is an array like [{ name: "campaign_log_id", value: "..." }]
+        const logIdTag = tags.find((tag: any) => tag.name === "campaign_log_id");
+        campaignLogId = logIdTag?.value;
+      }
+    }
 
     if (!campaignLogId) {
-      console.log("No campaign_log_id tag found, skipping...");
-      return new Response(JSON.stringify({ success: true, message: "No tracking ID" }), {
+      console.log("No campaign_log_id found in tags, skipping update");
+      return new Response(JSON.stringify({ success: true, message: "No campaign log to update" }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const now = new Date().toISOString();
+    let updateData: Record<string, any> = {};
+
     switch (event.type) {
-      case "email.opened": {
-        console.log(`Email opened for log: ${campaignLogId}`);
-        
-        // Get current log data and increment open count
-        const { data: currentLog } = await supabase
+      case "email.sent":
+        updateData = { status: "sent" };
+        break;
+      case "email.delivered":
+        updateData = { status: "delivered" };
+        break;
+      case "email.opened":
+        // Get current record to increment open_count
+        const { data: currentOpen } = await supabase
           .from("email_campaign_logs")
           .select("open_count, opened_at")
           .eq("id", campaignLogId)
           .single();
         
-        const updateData: Record<string, unknown> = {
-          open_count: (currentLog?.open_count || 0) + 1,
+        updateData = {
+          opened_at: currentOpen?.opened_at || now,
+          open_count: (currentOpen?.open_count || 0) + 1,
         };
-        
-        // Set opened_at only if not already set
-        if (!currentLog?.opened_at) {
-          updateData.opened_at = event.created_at;
-        }
-
-        await supabase
-          .from("email_campaign_logs")
-          .update(updateData)
-          .eq("id", campaignLogId);
         break;
-      }
-
-      case "email.clicked": {
-        console.log(`Email clicked for log: ${campaignLogId}`);
-        const clickLink = event.data.click?.link || "";
-        
-        // Get current log data
-        const { data: clickLog } = await supabase
+      case "email.clicked":
+        // Get current record to increment click_count
+        const { data: currentClick } = await supabase
           .from("email_campaign_logs")
-          .select("click_count, metadata")
+          .select("click_count, clicked_at")
           .eq("id", campaignLogId)
           .single();
         
-        const updatedMetadata = {
-          ...(clickLog?.metadata || {}),
-          last_clicked_link: clickLink,
-          click_timestamp: event.created_at,
+        updateData = {
+          clicked_at: currentClick?.clicked_at || now,
+          click_count: (currentClick?.click_count || 0) + 1,
         };
-
-        await supabase
-          .from("email_campaign_logs")
-          .update({
-            clicked_at: event.created_at,
-            click_count: (clickLog?.click_count || 0) + 1,
-            metadata: updatedMetadata,
-          })
-          .eq("id", campaignLogId);
         break;
-      }
-
-      case "email.delivered":
-        console.log(`Email delivered for log: ${campaignLogId}`);
-        await supabase
-          .from("email_campaign_logs")
-          .update({ status: "delivered" })
-          .eq("id", campaignLogId);
-        break;
-
       case "email.bounced":
-        console.log(`Email bounced for log: ${campaignLogId}`);
-        await supabase
-          .from("email_campaign_logs")
-          .update({ 
-            status: "bounced",
-            error_message: "Email bounced - invalid address or mailbox full"
-          })
-          .eq("id", campaignLogId);
+        updateData = { status: "bounced", error_message: "Email bounced" };
         break;
-
       case "email.complained":
-        console.log(`Email complaint for log: ${campaignLogId}`);
-        await supabase
-          .from("email_campaign_logs")
-          .update({ 
-            status: "complained",
-            error_message: "Recipient marked email as spam"
-          })
-          .eq("id", campaignLogId);
+        updateData = { status: "complained", error_message: "Recipient marked as spam" };
         break;
-
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        console.log("Unhandled event type:", event.type);
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      const { error } = await supabase
+        .from("email_campaign_logs")
+        .update(updateData)
+        .eq("id", campaignLogId);
+
+      if (error) {
+        console.error("Error updating campaign log:", error);
+        throw error;
+      }
+      console.log("Successfully updated campaign log:", campaignLogId, updateData);
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -145,13 +109,10 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error processing Resend webhook:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 };
 
