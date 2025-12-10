@@ -106,32 +106,37 @@ const handler = async (req: Request): Promise<Response> => {
           let emailContent = campaign.html_body
             .replace(/\{student_name\}/g, studentName)
             .replace(/\{course_name\}/g, courseName)
-            .replace(/\{espace_formation_link\}/g, 'https://metaadsmastery.lovable.app/espace-formation');
+            .replace(/\{espace_formation_link\}/g, 'https://metaadsmastery.dalaconcept.com/espace-formation');
 
-          // Build full HTML
+          // Create plain text version (strips HTML tags)
+          const textContent = emailContent
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p>/gi, '\n\n')
+            .replace(/<[^>]*>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .trim();
+
+          // Simple, personal-looking HTML (avoids Promotions tab)
           const fullHtml = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="utf-8">
-                <style>
-                  body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                  .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666; }
-                </style>
-              </head>
-              <body>
-                <div class="container">
-                  <img src="https://jdczbaswcxwemksfkiuf.supabase.co/storage/v1/object/public/certificate-logos/meta-ads-mastery-logo.png" alt="Meta Ads Mastery" style="max-width: 200px; margin-bottom: 20px;">
-                  ${emailContent}
-                  <div class="footer">
-                    <p>Meta Ads Mastery - Formation professionnelle en publicité Meta</p>
-                    <p>Vous recevez cet e-mail car vous êtes inscrit à notre formation.</p>
-                  </div>
-                </div>
-              </body>
-            </html>
-          `;
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <p>Bonjour ${studentName},</p>
+  ${emailContent}
+  <p style="margin-top: 30px;">À bientôt,<br>L'équipe Meta Ads Mastery</p>
+  <p style="font-size: 12px; color: #666; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+    Cet email vous est envoyé car vous êtes inscrit à Meta Ads Mastery.<br>
+    <a href="https://metaadsmastery.dalaconcept.com" style="color: #666;">metaadsmastery.dalaconcept.com</a>
+  </p>
+</body>
+</html>`;
 
           // First create the log entry to get the ID for tracking
           const { data: logEntry, error: logError } = await supabase.from('email_campaign_logs').insert({
@@ -147,12 +152,18 @@ const handler = async (req: Request): Promise<Response> => {
 
           const logId = logEntry.id;
 
-          // Send email with tracking tags
+          // Send email with improved deliverability settings
           const emailResponse = await resend.emails.send({
             from: "Meta Ads Mastery <noreply@metaadsmastery.dalaconcept.com>",
+            reply_to: "contact@metaadsmastery.dalaconcept.com",
             to: [studentEmail],
             subject: campaign.subject,
             html: fullHtml,
+            text: textContent, // Plain text version improves deliverability
+            headers: {
+              "List-Unsubscribe": "<mailto:unsubscribe@metaadsmastery.dalaconcept.com>",
+              "X-Priority": "3", // Normal priority
+            },
             tags: [
               { name: "campaign_log_id", value: logId },
               { name: "campaign_id", value: campaignId },
