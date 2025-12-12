@@ -65,51 +65,94 @@ serve(async (req) => {
       );
     }
 
-    // Create user with admin API
+    // Try to create user with admin API
     const { data: newUser, error: createError } = await supabaseClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
     });
 
+    let userId: string;
+
     if (createError) {
-      return new Response(
-        JSON.stringify({ error: createError.message }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      );
+      // Check if user already exists
+      if (createError.message.includes('already been registered')) {
+        // Get existing user by email
+        const { data: existingUsers, error: listError } = await supabaseClient.auth.admin.listUsers();
+        
+        if (listError) {
+          return new Response(
+            JSON.stringify({ error: 'Failed to check existing users' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+          );
+        }
+
+        const existingUser = existingUsers.users.find(u => u.email === email);
+        if (!existingUser) {
+          return new Response(
+            JSON.stringify({ error: 'User exists but could not be found' }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+          );
+        }
+
+        userId = existingUser.id;
+        console.log('User already exists, assigning role to:', userId);
+      } else {
+        return new Response(
+          JSON.stringify({ error: createError.message }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+    } else {
+      userId = newUser.user.id;
     }
 
-    // Create profile for the user
+    // Create or update profile for the user
     const { error: profileError } = await supabaseClient
       .from('profiles')
-      .insert({
-        user_id: newUser.user.id,
+      .upsert({
+        user_id: userId,
         first_name: firstName,
         last_name: lastName,
-      });
+      }, { onConflict: 'user_id' });
 
     if (profileError) {
-      console.error('Error creating profile:', profileError);
+      console.error('Error creating/updating profile:', profileError);
+    }
+
+    // Check if role already exists
+    const { data: existingRole } = await supabaseClient
+      .from('user_roles')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('role', role)
+      .maybeSingle();
+
+    if (existingRole) {
+      return new Response(
+        JSON.stringify({ message: 'User already has this role', user: { id: userId, email } }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
     }
 
     // Assign role to the user
     const { error: roleError } = await supabaseClient
       .from('user_roles')
       .insert({
-        user_id: newUser.user.id,
+        user_id: userId,
         role: role,
       });
 
     if (roleError) {
       console.error('Error assigning role:', roleError);
       return new Response(
-        JSON.stringify({ error: 'User created but role assignment failed' }),
+        JSON.stringify({ error: 'User exists but role assignment failed' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
     return new Response(
-      JSON.stringify({ user: newUser }),
+      JSON.stringify({ user: { id: userId, email }, message: newUser ? 'User created' : 'Role assigned to existing user' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
 
