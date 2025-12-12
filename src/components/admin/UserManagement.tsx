@@ -348,10 +348,11 @@ export const UserManagement = () => {
 
       if (error) throw error;
 
+      // Déterminer l'ID utilisateur depuis la réponse (gère les deux cas: nouvel utilisateur ou existant)
+      const userId = data?.user?.id || data?.user?.user?.id;
+      
       // Envoyer l'email de bienvenue pour les étudiants
-      if (newUserRole === 'student' && data?.user?.user?.id) {
-        const userId = data.user.user.id;
-        
+      if (newUserRole === 'student' && userId) {
         fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-student-welcome-email`,
           {
@@ -369,7 +370,11 @@ export const UserManagement = () => {
         ).catch(error => console.error('Error sending welcome email:', error));
       }
 
-      toast.success("Utilisateur créé avec succès. Un email de bienvenue a été envoyé.");
+      const successMessage = data?.message === 'Role assigned to existing user' 
+        ? "Rôle assigné à l'utilisateur existant avec succès"
+        : "Utilisateur créé avec succès. Un email de bienvenue a été envoyé.";
+      
+      toast.success(successMessage);
       setShowCreateDialog(false);
       setNewUserFirstName("");
       setNewUserLastName("");
